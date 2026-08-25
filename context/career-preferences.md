@@ -4,11 +4,13 @@
 
 ## Preferred internship roles
 
-1. Business Systems Analyst Intern
-2. Business Intelligence or Data Analyst Intern
-3. Product Operations Intern
-4. Technology Consulting Intern
-5. IT Project Coordination Intern
+1. AI Systems Designer Intern
+2. Work Automation Intern
+3. Business Systems Analyst Intern
+4. Business Intelligence or Data Analyst Intern
+5. Product Operations Intern
+6. Technology Consulting Intern
+7. IT Project Coordination Intern
 
 The student is also open to operations-analysis roles with substantial process, systems, or data work.
 
