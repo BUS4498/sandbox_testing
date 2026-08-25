@@ -1,33 +1,47 @@
-# Student Profile Reader — Tool Contract
+# Student Profile Reader Tool Specification
 
-## Status
+## Tool name
 
-Specification only; no profile parser is implemented.
+**Student Profile Reader**
 
-## Responsibility
+## Purpose
 
-Read versioned local student context and expose only evidence-bearing facts needed for internship operations.
+Read verified student information from `context/` for internship assessment. This document specifies a future capability; it does not implement a profile reader.
 
-## Inputs
+## When the agent may use it
 
-- Local paths for resume profile, preferences, and constraints.
-- Requested profile snapshot or current student-approved snapshot.
+The agent may use this tool during **RETRIEVE** or **REASON** when a current opportunity requires specific student evidence, preferences, availability, or constraints.
 
-## Outputs
+## Required inputs
 
-- Snapshot IDs and review dates.
-- Structured claims with evidence source and verification state.
-- Preferences and constraints kept distinct from qualifications.
-- Missing, conflicting, stale, and unresolved fields.
+- Requested information categories.
+- Relevant files or snapshot references in `context/`.
+- Run ID and the opportunity or decision requiring the information.
+- Verification and review metadata when available.
 
-## Constraints
+## Expected output
 
-- Read local files only; never upload them without explicit student direction.
-- Do not treat template examples, bracketed prompts, or blank fields as student facts.
-- Do not upgrade verification state, embellish claims, or derive sensitive attributes.
-- Minimize personal data returned to other components.
+A scoped profile package that may include:
 
-## Verification
+- education;
+- coursework;
+- skills;
+- experience;
+- projects;
+- career preferences;
+- availability; and
+- constraints.
 
-Return file version or hash and parse diagnostics. A missing or malformed profile blocks affected fit conclusions rather than producing invented defaults.
+Each item should retain its source, snapshot or version, review date, and verification state. Only explicitly supplied information may be returned as factual. Blank templates, examples, and inferred qualifications are not facts.
 
+## Permissions
+
+The tool may read approved local context files and return only information relevant to the current cycle. It may not edit the profile, upgrade a verification state, search for personal information elsewhere, or upload context to an external service.
+
+## Failure behavior
+
+Identify missing, stale, malformed, contradictory, or unverified information. Return the usable subset and the precise gap. If a missing fact affects eligibility or integrity, require student clarification rather than creating a default.
+
+## Security considerations
+
+Keep student context local, minimize personal information, and avoid returning contact details or identifiers unless essential. Do not place profile contents in logs, Git history, or external requests. Treat public-repository templates as non-factual.

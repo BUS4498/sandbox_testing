@@ -1,35 +1,38 @@
-# Communication Drafter — Tool Contract
+# Communication Drafter Tool Specification
 
-## Status
+## Tool name
 
-Specification only; no drafting model or sending integration is implemented.
+**Professional Communication Drafter**
 
-## Responsibility
+## Purpose
 
-Create editable drafts for student review using posting facts and verified student evidence.
+Prepare editable professional communication drafts, such as recruiter follow-up, interview confirmation, thank-you messages, and requests for clarification. The tool drafts only.
 
-## Inputs
+## When the agent may use it
 
-- Intended audience and purpose.
-- Relevant posting evidence.
-- Verified profile snapshot and student-selected facts.
-- Tone, length, and constraints supplied by the student.
+The agent may use this tool after a decision recommends communication and the student has supplied or approved the relevant purpose, audience, and factual context.
 
-## Outputs
+## Required inputs
 
-- Draft ID and exact draft text.
-- Sources used, unresolved placeholders, and excluded unsupported claims.
-- `draft_only` status and required approval metadata.
+- Communication type and purpose.
+- Intended recipient role or identity.
+- Relevant opportunity and interaction facts.
+- Verified student profile evidence when needed.
+- Student instructions for tone, length, and timing.
+- Prior approved correspondence when relevant.
 
-## Constraints
+## Expected output
 
-- Never fabricate qualifications, enthusiasm, relationships, or prior interactions.
-- Clearly mark unresolved facts and placeholders.
-- Do not silently change final application materials.
-- Never send, post, upload, or submit a draft.
-- Any future send operation must be separate and require approval of the exact recipient and exact content.
+An editable draft with a draft ID, communication type, proposed subject when applicable, exact body, factual sources used, unresolved placeholders, and a clear `DRAFT — NOT SENT` status.
 
-## Verification
+## Permissions
 
-Verify that the draft was saved locally and that no send action occurred. Draft quality evaluation remains distinct from approval.
+The tool may read relevant approved facts and save a local draft. It may not send, post, upload, or otherwise deliver employer-facing communication. Sending requires the student's approval of the exact recipient and exact content through a separate authorized capability.
 
+## Failure behavior
+
+If recipient, purpose, relevant facts, or student intent is unclear, return a partial draft with visible placeholders or request clarification. Do not fill gaps with invented qualifications, relationships, dates, or prior interactions.
+
+## Security considerations
+
+Use only the minimum relevant personal and opportunity information. Keep drafts local until the student authorizes otherwise, exclude credentials and hidden tracking, sanitize imported text, and avoid exposing private correspondence in logs or Git.

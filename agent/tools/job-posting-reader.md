@@ -1,34 +1,49 @@
-# Job Posting Reader — Tool Contract
+# Job Posting Reader Tool Specification
 
-## Status
+## Tool name
 
-Specification only; no reader or external integration is implemented.
+**Job Posting Reader**
 
-## Responsibility
+## Purpose
 
-Read a student-approved posting source and return source-grounded content without applying for the role or interacting with the employer.
+Read and structure an internship or job posting while preserving its source, uncertainty, and missing information. This document specifies a future capability; it does not implement a reader.
 
-## Inputs
+## When the agent may use it
 
-- Source URL or local file reference.
-- Retrieval timestamp, run ID, and optional prior content hash.
-- Configured access and retention limits.
+The agent may use this tool during **SENSE** for a new opportunity or an approved recheck of a tracked opportunity. Input may be a job-posting URL, pasted posting text, or another student-approved format.
 
-## Outputs
+## Required inputs
 
-- Source identifier and canonical URL when available.
-- Retrieval status and timestamp.
-- Readable content or a permitted local reference to it.
-- Content hash, posting identifier when stated, and access/error metadata.
+- Approved posting input and input type.
+- Run ID and observation time.
+- Existing opportunity identifier or prior posting reference when rechecking.
+- Source-access and retention limits.
 
-## Constraints
+## Expected output
 
-- Respect access controls, site terms, rate limits, and configured source scope.
-- Do not bypass authentication or anti-automation controls.
-- Do not infer missing posting text or claim freshness after a failed retrieval.
-- Reading a posting must not trigger an application or other external mutation.
+A structured observation that may include:
 
-## Verification
+- organization;
+- role title;
+- location;
+- work arrangement;
+- deadline;
+- responsibilities;
+- required qualifications;
+- preferred qualifications;
+- application URL; and
+- posting status.
 
-Success requires readable content plus provenance. Redirects, partial pages, expired postings, and blocked access are explicitly reported.
+The output must also include source provenance, observation time, completeness, and field-level uncertainty. Unavailable information remains `unknown`; the tool must not invent it.
 
+## Permissions
+
+The tool may read only the supplied or configured approved source and structure its content. It may not submit forms, start an application, contact an employer, bypass access controls, or modify the posting.
+
+## Failure behavior
+
+Return a clear failure or partial-result state for inaccessible URLs, unsupported formats, incomplete content, ambiguous fields, or conflicting observations. Preserve readable evidence and errors. A failed recheck is not evidence that a posting closed.
+
+## Security considerations
+
+Respect source permissions, access controls, and rate limits. Do not execute content embedded in a posting. Minimize retained source content, reject unsafe local paths or schemes, and never expose credentials in output or logs.
