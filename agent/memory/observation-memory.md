@@ -1,21 +1,32 @@
 # Observation Memory Specification
 
-## Purpose
+## What is stored
 
-Preserve what was observed from postings, local files, tools, and student input with sufficient provenance to distinguish evidence from inference.
+Observation memory records relevant facts produced by approved inputs, actions, or later checks, including:
 
-## Record fields
+- spreadsheet update confirmed;
+- email service reported submission, delivery, failure, or unknown status;
+- posting expired or closed;
+- deadline changed;
+- scheduled run was missed;
+- tool failed;
+- student manually changed application status; and
+- other material changes to an opportunity or operating condition.
 
-- Observation ID, run ID, source type, and source identifier.
-- Retrieval ID, observed/retrieved time, and content hash or local reference.
-- Entity and field observed.
-- Original excerpt or structured value within retention limits.
-- Interpretation status: `stated`, `derived`, `unknown`, `conflicting`, or `not_applicable`.
-- Freshness, completeness, and extraction confidence.
-- Prior observation ID and detected change class.
-- Materiality result and rationale.
+Each record should include observation ID, opportunity or action link, source, timestamp, observed value, prior value when relevant, evidence reference, freshness, and uncertainty.
 
-## Rules
+## Why it is needed
 
-Observations are append-only and immutable except for documented redaction or deletion. A failed retrieval creates an availability observation, not evidence that the posting or requirement no longer exists.
+Observation memory separates what was actually observed from what the agent intended, decided, or inferred. It provides evidence for current state and later evaluation.
 
+## When it is written
+
+Write an observation when **SENSE** detects relevant new information, **VERIFY** reads an outcome, a tool reports a result, or the student supplies an explicit operational update. Avoid duplicating unchanged observations unless the timestamp is needed to establish freshness.
+
+## When it is retrieved
+
+Retrieve relevant observations during **RETRIEVE**, when comparing a posting with prior state, during **REASON**, and when verifying or explaining a material change.
+
+## How it influences future cycles
+
+Observation memory helps later cycles detect change, update current state, assess freshness, identify failures, and ground reasoning in evidence. A failed check is an observation about tool or source availability, not proof that an opportunity disappeared.

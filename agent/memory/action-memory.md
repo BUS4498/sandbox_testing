@@ -1,22 +1,31 @@
 # Action Memory Specification
 
-## Purpose
+## What is stored
 
-Record attempted side effects and local mutations separately from decisions and verified outcomes.
+Action memory records attempted and completed actions, such as:
 
-## Record fields
+- spreadsheet row added;
+- spreadsheet row updated;
+- email notification attempted;
+- email notification submitted or sent;
+- daily schedule updated;
+- communication draft prepared; and
+- student approval requested.
 
-- Action ID, decision ID, run ID, and opportunity ID.
-- Action type, target, and exact planned effect.
-- Approval ID when required.
-- Idempotency key and attempt number.
-- Start/end times and tool contract used.
-- Request summary with secrets redacted.
-- Receipt, returned version, or error.
-- Provisional status: `attempted`, `accepted`, `failed`, or `unknown`.
-- Related evaluation ID and retry relationship.
+Each record should include action ID, opportunity and decision IDs, timestamp, action type, target, intended effect, approval reference when required, idempotency key, attempt number, tool result or error, and provisional status.
 
-## Rules
+## Why it is needed
 
-Append every attempt, including failures. Never rewrite an unknown attempt as failed merely to permit a retry. Do not store credentials or unnecessary full message bodies when a safe content hash and draft reference suffice.
+Action memory provides an audit trail and prevents duplicate spreadsheet writes, repeated notifications, repeated approval requests, and other duplicated external or local side effects.
 
+## When it is written
+
+Write an action record before or at the start of an attempted side effect, then append its returned result. Record failures and unknown outcomes as well as successful attempts. Final success is determined in evaluation memory.
+
+## When it is retrieved
+
+Retrieve relevant actions before **ACT**, before any retry, during duplicate checks, and when **VERIFY** needs the original intended effect or receipt.
+
+## How it influences future cycles
+
+Action memory tells later cycles what was already attempted, which idempotency key was used, and whether repetition could create a duplicate. An unknown prior outcome blocks unsafe retry until it is resolved or escalated.
