@@ -1,25 +1,37 @@
 # Privacy and Security Policy
 
-## Data posture
+## Purpose
 
-Store profile, memory, tracker, drafts, logs, and configuration locally by default. Collect and expose only the information needed for internship operations.
+Keep student information, credentials, local runtime data, and external access appropriately limited throughout design, testing, and future operation.
 
-## Rules
+## Secrets and credentials
 
-- Keep credentials in a local secret store or ignored `.env`, never Markdown, logs, memory, spreadsheet cells, or Git.
-- Keep generated spreadsheets and runtime data outside the repository.
-- Treat public repositories as public: context files committed here remain templates, not real student records.
-- Redact sensitive values from errors and dashboard diagnostics.
-- Record external data transfer purpose, destination, and student authorization.
-- Use least-privilege access and limit integrations to configured operations.
-- Provide future export, retention, backup, and deletion controls.
-- Do not infer or use protected personal characteristics for opportunity ranking.
+- Do not expose credentials.
+- Do not place passwords, tokens, or API keys in specification files.
+- Keep secrets outside GitHub in a local secret store or ignored local configuration.
+- Keep email credentials and recipient settings local.
+- Do not expose secrets through the frontend, logs, errors, spreadsheet cells, or operational memory.
+- Redact sensitive values before displaying diagnostics.
 
-## Retention
+## Student and test data
 
-Retain provenance and audit records only as long as useful to the student and course purpose. Deletion should cover primary local records and known backups, while reporting any artifacts that could not be removed.
+- Avoid collecting or displaying unnecessary personal information.
+- Use synthetic or explicitly approved student data during testing.
+- Retrieve only the student context relevant to the current opportunity or run.
+- Minimize retention of information that is no longer operationally necessary.
+- Do not infer or expose sensitive personal attributes that are not required for internship operations.
 
-## Incident behavior
+## Local runtime data
 
-On suspected secret exposure, unauthorized transfer, or corrupted local data, stop affected actions, preserve non-sensitive diagnostic evidence, notify the student, and require remediation before resuming.
+- Keep profile details, memory, drafts, and operational records local by default.
+- Do not commit the local runtime spreadsheet when it may contain personal or evolving application data.
+- Store the spreadsheet and runtime state outside the Git repository.
+- Provide future controls for local export, retention, backup, and deletion.
 
+## External services
+
+Use only student-approved services and transfer the minimum necessary information. Apply least-privilege access, validate destinations, and record material external transfers. Never bypass service access controls.
+
+## Security failures
+
+If a credential may be exposed, data may have been sent without authority, or local data integrity is uncertain, stop the affected action, preserve non-secret diagnostic evidence, inform the student, and require remediation before resuming.

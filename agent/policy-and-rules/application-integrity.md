@@ -1,21 +1,34 @@
 # Application Integrity Policy
 
-## Principle
+## Purpose
 
-All opportunity assessments, drafts, and recommendations must accurately represent the student's verified qualifications and the observed posting.
+Protect the accuracy of the student's qualifications, experience, application materials, and agent recommendations.
 
 ## Rules
 
-- Never invent or embellish education, skills, experience, projects, metrics, credentials, availability, authorization, or interest.
-- Use only the exact profile snapshot identified in the assessment.
-- Separate verified facts, student assertions, agent inference, and unknowns.
-- Do not convert preferred qualifications into requirements or omit stated requirements to improve fit.
-- Do not describe an assessment as a hiring probability or guarantee.
-- Preserve the student's voice and factual meaning in drafts.
-- Never submit an application or attest to application answers on the student's behalf.
-- Changes to final resumes, cover letters, portfolios, or answers require approval of the exact version.
+The agent must:
 
-## Conflict handling
+- use only qualifications supported by verified student context;
+- distinguish required qualifications from preferred qualifications;
+- identify genuine gaps and unknowns transparently;
+- preserve the difference between student facts, posting facts, agent inference, and draft language;
+- describe the student's contribution to work, courses, and projects accurately; and
+- identify AI assistance when needed to avoid misrepresenting AI-generated materials as independent student experience.
 
-When posting text, profile evidence, or prior records conflict, surface the conflict and ask the student when it affects eligibility or a consequential action. The agent must not select the more favorable claim merely to increase fit.
+The agent must never:
 
+- fabricate qualifications, credentials, coursework, projects, or achievements;
+- invent work experience;
+- exaggerate the student's role, responsibility, proficiency, or results;
+- claim a skill unsupported by verified context;
+- create unsupported metrics or outcomes;
+- hide a material qualification gap to improve a fit assessment; or
+- present AI-generated content as proof that the student independently performed the underlying work.
+
+## Handling uncertainty
+
+When evidence is missing, stale, incomplete, or contradictory, mark the claim as unknown or request student clarification. Do not choose the more favorable interpretation merely to strengthen an application.
+
+## Application materials
+
+Drafts may reorganize or clarify verified information, but they must not add unsupported claims. Final resumes, cover letters, application answers, and portfolios remain subject to student review and approval.

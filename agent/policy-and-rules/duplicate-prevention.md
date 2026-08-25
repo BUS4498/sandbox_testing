@@ -1,30 +1,46 @@
 # Duplicate Prevention Policy
 
-## Goal
+## Purpose
 
-Represent one internship opportunity once in current state while preserving observations from multiple URLs or runs.
+Prevent duplicate opportunity rows, incorrect new-opportunity classifications, and repeated notifications for the same event.
 
-## Identity signals
+## Opportunity identity
 
-Prefer, in order:
+Use the strongest available identifiers, including:
 
-1. Explicit employer or application-system posting ID plus organization.
-2. Canonical application URL after removing non-identity tracking parameters.
-3. Strong composite match across normalized organization, title, location, program term, and substantially similar posting content.
+1. employer or application-system opportunity ID;
+2. canonical posting URL;
+3. normalized company and role title; and
+4. location when relevant to distinguish separate openings.
 
-Weak title or organization similarity alone is not enough to merge records.
+Tracking parameters should not create a new identity. Company or role similarity alone may be insufficient when an employer has multiple openings.
 
-## Behavior
+## Before adding an opportunity
 
-- Assign every opportunity a stable local ID.
-- Check identity before creating a row or sending a new-opportunity notification.
-- Attach alternate sources and new observations to the existing opportunity when identity is strong.
-- When identity is ambiguous, create a duplicate-candidate relationship and request review rather than merging.
-- Preserve field provenance when sources differ.
-- Never overwrite student application status during an automatic merge.
-- Support a reversible manual split or merge with an audit record.
+The agent must check the current spreadsheet and relevant memory for a matching opportunity ID, canonical posting URL, or strong composite match. It must not:
+
+- create duplicate spreadsheet rows for the same opportunity;
+- treat an unchanged opportunity as a new one; or
+- send repeated "new opportunity" emails for an already-recorded opportunity.
+
+When identity is uncertain, flag a possible duplicate and ask the student rather than merge or add automatically.
+
+## Material changes
+
+If an existing opportunity materially changes, the agent should:
+
+1. update the existing record;
+2. identify the fields that changed;
+3. preserve the prior value in operational history;
+4. verify the spreadsheet update; and
+5. create one corresponding update notification to the student.
+
+A material change may include deadline, posting status, requirements, recommendation, application status, or a due follow-up action. Formatting changes and repeated unchanged observations are not material.
 
 ## Notification idempotency
 
-Derive a notification idempotency key from the stable opportunity ID, material change class, normalized changed values, and recorded-state version. A repeated run with the same verified change must not send another notification.
+Assign each notification an idempotency key based on the stable opportunity ID, material change type, resulting record version, and normalized changed values. A successful or pending notification with the same key must not be sent again. A retry after failure must reuse the key and preserve the prior attempt history.
 
+## Manual correction
+
+Student-approved merges or splits must be reversible, retain provenance, and never overwrite explicit student-owned status or notes.
