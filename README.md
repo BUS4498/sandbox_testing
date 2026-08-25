@@ -1,75 +1,46 @@
 # Internship Application Operations Agent
 
-> **Project phase:** Design and specification only. This repository does not contain a working agent, dashboard, API, integration, scheduler, or internship spreadsheet.
+> **Current status:** This repository contains **system-design specifications only**. The working application will be added in a later phase.
 
-## Project goal
+## What this project is
 
-This project specifies a local-first agentic system that helps an undergraduate student manage internship opportunities from discovery through application follow-up. The eventual application will run on the student's computer and keep the student in control of consequential actions.
+The Internship Application Operations Agent is a planned local-first assistant for an undergraduate student searching for internships. The eventual system will help collect, evaluate, prioritize, and track opportunities while keeping consequential career decisions under the student's control.
 
-The future system should help the student:
+The future application will run on the student's computer and provide a local browser-based dashboard. A local spreadsheet will serve as the student's user-facing collection of current internship opportunities. After a material collection update succeeds, informational email notifications will tell the student what changed and what may need attention.
 
-- collect and interpret internship postings;
-- compare requirements with a verified student profile and resume;
-- assess fit, prioritize opportunities, and explain the evidence used;
-- track deadlines, application status, unresolved tasks, and next actions;
-- maintain a synchronized local spreadsheet of the current opportunity collection;
-- notify the student by email after a material opportunity update is successfully recorded;
-- verify whether intended actions succeeded; and
-- preserve relevant state, decisions, actions, observations, and evaluations across runs.
+The system is designed to support both:
 
-## Operating model
+- a student-initiated **Run Now** action; and
+- an optional once-per-day scheduled run.
 
-The eventual agent supports two student-controlled triggers:
+No working agent, frontend, spreadsheet, email integration, scheduler, or production runtime is included yet.
 
-1. **Run Now:** the student starts a run from the local dashboard.
-2. **Optional daily run:** the student enables and configures a local schedule. The schedule is off by default and can be paused or disabled at any time.
+## Production workflow
 
-Both triggers use the same lifecycle:
+`RETRIEVE → SENSE → REASON → DECIDE → ACT → VERIFY → REMEMBER → REPEAT OR STOP`
 
-`Retrieve -> Sense -> Reason -> Decide -> Act -> Verify -> Remember`
+Detailed responsibilities for each stage are defined in the workflow task specifications.
 
-A run may collect and analyze information without creating an external side effect. Any side effect must follow the approval rules in [`agent/policy-and-rules/autonomy-and-approval.md`](agent/policy-and-rules/autonomy-and-approval.md).
+## Core concepts
 
-## Non-negotiable boundaries
+- **Context:** relatively stable background information supplied to the agent.
+- **Memory:** dynamic operational information accumulated through agent activity.
+- **Spreadsheet:** the user's visible collection of current internship opportunities.
+- **Frontend:** the human interaction layer.
+- **Tools:** capabilities that allow the production agent to access information or perform actions.
 
-The agent must never:
+## Specification navigation
 
-- submit an internship application autonomously;
-- invent, embellish, or infer unverified student qualifications as facts;
-- alter final resumes, cover letters, portfolios, or application answers without student approval;
-- send recruiter, employer, alumni, or other third-party communications without student approval;
-- conceal uncertainty, failed actions, or stale information;
-- store the generated spreadsheet, credentials, or runtime memory in Git; or
-- treat a fit assessment as a guarantee of selection.
+- [Production agent overview](agent/agent.md)
+- [Workflow task specifications](agent/workflow-task-specs/)
+- [Tool specifications](agent/tools/)
+- [Policies and rules](agent/policy-and-rules/)
+- [Memory specifications](agent/memory/)
+- [Synthetic student context](context/)
+- [Job-fit-assessment production Skill](agent/skills/job-fit-assessment/SKILL.md)
+- [Local frontend design](frontend/frontend-design.md)
+- [Runtime-data guidance](data/README.md)
 
-Automatic email is limited to operational notifications sent to the student's verified address after a material update has been durably recorded. Recruiter-facing messages are always drafts until approved.
+## Implementation boundary
 
-## What counts as a material opportunity update
-
-A material update is a newly recorded opportunity or a verified change that can affect whether, when, or how the student should act. Examples include changes to eligibility, deadline, role status, location, work authorization, compensation, required qualifications, application status, or fit priority. Formatting-only changes and repeated observations of unchanged data are not material.
-
-## Repository map
-
-```text
-agent/     Agent contract, lifecycle task specifications, tool contracts, policies, memory schemas, and fit-assessment skill
-context/   Safe, student-completed context templates; no real personal data is included
-frontend/  Local dashboard design specification
-data/      Runtime-data location and spreadsheet design notes; no spreadsheet is committed
-```
-
-The root [`.env.example`](.env.example) documents future configuration names without providing credentials. [`.gitignore`](.gitignore) defines the minimum exclusions for secrets and local runtime data.
-
-## Design principles
-
-- **Local first:** personal data and operational state remain on the student's computer unless the student configures a specific external service.
-- **Evidence before recommendation:** postings and student qualifications retain provenance, timestamps, and uncertainty.
-- **Approval before consequence:** application submission, final-material changes, and third-party communication require explicit approval at the moment of action.
-- **Idempotent operations:** repeated runs should update an existing opportunity rather than create duplicates or repeat notifications.
-- **Verifiable outcomes:** attempted, accepted, confirmed, failed, and unknown are distinct states.
-- **Recoverable history:** important changes are appended to an audit trail rather than silently overwritten.
-- **Accessible explanations:** the dashboard shows why an opportunity was prioritized and what remains unresolved.
-
-## Implementation gate
-
-Implementation should begin only after these specifications are reviewed for course scope, privacy assumptions, approval boundaries, data fields, and observable success criteria. Production code and live credentials do not belong in this design phase.
-
+The next phase may use these specifications to build the local application. Implementation must preserve the defined approval boundaries: the agent is an internship-management assistant, not an autonomous job applicant.
