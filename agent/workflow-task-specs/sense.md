@@ -1,29 +1,45 @@
-# Sense Task Specification
+# SENSE Task Specification
 
 ## Purpose
 
-Transform retrieved inputs into structured observations and identify meaningful changes without yet recommending or acting.
+Gather and structure new or current information about internship opportunities without making the final recommendation.
+
+## When this task runs
+
+Run after **RETRIEVE** for a newly supplied internship input, a scheduled or requested recheck, or a tracked opportunity that requires attention.
 
 ## Inputs
 
-- Retrieval records.
-- Prior normalized opportunity state.
-- Field definitions and duplicate-prevention rules.
+- Scoped retrieval package.
+- A pasted job-posting URL, pasted posting text, or another approved internship input source.
+- Relevant prior opportunity state and source history.
 
-## Procedure
+## Instructions
 
-1. Extract organization, role, source, location, work mode, dates, deadline, compensation, eligibility, authorization language, requirements, responsibilities, and application status when stated.
-2. Label each value as stated, derived, unknown, conflicting, or not applicable.
-3. Normalize formats while retaining original evidence.
-4. compare the observation with prior state and classify fields as new, changed, unchanged, removed, or uncertain.
-5. Detect duplicate candidates before creating a new opportunity identity.
-6. Determine whether verified changes meet the material-update definition.
+1. Read the approved input or recheck the relevant tracked posting.
+2. Extract observable information such as organization, role, location, work mode, requirements, preferred qualifications, eligibility, deadline, posting status, and application status when available.
+3. Preserve source, observation time, and the distinction between stated information, derived structure, and unknown values.
+4. Compare the observation with the relevant tracked record.
+5. Classify it as:
+   - `NEW OPPORTUNITY`;
+   - `EXISTING — UNCHANGED`;
+   - `EXISTING — MATERIALLY CHANGED`; or
+   - `INVALID OR INCOMPLETE INPUT`.
+6. Identify changes such as a revised deadline, closed posting, changed requirements, current status, or a newly due action.
+7. Do not make the final decision or infer missing qualifications.
 
-## Output contract
+## Expected output
 
-Return an observation ID, opportunity or duplicate-candidate ID, field-level evidence and provenance, freshness, change set, materiality result with rationale, and unresolved extraction questions.
+A structured opportunity observation, comparison with prior state, classification, material change set, source evidence, observation time, and unresolved information.
 
-## Guardrails
+## Failure and exception handling
 
-Silence is not evidence that a prior requirement disappeared. A missing field in a later retrieval must be labeled uncertain unless the source explicitly removes or contradicts it.
+If content is inaccessible, incomplete, ambiguous, or contradictory, preserve what was actually observed and label the limitation. Do not treat a failed recheck as evidence that a posting closed.
 
+## What is passed to the next stage
+
+Pass the structured observation, change classification, prior tracked state, provenance, and unresolved fields to **REASON**.
+
+## What should be remembered
+
+Remember new observations, material changes, source status, and meaningful recheck failures. Avoid storing duplicate unchanged observations unless needed to document freshness.

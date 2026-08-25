@@ -1,28 +1,49 @@
-# Decide Task Specification
+# DECIDE Task Specification
 
 ## Purpose
 
-Choose the next safe operation for each opportunity and the run as a whole.
+Convert the evidence-backed assessment into an explicit, explainable operational decision.
 
-## Decision options
+## When this task runs
 
-- Record or update local opportunity state.
-- Prioritize, defer, archive, or flag for student review.
-- Create or update an unresolved task.
-- Draft a student-facing recommendation or third-party communication.
-- Request explicit approval for a consequential action.
-- Take no action because the state is unchanged.
-- Escalate because evidence, authority, or safety is insufficient.
+Run after **REASON** whenever a valid opportunity or unresolved issue requires a current decision.
 
-## Decision criteria
+## Inputs
 
-Evaluate policy permission, student constraints, deadline urgency, fit evidence, confidence, materiality, duplicate risk, action reversibility, pending approvals, and prior action outcomes.
+- Evidence-backed assessment.
+- Current opportunity and application status.
+- Deadline and urgency.
+- Relevant prior decisions and explicit student choices.
+- Approval and autonomy rules.
 
-## Output contract
+## Instructions
 
-Each decision records a decision ID, alternatives considered, selected option, evidence, governing policy, confidence, required approval, expiration when applicable, and intended observable result.
+1. Select one primary decision:
+   - `PRIORITIZE`;
+   - `MONITOR`;
+   - `PREPARE`;
+   - `FOLLOW UP`;
+   - `ARCHIVE`; or
+   - `ESCALATE TO USER`.
+2. State a concise rationale grounded in the supplied evidence.
+3. Identify urgency and the recommended next action.
+4. State whether human input or approval is required.
+5. State whether the local spreadsheet needs a new record or material update.
+6. Respect explicit student decisions and approval boundaries.
+7. Do not use an unexplained numerical fit score as the decision.
 
-## Guardrails
+## Expected output
 
-The daily schedule never expands authority. Missing approval produces `waiting_for_student`, not implied consent. Application submission, third-party communication, and final-material changes cannot be selected as autonomous actions.
+A decision record containing the decision, concise rationale, relevant supporting evidence, urgency, recommended next action, human-input requirement, and spreadsheet-update requirement.
 
+## Failure and exception handling
+
+If no safe decision is supported, choose `ESCALATE TO USER` and identify the missing evidence or conflict. Do not default to a favorable decision merely to keep the workflow moving.
+
+## What is passed to the next stage
+
+Pass the decision record, authorized or approval-gated next action, intended spreadsheet change, and notification materiality to **ACT**.
+
+## What should be remembered
+
+Remember the decision, rationale, evidence references, urgency, and whether it supersedes a prior decision.
