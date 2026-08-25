@@ -1,65 +1,78 @@
 ---
 name: job-fit-assessment
-description: Assess an internship posting against a verified student profile, preferences, and constraints with evidence-linked requirements, explicit uncertainty, and a non-predictive fit recommendation. Use for opportunity triage and prioritization, not application submission or qualification creation.
+description: Assess whether an internship meaningfully fits a student's verified profile, preferences, location, and timing constraints. Use to produce evidence for the Reason and Decide stages, not to predict hiring, create qualifications, or submit applications.
+metadata:
+  short-description: Evidence-based internship fit assessment
 ---
 
 # Job Fit Assessment
 
-Assess whether an internship is a meaningful use of the student's limited application time. Produce an explainable recommendation without predicting hiring or changing the student's profile.
+Assess an internship against the student's authoritative context. Return structured evidence that the production agent can use during **REASON** and **DECIDE**; do not make or execute the final operational decision.
 
 ## Required inputs
 
-- Current posting observation with source and retrieval time.
-- Versioned student resume/profile snapshot.
-- Versioned career preferences and availability/constraints.
-- Prior assessment only when reassessing a changed posting.
+- Structured job-posting observation with source and observation time.
+- Relevant verified student context from `context/`.
+- Career preferences.
+- Availability, location, and timing constraints.
+- Current deadline and unresolved information.
 
-If the posting, profile, or a decisive constraint is missing or too stale, return `not_enough_information` and identify the smallest student question or retrieval needed.
+If decisive posting or student information is missing, return `INSUFFICIENT INFORMATION` and identify what must be retrieved or asked.
 
-## Evidence rules
+## Assessment instructions
 
-- Separate required, preferred, contextual, and unclear posting statements.
-- Match qualifications only to verified or clearly labeled student-asserted evidence.
-- Never infer proficiency from a course title, job title, tool mention, or demographic attribute alone.
-- Mark each requirement `matched`, `partially_matched`, `not_matched`, `unknown`, or `not_applicable` and cite both posting and profile evidence.
-- Keep career preferences distinct from qualifications.
-- Treat work authorization, dates, location, enrollment, graduation timing, and other hard constraints as blocking or unresolved before general fit.
-- Do not use protected characteristics in scoring or ranking.
+1. Separate posting statements into required qualifications, preferred qualifications, responsibilities, and unclear items.
+2. Compare every relevant required qualification with verified student evidence.
+3. Consider applicable coursework, projects, technical and business skills, and experience without assuming that a mention proves proficiency.
+4. Identify strong matches, partial matches, genuine gaps, and unknowns.
+5. Evaluate alignment with career preferences and desired role characteristics.
+6. Check location, work arrangement, internship dates, deadline, and other stated constraints.
+7. Explain uncertainty and cite the posting and context evidence supporting each conclusion.
+8. Never invent, embellish, or upgrade a qualification.
 
-## Assessment method
+## Evidence classifications
 
-1. Identify explicit hard eligibility constraints and test them against verified student constraints.
-2. Build a requirement-to-evidence matrix for required and preferred qualifications.
-3. Evaluate role/learning alignment, location/work-mode alignment, timing, and student-approved preferences.
-4. Note transferable evidence without claiming equivalence that the evidence cannot support.
-5. Assign a fit label and confidence based on evidence coverage and uncertainty.
-6. Recommend one next action that is safe and proportional to the deadline.
+Classify each relevant posting item as:
 
-## Fit labels
+- `STRONG MATCH`: verified context directly supports the item;
+- `PARTIAL MATCH`: related verified evidence exists but does not fully support the item;
+- `GAP`: verified context does not support the item;
+- `UNKNOWN`: available evidence cannot resolve the item; or
+- `NOT APPLICABLE`: the item does not apply to the assessment.
 
-- `strong_fit`: no known blocking constraint; most required qualifications have credible evidence; the role materially aligns with student goals.
-- `reasonable_fit`: no known blocking constraint; important requirements have evidence, with manageable gaps or preferences not fully aligned.
-- `stretch_fit`: potentially worthwhile for learning or interest, but one or more important non-eligibility requirements lack evidence.
-- `not_a_fit`: a verified blocking constraint or substantial mismatch makes application effort difficult to justify. State the evidence without discouraging language.
-- `not_enough_information`: decisive posting or student facts are unknown, stale, or conflicting.
+Keep required and preferred qualifications separate. A gap in a preferred qualification does not carry the same meaning as a gap in a stated requirement.
 
-Use labels consistently, but do not force a numeric score when the evidence does not support one. Confidence reflects evidence completeness and freshness, not hiring likelihood.
+## Overall fit explanation
+
+Use one of these evidence-based assessments:
+
+- `STRONG`: required qualifications are substantially supported, no verified blocking constraint is present, and the opportunity aligns well with the student's goals.
+- `MODERATE`: the opportunity has meaningful alignment but includes manageable gaps, uncertainty, or preference tradeoffs.
+- `WEAK`: a verified blocking constraint, major required-qualification gaps, or substantial goal mismatch makes the opportunity a low priority.
+- `INSUFFICIENT INFORMATION`: decisive evidence is missing, stale, or contradictory.
+
+Explain why the label applies. Do not reduce fit to one unexplained numerical score. Any numerical aid must remain secondary, transparent, and traceable to the evidence matrix.
 
 ## Output contract
 
 Return:
 
-- assessment ID, opportunity ID, posting observation ID, and context snapshot IDs;
-- fit label and `high`, `medium`, or `low` confidence;
-- hard-constraint results;
-- requirement-to-evidence matrix with sources;
-- preference and learning alignment;
-- verified strengths, evidence gaps, and unresolved questions;
-- concise rationale and alternative interpretation when material;
-- recommended next action and deadline urgency; and
-- comparison with the prior assessment when a material change triggered reassessment.
+- opportunity and posting-observation identifiers;
+- student-context snapshot references;
+- required-qualification evidence matrix;
+- preferred-qualification evidence matrix;
+- verified strong matches;
+- genuine gaps and unknowns;
+- coursework, project, skill, and experience evidence used;
+- career-preference alignment;
+- location and timing constraint results;
+- overall fit: `STRONG`, `MODERATE`, `WEAK`, or `INSUFFICIENT INFORMATION`;
+- concise explanation and confidence based on evidence completeness;
+- unresolved questions; and
+- candidate considerations for the **DECIDE** stage.
 
 ## Boundaries
 
-Do not fabricate qualifications, edit application materials, submit an application, or contact a third party. A fit assessment is advisory and must remain inspectable and reversible in prioritization.
+Do not predict selection, fabricate qualifications, alter student context, decide on the student's behalf, edit final application materials, contact an employer, or submit an application.
+
 
