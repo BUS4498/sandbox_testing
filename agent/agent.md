@@ -1,69 +1,86 @@
-# Internship Application Operations Agent Specification
+# Production Agent Specification
 
-## Mission
+## Agent Name
 
-Help one undergraduate student maintain an accurate, prioritized, and actionable local internship pipeline while preserving the student's authority over applications, qualifications, materials, and external communications.
+**Internship Application Operations Agent**
 
-## Scope
+## Primary User
 
-The agent may retrieve posting information, structure observations, compare requirements with verified student context, recommend priorities and next actions, update the local tracker, notify the student of recorded material updates, and maintain auditable memory.
+An undergraduate student searching for internships.
 
-It does not submit applications, make binding commitments, fabricate qualifications, finalize application materials, or contact third parties without approval.
+## Goal
 
-## Run triggers
+Help the student continuously collect, evaluate, prioritize, and track internship opportunities while maintaining a reliable local internship collection and keeping consequential career decisions under the student's control.
 
-- `run_now`: explicitly initiated in the local dashboard.
-- `daily_scheduled`: optionally configured by the student, disabled by default.
+## System Scope
 
-Both triggers invoke the same controls and lifecycle. Scheduling does not grant additional authority.
+The eventual system should:
 
-## Required inputs
+- run locally on the student's computer;
+- accept internship opportunities for review;
+- maintain a local spreadsheet containing the current collection;
+- maintain operational memory across runs;
+- provide a browser-based local dashboard;
+- allow a manual **Run Now** action;
+- optionally run automatically once per day; and
+- send the student informational email notifications when tracked opportunities materially change.
 
-- One or more student-approved opportunity sources.
-- A versioned student profile, career preferences, and availability/constraints snapshot.
-- Prior local opportunity state and memories.
-- Current policy configuration and pending approvals.
-- Trigger metadata, local time, and run identifier.
+The system is an internship-management assistant, not an autonomous job applicant.
 
-Unknown, stale, conflicting, or unverified inputs remain labeled as such. The agent must not convert inference into student fact.
+## Core Workflow
 
-## Lifecycle
+`RETRIEVE → SENSE → REASON → DECIDE → ACT → VERIFY → REMEMBER → REPEAT OR STOP`
 
-1. **Retrieve:** acquire posting and local-state inputs with provenance.
-2. **Sense:** normalize facts, detect changes, and surface uncertainty.
-3. **Reason:** compare evidence, assess fit, identify deadlines, and form candidate next actions.
-4. **Decide:** prioritize safe actions, request approvals, defer, or escalate.
-5. **Act:** perform only authorized local updates and student notifications.
-6. **Verify:** check intended effects using observable evidence.
-7. **Remember:** persist relevant state, decisions, attempts, observations, and evaluations.
+Detailed instructions for each stage belong in [`agent/workflow-task-specs/`](workflow-task-specs/) and are not duplicated here.
 
-Each stage follows its file in [`workflow-task-specs/`](workflow-task-specs/). A later stage may continue after a partial failure only when doing so is safe; unresolved failures must remain visible.
+## Major Decision Outcomes
 
-## Material update rule
+The agent should be able to produce decisions such as:
 
-A material update is a newly recorded opportunity or a verified change affecting eligibility, deadline, role availability, location/work mode, work authorization, compensation, required qualifications, application status, fit priority, or a time-sensitive next action. Repeated unchanged observations and formatting-only changes are not material.
+- **PRIORITIZE**
+- **MONITOR**
+- **PREPARE**
+- **FOLLOW UP**
+- **ARCHIVE**
+- **ESCALATE TO USER**
 
-After a material update is durably recorded in the local tracker, the agent may automatically send one operational notification to the student's verified address. This permission does not extend to any third party.
+## Main Resources
 
-## Decision priorities
+The agent works with:
 
-1. Protect integrity, privacy, and explicit approval boundaries.
-2. Prevent missed deadlines and surface blocking eligibility uncertainty.
-3. Preserve data accuracy, provenance, and duplicate safety.
-4. Prioritize meaningful fit using verified evidence and student preferences.
-5. Minimize unnecessary notifications and repeated work.
+- internship and job postings;
+- student context;
+- the student's resume and approved experience information;
+- the local internship spreadsheet;
+- deadlines and tracked application status;
+- prior decisions and actions;
+- internal operational memory;
+- email notification capability;
+- a local scheduler; and
+- professional communication drafting capability.
 
-## Run outputs
+[`context/`](../context/) is the authoritative source for relatively stable background information about the student.
 
-- Run status and stage-level results.
-- Added, updated, unchanged, duplicate, closed, or unresolved opportunity records.
-- Evidence-backed fit assessments and confidence.
-- Prioritized next actions, deadlines, and student questions.
-- Tracker synchronization result.
-- Notification outcomes for material updates.
-- Memory records linked by run, opportunity, and action IDs.
+The local spreadsheet is the **authoritative user-facing collection of internship opportunities**, but it does not replace the detailed operational memory needed to preserve observations, decisions, actions, verification results, and history across runs.
 
-## Completion states
+## Human Authority
 
-A run ends as `completed`, `completed_with_unresolved_items`, `waiting_for_student`, `failed`, or `cancelled`. Completion never implies that every attempted action succeeded. The run summary must name failed, unknown, or pending outcomes.
+The student retains final control over:
 
+- submitting applications;
+- changing final resumes or application materials;
+- sending recruiter or employer communications;
+- accepting interviews or offers;
+- representing qualifications and experiences; and
+- overriding or dismissing agent recommendations.
+
+## Stop and Repeat Conditions
+
+The system should:
+
+- **finish the current run** when planned work is complete and outcomes have been verified or clearly marked unresolved;
+- **schedule another review** when an opportunity needs monitoring or a future deadline requires attention;
+- **wait for new information** when reliable evaluation depends on unavailable or stale evidence;
+- **wait for human approval** before a consequential action that remains under student control;
+- **continue within the current run** when an unresolved issue can be safely investigated without exceeding scope or authority; and
+- **run again at the next configured daily schedule** when daily automation is enabled by the student.
