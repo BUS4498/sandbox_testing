@@ -1,41 +1,67 @@
-# Career Preferences Template
+# Career Preferences — Morgan Rivera
 
-> The student controls these preferences. They guide prioritization but do not become qualifications.
+> These preferences are completely synthetic and apply to the synthetic student described in `is-junior-resume.md`.
 
-- Preference snapshot ID: `[stable local identifier]`
-- Reviewed by student on: `[YYYY-MM-DD]`
+## Preferred internship roles
 
-## Target roles
+1. Business Systems Analyst Intern
+2. Business Intelligence or Data Analyst Intern
+3. Product Operations Intern
+4. Technology Consulting Intern
+5. IT Project Coordination Intern
 
-- Highest interest: `[role families]`
-- Also consider: `[role families]`
-- Exclude: `[role families, if any]`
+The student is also open to operations-analysis roles with substantial process, systems, or data work.
 
-## Domain and learning interests
+## Preferred industries
 
-- Preferred industries or problem domains: `[items]`
-- Skills the student wants to practice: `[items]`
-- Skills the student hopes to learn: `[items]`
+- Business software and SaaS
+- Financial technology
+- Healthcare technology
+- Logistics and supply-chain technology
+- Retail and e-commerce
+- Public-interest or education technology
 
-## Location and work mode
+Industry is a preference rather than a strict eligibility requirement.
 
-- Preferred locations: `[items]`
-- Acceptable work modes: `[onsite | hybrid | remote]`
-- Relocation willingness: `[yes | no | conditional]`
-- Travel tolerance: `[value or unknown]`
+## Location preferences
 
-## Opportunity preferences
+- First preference: Southern California
+- Also interested in the San Francisco Bay Area, Sacramento, Portland, and Seattle when temporary relocation support is available
+- Open to U.S.-based remote internships
+- Not seeking international relocation in this internship cycle
 
-- Preferred internship period: `[dates or term]`
-- Compensation preference: `[value, range, or no preference]`
-- Organization-size preference: `[value or no preference]`
-- Mission or culture considerations: `[student-defined evidence to look for]`
+## Work-arrangement preferences
 
-## Tradeoffs
+- Prefers hybrid work with regular in-person collaboration
+- Open to fully remote work when the team provides structured communication and mentorship
+- Open to onsite work when the commute is reasonable or temporary relocation is practical
 
-Describe which preferences are flexible and which are priorities. The future agent should surface tradeoffs rather than silently deciding them.
+## Areas of professional interest
 
-- Non-negotiable preferences: `[items]`
-- Flexible preferences: `[items]`
-- Student-approved tie-breakers: `[ordered items]`
+- Business-process improvement
+- Data quality and reporting
+- Dashboard development and decision support
+- Systems implementation
+- Product and customer operations
+- Responsible use of automation and AI in business workflows
 
+## Preferred role characteristics
+
+- A defined internship project or meaningful ownership
+- Access to a manager or mentor and regular feedback
+- Cross-functional collaboration with business and technical teams
+- Opportunities to use SQL, Excel, Power BI, Python, or process-mapping skills
+- Clear responsibilities and a documented learning environment
+
+## Role characteristics to avoid
+
+- Unpaid roles unless the student explicitly reconsiders
+- Commission-only sales
+- Roles centered primarily on cold outreach
+- Vague postings with no identifiable responsibilities
+- Roles that require senior-level expertise or several years of full-time experience
+- Positions with no reasonable connection to business systems, data, operations, or technology
+
+## Preference authority
+
+These preferences guide prioritization but do not create qualifications or automatic rejection rules unless a preference is explicitly stated as a constraint in `availability-and-constraints.md`.

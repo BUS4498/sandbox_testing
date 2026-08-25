@@ -1,43 +1,41 @@
-# Availability and Constraints Template
+# Availability and Constraints — Morgan Rivera
 
-> Complete in a private local copy. Legal or eligibility questions that the student cannot verify must be marked unknown and escalated to the student; the agent must not offer legal advice.
+> These constraints are completely synthetic and avoid unnecessary sensitive information.
 
-- Constraint snapshot ID: `[stable local identifier]`
-- Reviewed by student on: `[YYYY-MM-DD]`
+## Internship availability
 
-## Availability
+- Primary internship period: **May 24–August 20, 2027**
+- Available up to **40 hours per week** during the primary summer period
+- Available for onboarding or required preparation for up to **five hours per week** during the two weeks before the start date
+- During the academic year, available for a maximum of **12 hours per week** for a local or remote part-time role
 
-- Earliest start date: `[YYYY-MM-DD or unknown]`
-- Latest end date: `[YYYY-MM-DD or unknown]`
-- Hours available per week: `[value or range]`
-- Class or recurring schedule constraints: `[items]`
-- Known unavailable dates: `[items]`
+## Geographic flexibility
 
-## Location constraints
+- Can commute within a reasonable Southern California travel area
+- Will consider temporary relocation within the western United States for a paid internship when the timeline and housing plan are practical
+- Open to remote and hybrid arrangements described in `career-preferences.md`
+- International relocation is outside the current search scope
 
-- Current region: `[coarse region; avoid a street address]`
-- Commute boundary: `[student-defined limit]`
-- Relocation constraints: `[items]`
-- Remote-work constraints: `[items]`
+## Compensation
 
-## Eligibility and authorization
+- Strong preference for paid internships
+- An unpaid opportunity must be escalated to the student and must not be prioritized automatically
 
-- Student-confirmed work-authorization statement: `[exact student-provided statement or unknown]`
-- Sponsorship needs: `[student-confirmed value or unknown]`
-- Enrollment or graduation constraints: `[items]`
-- Minimum age or other posting-specific eligibility: `[student-confirmed value or unknown]`
+## Scheduling constraints
 
-## Application capacity
+- Interview scheduling should leave reasonable time to review the organization and prepare
+- The student should receive at least one full day to review final application materials when the deadline permits
+- Conflicting deadlines or ambiguous interview times must be escalated rather than guessed
+- Daily automated reviews may be enabled or disabled by the student and do not expand the agent's authority
 
-- Maximum active applications: `[number or no limit]`
-- Weekly time budget for applications: `[hours]`
-- Minimum review time before a deadline: `[duration]`
+## Application and integrity constraints
 
-## Non-negotiable constraints
+- Applications cannot be submitted without the student's explicit approval of the specific application.
+- Final resumes, cover letters, portfolios, and application answers cannot be changed without student approval.
+- Recruiter or employer communications cannot be sent without approval of the exact recipient and message.
+- Qualifications, experience, coursework, projects, responsibilities, and results cannot be fabricated or embellished.
+- The agent must preserve explicit student decisions and allow the student to override or dismiss any recommendation.
 
-- `[constraint — reason — verification state]`
+## Intentionally unspecified information
 
-## Unresolved questions
-
-- `[question the student must answer before an affected opportunity can be prioritized]`
-
+Work-authorization, sponsorship, and other legal eligibility details are intentionally not included in this sandbox context. If a posting makes such information relevant, the agent must ask the student and must not infer an answer.

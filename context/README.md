@@ -1,23 +1,25 @@
-# Student context templates
+# Student Context
 
-These files are design-time templates. They contain no real student information and must not be treated as evidence of a student's qualifications.
+## Purpose
 
-Before a future agent uses student context, the student should complete and verify the templates. Sensitive or identifying details should be stored in a private local context location such as `context/private/`, which is excluded from Git, especially when the repository is public.
+The `context/` folder contains relatively stable background information supplied to the production agent about the student and the student's internship preferences and constraints. The agent should retrieve only the context relevant to the current opportunity or run.
 
-## Files
+## Authoritative sources
 
-- [`is-junior-resume.md`](is-junior-resume.md): structured, evidence-bearing resume facts.
-- [`career-preferences.md`](career-preferences.md): preferred roles, industries, locations, and tradeoffs.
-- [`availability-and-constraints.md`](availability-and-constraints.md): dates, work authorization, schedule, and non-negotiable constraints.
+- [`is-junior-resume.md`](is-junior-resume.md) is the authoritative source for claims about education, coursework, skills, projects, and experience.
+- [`career-preferences.md`](career-preferences.md) is the authoritative source for preferred roles, industries, locations, work arrangements, professional interests, and role characteristics.
+- [`availability-and-constraints.md`](availability-and-constraints.md) is the authoritative source for timing, geographic flexibility, scheduling constraints, and non-negotiable operating boundaries.
 
-## Verification rules
+If these files conflict, the agent must surface the conflict rather than select the more favorable claim.
 
-Each factual claim used in fit assessment must have a verification state:
+## Synthetic sandbox information
 
-- `verified`: confirmed by the student against a reliable source;
-- `student-asserted`: provided by the student but not independently checked;
-- `unverified`: present but not safe to use as a qualification claim; or
-- `unknown`: not provided.
+All student, institution, employer, project, preference, and availability information in this sandbox is completely synthetic and provided only for course development and testing. It must not be represented as information about a real student.
 
-The future agent may ask the student to resolve missing information. It must not upgrade a claim's verification state on its own.
+The agent must not infer, fabricate, or embellish qualifications unsupported by these files. Information that is not supplied remains unknown until the student provides it.
 
+## Context is not memory
+
+Context contains relatively stable information provided about the student or environment. Operational history generated or accumulated through agent activity—observations, decisions, actions, evaluations, unresolved tasks, notifications, and changing opportunity state—belongs in `agent/memory/`, not in `context/`.
+
+Raw conversation history is not a substitute for either authoritative context or operational memory.

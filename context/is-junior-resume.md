@@ -1,57 +1,66 @@
-# IS Junior Resume Profile Template
+# Morgan Rivera
 
-> Replace bracketed prompts with the student's information in a private local copy. Do not commit personal contact details, addresses, student IDs, or other sensitive information to a public repository.
+**Synthetic Junior Information Systems Student**
 
-## Profile metadata
-
-- Profile snapshot ID: `[stable local identifier]`
-- Reviewed by student on: `[YYYY-MM-DD]`
-- Overall verification state: `[verified | student-asserted | unverified]`
+> All names, organizations, dates, projects, and accomplishments in this file are fictional. This file contains no real student information.
 
 ## Education
 
-- Degree and major: `[for example, Bachelor of Science in Information Systems]`
-- Institution: `[private local value]`
-- Expected graduation: `[month and year]`
-- GPA, only if the student chooses to use it: `[value or omitted]`
-- Relevant coursework: `[course — completion status — verification state]`
+**North Valley University** *(synthetic institution)*  
+**Bachelor of Science in Business Administration**  
+Concentration: **Information Systems**  
+Expected graduation: **May 2028**
 
-## Skills
+### Relevant coursework
 
-List only skills the student can support with coursework, work, projects, certifications, or another concrete source.
+- Business Programming with Python
+- Database Management and SQL
+- Systems Analysis and Design
+- Business Analytics
+- Business Statistics
+- Operations Management
+- Financial Accounting
+- Principles of Marketing
 
-| Skill | Proficiency evidence | Evidence source | Verification state |
-|---|---|---|---|
-| `[skill]` | `[what the student has done]` | `[course, project, role, or credential]` | `[state]` |
+## Technical skills
+
+- **Python:** data cleaning, reusable functions, CSV analysis, and introductory pandas
+- **SQL:** filtering, joins, aggregation, subqueries, and relational database fundamentals
+- **Excel:** PivotTables, XLOOKUP, conditional formulas, charts, and data validation
+- **Power BI:** data import, basic data modeling, calculated measures, and interactive dashboards
+- **Git and GitHub:** repositories, commits, branches, pull requests, issues, and Markdown documentation
+- **Business analysis:** process mapping, requirements documentation, stakeholder interviews, and basic workflow redesign
 
 ## Experience
 
-For each role, record organization, title, dates, responsibilities, and measurable outcomes exactly as verified by the student. Do not invent metrics or expand the scope of the work.
+### Campus Library Operations Assistant — North Valley University
 
-### `[Role title]`
+*September 2025–Present | Part time*
 
-- Organization: `[name]`
-- Dates: `[start–end]`
-- Evidence-backed responsibilities: `[items]`
-- Evidence-backed outcomes: `[items or none]`
-- Verification state: `[state]`
+- Standardized an Excel tracker for room reservations and equipment loans, reducing weekly reconciliation time from approximately 45 minutes to 25 minutes.
+- Reviewed recurring data-entry errors and introduced validation lists and a short reference guide used by eight student employees.
+- Responded to student service requests, documented unresolved issues, and escalated access or billing questions to the appropriate staff member.
+- Prepared a monthly activity summary using PivotTables and charts for the operations coordinator.
 
 ## Projects
 
-### `[Project name]`
+### Retail Inventory and Sales Analysis — Database Management Course
 
-- Context and goal: `[concise description]`
-- Student's verified contribution: `[specific contribution]`
-- Tools and methods actually used: `[items]`
-- Observable result: `[result or unknown]`
-- Evidence location: `[private local path or URL, if appropriate]`
-- Verification state: `[state]`
+*Spring 2026*
 
-## Certifications and activities
+- Designed a relational schema for a synthetic retailer with products, locations, inventory movements, and sales transactions.
+- Wrote SQL queries to identify stockout risk, slow-moving products, and monthly sales patterns across a 15,000-row synthetic dataset.
+- Built a Power BI dashboard with filters for store, category, and month and documented the assumptions behind each metric.
 
-- `[credential or activity — issuer/organization — date — verification state]`
+### Student Organization Event Registration Redesign — Information Systems Club
 
-## Explicitly unresolved claims
+*Fall 2025*
 
-- `[claim that needs student confirmation or evidence]`
+- Mapped the existing registration and check-in workflow and identified duplicate entry, unclear ownership, and delayed attendance reporting.
+- Interviewed four student officers and converted their needs into a concise set of process and data requirements.
+- Prototyped a revised form and tracking workflow that reduced the standard registration path from nine steps to six in a classroom test.
+- Maintained project documentation and version history in a shared GitHub repository.
 
+## Claim authority
+
+This file is the authoritative sandbox source for Morgan Rivera's education, coursework, skills, experience, projects, and accomplishments. The agent must not claim greater proficiency, responsibility, or results than the information stated here.
