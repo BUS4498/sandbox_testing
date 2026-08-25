@@ -1,28 +1,36 @@
-# Local runtime data
+# Future Local Runtime Data Area
 
-No spreadsheet or runtime database is included in this repository.
+## Purpose
 
-## Intended location
+The `data/` area documents the local persistence that a future Internship Application Operations Agent will need. During the later implementation phase, the application should keep changing operational data on the student's computer rather than in the committed repository.
 
-The future application must generate its internship spreadsheet inside an operating-system-appropriate application-data directory outside the Git checkout, for example:
+## Future spreadsheet
+
+The eventual application should generate and maintain a local spreadsheet such as:
 
 ```text
-<student-app-data>/internship-application-operations-agent/internships.xlsx
+internship_pipeline.xlsx
 ```
 
-The exact location should be resolved by the future runtime and shown in the local dashboard. The student may choose another local folder. The application must reject a configured location inside the repository unless the student explicitly changes the design and accepts the exposure risk.
+The spreadsheet will be the student's primary user-visible operational collection of tracked internship opportunities.
 
-## Planned spreadsheet role
+**Do not create the spreadsheet during this specification phase.**
 
-The spreadsheet is a human-readable synchronized view of the agent's current internship collection, not a hidden source of truth. At minimum, a future workbook should expose stable opportunity identifiers, organization, title, source URL, location, work mode, eligibility, deadline, status, fit label, confidence, next action, last verified time, and last material change.
+## Possible runtime contents
 
-Writes must be atomic where practical, preserve a recoverable backup, and be verified by reopening the file and checking the intended records. Duplicate rows must be prevented through stable identifiers and the rules in [`../agent/policy-and-rules/duplicate-prevention.md`](../agent/policy-and-rules/duplicate-prevention.md).
+Future local runtime data may include:
 
-## Data handling
+- the internship spreadsheet;
+- local agent state;
+- operational memory or other runtime persistence;
+- logs;
+- temporary files; and
+- backups or recovery files needed for safe local operation.
 
-- Never commit generated spreadsheets, runtime memory, logs containing personal data, or credentials.
-- Minimize personal information in the tracker.
-- Record source and observation timestamps for facts that can become stale.
-- Distinguish empty, unknown, not applicable, and not yet verified values.
-- Provide export and deletion controls in the future local application.
+The exact storage layout should be selected during implementation and shown clearly in the local dashboard.
 
+## Git boundary
+
+Runtime files should not be committed to Git when they contain changing student information, application activity, local state, logs, credentials, or other personal operational data. The future runtime location should be outside the Git checkout or covered by explicit ignore rules.
+
+The committed repository should contain design specifications and safe synthetic context—not a student's personal internship spreadsheet or operational history.
