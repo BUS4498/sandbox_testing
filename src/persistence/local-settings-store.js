@@ -3,7 +3,7 @@ import path from "node:path";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** Store non-secret local preferences outside the repository. */
+/** Store non-secret local preferences in the repository's Git-ignored runtime area. */
 export class LocalSettingsStore {
   #writeQueue = Promise.resolve();
 

@@ -67,6 +67,28 @@ These examples are illustrative, not a permanently hard-coded list. Actual theme
 
 Queries should be meaningfully distinct and should use only the context needed for the current search. Relevant existing state may be used to reduce avoidable rediscovery, but it must not exclude a known opportunity that may have materially changed and is due for review.
 
+## Approved discovery-source portfolio
+
+Discovery searches should focus on the following sources in priority order. This is a relevance-focused source portfolio, not an instruction to query every source during every run.
+
+| Priority | Website or source | Expected Codex accessibility | Recommended use |
+|---:|---|---|---|
+| 1 | Employer career pages hosted by Greenhouse, Lever, or Ashby | Excellent | Primary source for verifying requirements and obtaining the official application link |
+| 2 | [Simplify — Top Summer Internships 2027](https://simplify.jobs/l/Top-Summer-Internships-2027) | Excellent | Student-focused discovery across business, data, product, AI, and technology |
+| 3 | [SimplifyJobs Summer 2027 GitHub list](https://github.com/SimplifyJobs/Summer2027-Internships) | Excellent | Structured, frequently updated discovery source that can be screened efficiently |
+| 4 | [USAJOBS Student Opportunities](https://intern.usajobs.gov/) | Excellent | Federal student opportunities that may align with the verified U.S.-citizen profile |
+| 5 | [CalCareers Student Employment](https://calcareers.ca.gov/CalHRPublic/Jobs/Students.aspx) | Good | California state internships and Student Assistant positions |
+| 6 | [Built In internships](https://builtin.com/jobs/internships) | Good | Technology, startup, SaaS, analytics, and operations opportunities |
+| 7 | [LinkedIn Jobs](https://www.linkedin.com/jobs/) | Partial | Broad discovery only when relevant details are publicly accessible |
+| 8 | [Indeed](https://www.indeed.com/) | Partial | Broad discovery only when public access is reliable for the current result |
+| 9 | [Wellfound](https://wellfound.com/jobs) | Partial | Startup and technology discovery when a listing is public |
+
+Within the three-query budget, select up to three source-focused searches using the highest-priority sources that are relevant to the student's current roles, internship period, California location, and work-arrangement preferences. A query may cover a related source group, such as the three approved employer-hosted applicant-tracking systems, when the general web-search capability supports it.
+
+Do not attempt to visit all nine sources merely because they appear in this portfolio. Use prior search observations to vary source coverage across later runs when doing so is useful, but do not repeatedly search a lower-priority source after the current run already has enough strong candidates.
+
+LinkedIn, Indeed, and Wellfound are public-discovery fallbacks. Do not sign in, bypass login prompts, use a student account, or treat an inaccessible listing as verified. When any secondary source identifies an opportunity, attempt to validate the requirements, status, and application link against an employer-controlled career page—preferably its Greenhouse, Lever, or Ashby posting—when reasonably available.
+
 ## Search behavior
 
 The eventual tool should:
@@ -87,12 +109,14 @@ A search-result snippet alone is not sufficient evidence for a valid opportunity
 
 ## Source preference
 
-Prefer sources in approximately this order:
+Within the approved portfolio, prefer sources in approximately this order:
 
-1. employer career page;
-2. employer-authorized recruiting or application page;
-3. reputable secondary job listing; and
-4. another legitimate public source.
+1. employer career page hosted by Greenhouse, Lever, or Ashby;
+2. another employer-authorized recruiting or application page reached while validating an approved discovery result;
+3. Simplify or the SimplifyJobs Summer 2027 GitHub list;
+4. USAJOBS Student Opportunities or CalCareers Student Employment;
+5. Built In; and
+6. a publicly accessible LinkedIn, Indeed, or Wellfound listing.
 
 When a secondary source identifies an opportunity, attempt to verify it against the employer's own career site when reasonably possible. Preserve both the discovery source and the best verified posting source when they differ.
 
@@ -103,6 +127,7 @@ The tool must not:
 - scrape restricted or private information;
 - invent unavailable job information;
 - represent a search-result snippet as a verified posting;
+- search an unapproved secondary job board merely to expand candidate volume;
 - imply that web-search results cover all available internships; or
 - use a specialized job-search API under this specification.
 

@@ -26,7 +26,7 @@ Keep student information, credentials, local runtime data, and external access a
 
 - Keep profile details, memory, drafts, and operational records local by default.
 - Do not commit the local runtime spreadsheet when it may contain personal or evolving application data.
-- Store the spreadsheet and runtime state outside the Git repository.
+- Store the spreadsheet and runtime state under the repository's `data/local/` folder, which must remain excluded from Git.
 - Provide future controls for local export, retention, backup, and deletion.
 
 ## External services

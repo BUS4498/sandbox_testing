@@ -6,7 +6,7 @@ import test from "node:test";
 
 import { LocalSettingsStore } from "../src/persistence/local-settings-store.js";
 
-test("local settings persist a student email outside the repository and expose only a masked public value", async () => {
+test("local settings persist a student email in private runtime storage and expose only a masked public value", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "internship-settings-test-"));
   const filePath = path.join(directory, "settings.json");
   try {

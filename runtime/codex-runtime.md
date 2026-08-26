@@ -88,6 +88,12 @@ This preserves the established distinctions among:
 - **spreadsheet:** the student's current user-facing opportunity collection; and
 - **frontend:** the human interaction layer.
 
+## Project-Local Runtime Data
+
+The local application stores its changing runtime files under `data/local/` in the project folder. This location contains the opportunity spreadsheet, operational memory, notification outbox, local settings, logs, and review-only application templates. The folder is excluded from Git and must never be committed or uploaded to GitHub.
+
+The dashboard should display the resolved runtime folder and spreadsheet path. `INTERNSHIP_AGENT_DATA_DIR` may override the default location for an explicitly configured local installation, but it must not point to a committed location or contain credentials.
+
 ## Events and User Approvals
 
 The controller may use Codex runtime events to show plain-English business progress and an explicitly approximate completion percentage. The percentage must be derived from reached workflow stages, not hidden reasoning or fabricated task counts. When student information is required, the interface should identify the affected opportunity, requested information, and **Update Opportunity** control instead of relying on a generic attention label.

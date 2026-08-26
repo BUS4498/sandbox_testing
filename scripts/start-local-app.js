@@ -16,7 +16,10 @@ import { StudentResponseService } from "../src/workflow/student-response-service
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 await loadLocalEnvironment(path.join(repositoryRoot, ".env"));
-const runtimePaths = resolveRuntimePaths({ rootDir: process.env.INTERNSHIP_AGENT_DATA_DIR });
+const runtimePaths = resolveRuntimePaths({
+  rootDir: process.env.INTERNSHIP_AGENT_DATA_DIR,
+  repositoryRoot,
+});
 const memoryStore = await new OperationalMemoryStore({ rootDir: runtimePaths.memory }).initialize();
 const settingsStore = await new LocalSettingsStore({ filePath: runtimePaths.settings }).initialize();
 const spreadsheetTracker = new LocalSpreadsheetTracker({ filePath: runtimePaths.spreadsheet });

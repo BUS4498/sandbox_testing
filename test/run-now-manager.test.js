@@ -110,6 +110,12 @@ test("Run Now uses the bounded approved instruction and records completion", asy
     assert.equal(completed.progressPercent, 100);
     const turnCall = client.calls.find(([method]) => method === "startTurn");
     assert.match(turnCall[2][0].text, /no more than 3 targeted public-web searches/);
+    assert.match(turnCall[2][0].text, /Greenhouse, Lever, or Ashby postings first/);
+    assert.match(turnCall[2][0].text, /SimplifyJobs Summer 2027 GitHub list/);
+    assert.match(turnCall[2][0].text, /USAJOBS Student Opportunities/);
+    assert.match(turnCall[2][0].text, /CalCareers Student Employment/);
+    assert.match(turnCall[2][0].text, /LinkedIn, Indeed, or Wellfound only as public-access fallbacks/);
+    assert.match(turnCall[2][0].text, /never bypass login or access controls/);
     assert.match(turnCall[2][0].text, /Do not directly edit the internship spreadsheet/);
     assert.match(turnCall[2][0].text, /Return the final business result as one JSON object only/);
     assert.equal(turnCall[2][0].text, RUN_NOW_INSTRUCTION);

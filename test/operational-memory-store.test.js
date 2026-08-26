@@ -24,6 +24,13 @@ test("runtime paths keep private operational data under the selected local root"
   assert.equal(path.dirname(paths.settings), paths.root);
 });
 
+test("runtime paths default to the repository's ignored data/local folder", () => {
+  const repositoryRoot = path.join(os.tmpdir(), "internship-agent-repository");
+  const paths = resolveRuntimePaths({ repositoryRoot });
+  assert.equal(paths.root, path.join(repositoryRoot, "data", "local"));
+  assert.equal(paths.spreadsheet, path.join(repositoryRoot, "data", "local", "internship_pipeline.xlsx"));
+});
+
 test("memory appends structured history and supports idempotency lookup", async () => {
   await withTemporaryDirectory(async (directory) => {
     const store = await new OperationalMemoryStore({ rootDir: directory }).initialize();

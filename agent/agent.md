@@ -122,9 +122,9 @@ The agent works with:
 
 Informational student email uses the connected Codex **Outlook Email** app when it is installed, enabled, and callable. The student chooses the recipient in the local dashboard. Codex owns Outlook authentication; the repository and dashboard must not collect or store an Outlook password or OAuth token.
 
-The [`application-material-prep`](skills/application-material-prep/SKILL.md) Skill prepares evidence-grounded templates, and the [Local Application Materials tool](tools/local-application-materials.md) stores verified draft artifacts outside Git. These capabilities do not create an application-submission path.
+The [`application-material-prep`](skills/application-material-prep/SKILL.md) Skill prepares evidence-grounded templates, and the [Local Application Materials tool](tools/local-application-materials.md) stores verified draft artifacts under the Git-ignored `data/local/` runtime folder. These capabilities do not create an application-submission path.
 
-Public web discovery uses the capability defined in [`agent/tools/internship-web-search.md`](tools/internship-web-search.md). Search results remain external observations for **SENSE** and do not replace the fit assessment and decision responsibilities of **REASON** and **DECIDE**.
+Public web discovery uses the prioritized source portfolio and capability defined in [`agent/tools/internship-web-search.md`](tools/internship-web-search.md). Employer-controlled Greenhouse, Lever, and Ashby postings are preferred for verification; approved secondary sources support bounded discovery. Search results remain external observations for **SENSE** and do not replace the fit assessment and decision responsibilities of **REASON** and **DECIDE**.
 
 [`context/`](../context/) is the authoritative source for relatively stable background information about the student.
 

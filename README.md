@@ -6,7 +6,7 @@
 
 The Internship Application Prep Agent is a local-first prototype for an undergraduate student searching for internships. It helps collect, evaluate, prioritize, and track opportunities; request and process missing student information; and prepare review-only application templates while keeping consequential career decisions under the student's control.
 
-The application runs on the student's computer and provides a local browser-based dashboard. A local spreadsheet serves as the student's user-facing collection of current internship opportunities. After a material collection update succeeds, a deterministic message may be submitted through the Outlook Email app connected in Codex. The recipient is chosen in the dashboard; Outlook credentials remain in Codex.
+The application runs on the student's computer and provides a local browser-based dashboard. A local spreadsheet at `data/local/internship_pipeline.xlsx` serves as the student's user-facing collection of current internship opportunities. The surrounding `data/local/` folder also holds operational memory, local settings, notification records, and prepared templates and is excluded from Git. After a material collection update succeeds, a deterministic message may be submitted through the Outlook Email app connected in Codex. The recipient is chosen in the dashboard; Outlook credentials remain in Codex.
 
 The agent can also prepare local draft templates such as a resume-tailoring checklist, cover-letter outline, or application-question worksheet. These artifacts require student review and cannot submit an application.
 
@@ -18,6 +18,8 @@ The agent is designed to obtain internship opportunities in two ways:
 2. **General public web search:** the student selects **Collect Opportunities**, or an enabled Codex daily automation returns to the approved thread and triggers the same discovery workflow, to discover current public internship postings.
 
 The design uses general public web search and does not require a dedicated or specialized job-search API. Web discovery gathers candidate opportunity information; the later workflow stages remain responsible for fit assessment, decisions, permitted collection updates, verification, and memory.
+
+Discovery uses an approved prioritized source portfolio: employer postings hosted by Greenhouse, Lever, or Ashby; Simplify and the SimplifyJobs Summer 2027 GitHub list; USAJOBS Student Opportunities; CalCareers Student Employment; and Built In. Publicly accessible LinkedIn, Indeed, and Wellfound listings are lower-priority discovery fallbacks. The agent does not sign in to those services or bypass access controls, and it attempts to verify secondary listings against employer-controlled postings when reasonably possible.
 
 The system is designed to support both:
 
@@ -71,6 +73,8 @@ The controller foundation requires Node.js 22 or newer. Run `npm install` once t
 - `npm test` runs the local controller, persistence, notification, dashboard, and integrated-workflow tests with synthetic data and fake App Server/Outlook events. It makes no model, web-search, Outlook-send, or employer request.
 - `npm run check:codex` launches Codex App Server, performs the initialization handshake, reads only the sanitized account-readiness state, and exits without starting a thread or model turn.
 - `npm start` starts the browser dashboard on `http://127.0.0.1:4318`. The dashboard binds only to the local computer. Its **Collect Opportunities** and **Update Opportunity** actions require a locally executable, authenticated Codex CLI.
+
+By default, active local files are stored under `data/local/` in this project folder. The dashboard displays the resolved folder and spreadsheet path. `INTERNSHIP_AGENT_DATA_DIR` may be set in an ignored local `.env` file only when another local storage location is intentionally required.
 
 The dashboard checks Codex App Server readiness before enabling agent actions and provides a read-only **Recheck** action. **Collect Opportunities** performs bounded web discovery. **Update Opportunity** processes newly supplied information for one tracked opportunity immediately, without launching discovery or requiring a later collection run. Account email, plan information, tokens, credentials, and raw process errors are not returned to the browser.
 

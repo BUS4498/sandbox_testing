@@ -43,7 +43,7 @@ If preparation content is unsupported, incomplete, unsafe, or cannot be saved an
 
 ## Security considerations
 
-- Store templates outside Git in the local runtime data area.
+- Store templates under `data/local/application-materials/`, which is excluded from Git.
 - Use safe generated file names rather than company- or student-supplied paths.
 - Do not store credentials, legal identifiers, or unnecessary sensitive data.
 - Treat all templates as untrusted draft text when rendered in the browser.

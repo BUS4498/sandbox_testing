@@ -42,6 +42,7 @@ The automation instruction should remain concise:
 >
 > For this run:
 > - use no more than 3 targeted searches;
+> - use the approved prioritized source portfolio in `agent/tools/internship-web-search.md`;
 > - collect no more than 15 candidates;
 > - select the top 3–5 relevant new or materially changed opportunities when at least 3 qualify;
 > - update the spreadsheet;
@@ -57,7 +58,7 @@ The instruction invokes the approved repository specifications; it does not rest
 After the automation triggers the thread, the agent should:
 
 1. retrieve current student preferences and relevant operational state;
-2. use the bounded general public web-discovery process defined in `agent/tools/internship-web-search.md` and `agent/workflow-task-specs/sense.md`;
+2. use the bounded general public web-discovery process and prioritized source portfolio defined in `agent/tools/internship-web-search.md` and `agent/workflow-task-specs/sense.md`;
 3. collect no more than 15 plausible candidates across no more than three targeted searches;
 4. remove obvious invalid, closed, unchanged, or duplicate opportunities before expensive reasoning;
 5. rank the remaining new or materially changed candidates;

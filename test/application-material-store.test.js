@@ -6,7 +6,7 @@ import test from "node:test";
 
 import { LocalApplicationMaterialStore } from "../src/persistence/application-material-store.js";
 
-test("saves a verified review-only application template outside the repository", async () => {
+test("saves a verified review-only application template in private runtime storage", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "internship-material-test-"));
   const store = await new LocalApplicationMaterialStore({
     rootDir: path.join(directory, "application-materials"),

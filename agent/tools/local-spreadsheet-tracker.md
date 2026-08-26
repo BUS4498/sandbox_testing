@@ -6,7 +6,7 @@
 
 ## Purpose
 
-Maintain the student's primary user-visible operational collection of student-supplied and web-discovered internship opportunities in a local spreadsheet such as `internship_pipeline.xlsx`. Detailed process history remains in operational memory. No spreadsheet is created during this specification phase.
+Maintain the student's primary user-visible operational collection of student-supplied and web-discovered internship opportunities in `data/local/internship_pipeline.xlsx`. Detailed process history remains in operational memory. The entire `data/local/` runtime area is excluded from Git.
 
 ## When the agent may use it
 
@@ -14,7 +14,7 @@ The agent may use this tool to read current records, check for duplicates, add a
 
 ## Required inputs
 
-- Local spreadsheet path outside the Git repository.
+- Local spreadsheet path under the repository's Git-ignored `data/local/` runtime folder.
 - Operation: read, add, update, duplicate check, or verify.
 - Stable opportunity ID and current expected record version when applicable.
 - Intended field values and their ownership.

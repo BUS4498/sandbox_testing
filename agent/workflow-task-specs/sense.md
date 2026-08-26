@@ -45,7 +45,8 @@ The funnel should reduce the candidate pool before expensive model reasoning. It
 
 1. Use the relevant verified student search preferences supplied by **RETRIEVE**. If essential preferences are missing, request a scoped retrieval rather than infer them.
 2. Invoke the [`internship-web-search`](../tools/internship-web-search.md) tool.
-3. Perform no more than three targeted general public web searches.
+3. Select source-focused searches from the approved priority portfolio in the tool specification, using the highest-priority sources relevant to the current student context and recent source coverage.
+4. Perform no more than three targeted general public web searches. The three-query budget does not require searching every approved source in one run.
 
 ### Step 2 — Collect candidate pool
 
@@ -62,7 +63,7 @@ Check whether each candidate appears to be:
 - reasonably current; and
 - supported by a valid source.
 
-Inspect the underlying posting when reasonably accessible. Do not accept a search-result snippet alone as sufficient evidence when the posting can be checked. Preserve unavailable or uncertain fields rather than inventing them.
+Inspect the underlying posting when reasonably accessible. Prefer an employer-controlled Greenhouse, Lever, or Ashby posting for final verification when an approved secondary source identifies the opportunity and such a posting is reasonably available. Do not accept a search-result snippet alone as sufficient evidence when the posting can be checked. Preserve unavailable or uncertain fields rather than inventing them.
 
 Assign a validation or posting status when supported:
 
@@ -138,7 +139,7 @@ Only selected opportunities proceed to the detailed workflow:
 
 If fewer than three opportunities meet the relevance, validity, hard-constraint, and evidence requirements, process the smaller number and return a concise `selection shortfall reason`. A documented search or source failure may also justify fewer than three. Do not add weak, invalid, closed, or duplicate opportunities merely to reach three.
 
-Agent discovery must not imply that search results are exhaustive or bypass login requirements, access controls, or other source restrictions.
+Agent discovery must not imply that search results are exhaustive or bypass login requirements, access controls, or other source restrictions. LinkedIn, Indeed, and Wellfound may be used only to the extent that the relevant listing is publicly accessible without authentication.
 
 ## Mode C — Student Update to a Tracked Opportunity
 

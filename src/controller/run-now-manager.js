@@ -16,6 +16,8 @@ Follow AGENTS.md, agent/agent.md, and the relevant workflow, tool, policy, memor
 
 For this run:
 - use no more than 3 targeted public-web searches;
+- use the approved prioritized source portfolio in agent/tools/internship-web-search.md: employer Greenhouse, Lever, or Ashby postings first; then Simplify, the SimplifyJobs Summer 2027 GitHub list, USAJOBS Student Opportunities, CalCareers Student Employment, or Built In; use LinkedIn, Indeed, or Wellfound only as public-access fallbacks;
+- verify a secondary-source result against an employer-controlled posting when reasonably available, and never bypass login or access controls;
 - collect no more than 15 candidate opportunities;
 - select the top 3 to 5 relevant new or materially changed opportunities when at least 3 qualify;
 - provide a specific selectionShortfallReason when fewer than 3 qualify;
