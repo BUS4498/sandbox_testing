@@ -70,9 +70,12 @@ Implementation proceeds from these specifications. The local application connect
 
 The controller foundation requires Node.js 22 or newer. Run `npm install` once to install the project-local official Codex CLI package, then authenticate Codex through the user's local Codex/ChatGPT sign-in and connect the Outlook Email app in Codex. The repository stores neither account credentials nor an OpenAI API key.
 
+After that one-time setup, Windows users can double-click **Start Internship App.cmd** and macOS users can double-click **Start Internship App.command**. The launcher starts the local server only when needed, waits for its health check, and opens the dashboard in the default browser. It does not rely on PowerShell or `npm.ps1`. If the dashboard is already running, it simply opens the existing local page. Launcher diagnostics are written to the ignored local file `data/local/logs/launcher.log`.
+
 - `npm test` runs the local controller, persistence, notification, dashboard, and integrated-workflow tests with synthetic data and fake App Server/Outlook events. It makes no model, web-search, Outlook-send, or employer request.
 - `npm run check:codex` launches Codex App Server, performs the initialization handshake, reads only the sanitized account-readiness state, and exits without starting a thread or model turn.
 - `npm start` starts the browser dashboard on `http://127.0.0.1:4318`. The dashboard binds only to the local computer. Its **Collect Opportunities** and **Update Opportunity** actions require a locally executable, authenticated Codex CLI.
+- `npm run launch` provides the same health-checked launcher behavior from a terminal when desired.
 
 By default, active local files are stored under `data/local/` in this project folder. The dashboard displays the resolved folder and spreadsheet path. `INTERNSHIP_AGENT_DATA_DIR` may be set in an ignored local `.env` file only when another local storage location is intentionally required.
 

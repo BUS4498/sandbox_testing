@@ -8,6 +8,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
+    "launch": "node scripts/launch-local-app.js",
     "start": "node scripts/start-local-app.js",
     "test": "node --test",
     "check:codex": "node scripts/check-codex-app-server.js"
