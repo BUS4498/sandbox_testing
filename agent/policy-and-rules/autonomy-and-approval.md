@@ -24,6 +24,8 @@ Autonomy does not expand when a daily run is enabled.
 
 The agent must not create, enable, disable, or change the Codex daily automation. The student manages that harness-level trigger in Codex.
 
+The agent must not reset the collection autonomously. **Reset Collection** is a separate student-initiated local-controller operation that requires an explicit destructive-action confirmation and a recoverable local archive.
+
 ## Human Approval Required
 
 The agent must obtain the student's approval before:

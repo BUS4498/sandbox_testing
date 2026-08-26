@@ -1,4 +1,4 @@
-import { access } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 
 export async function buildDashboardData({
   spreadsheetTracker,
@@ -24,6 +24,7 @@ export async function buildDashboardData({
   ]);
 
   const latestRun = runs.at(-1) ?? null;
+  const lastReset = await readJsonIfAvailable(runtimePaths.resetSummary);
   const latestNotification = [...actions]
     .reverse()
     .find((entry) => entry.actionType === "STUDENT_UPDATE_NOTIFICATION") ?? null;
@@ -67,6 +68,8 @@ export async function buildDashboardData({
       lastSuccessfulUpdate: latestSuccessfulSpreadsheetAction(actions)?.timestamp ?? null,
       runtimeFolder: runtimePaths.root,
       spreadsheetPath: runtimePaths.spreadsheet,
+      lastResetAt: lastReset?.resetAt ?? null,
+      lastResetArchive: lastReset?.archivePath ?? null,
     },
     notificationSettings,
     notification: latestNotification
@@ -311,6 +314,11 @@ async function fileExists(filePath) {
   } catch {
     return false;
   }
+}
+
+async function readJsonIfAvailable(filePath) {
+  if (!filePath) return null;
+  try { return JSON.parse(await readFile(filePath, "utf8")); } catch { return null; }
 }
 
 async function readRuntimeReadiness(runManager, clock) {

@@ -24,6 +24,7 @@ export function createDashboardServer({
   notificationConfiguration = null,
   studentResponseService = null,
   applicationMaterialStore = null,
+  localResetService = null,
   staticRoot = DEFAULT_STATIC_ROOT,
   clock = () => new Date(),
   requestToken = randomBytes(24).toString("base64url"),
@@ -93,6 +94,21 @@ export function createDashboardServer({
         }
       }
 
+      if (request.method === "POST" && url.pathname === "/api/reset") {
+        requireLocalMutation(request, requestToken);
+        if (typeof localResetService?.reset !== "function") throw httpError(503, "Collection reset is unavailable.");
+        const body = await readJsonBody(request);
+        try {
+          const result = await localResetService.reset({ confirmation: body.confirmation });
+          broadcast({ type: "collection.reset", result, timestamp: clock().toISOString() });
+          return sendJson(response, 200, { result });
+        } catch (error) {
+          if (error instanceof TypeError) throw httpError(400, error.message);
+          if (error.code === "RUN_ACTIVE") throw httpError(409, error.message);
+          throw error;
+        }
+      }
+
       const responseMatch = url.pathname.match(/^\/api\/opportunities\/([^/]+)\/responses$/);
       if (request.method === "POST" && responseMatch) {
         requireLocalMutation(request, requestToken);
@@ -148,7 +164,13 @@ export function createDashboardServer({
         if (typeof applicationMaterialStore?.readMaterial !== "function") throw httpError(503, "Application-material storage is unavailable.");
         const material = await applicationMaterialStore.readMaterial(decodeURIComponent(materialMatch[1]));
         if (!material) throw httpError(404, "Application material not found.");
-        return sendText(response, 200, material.markdown, `${material.fileName || "application-template.md"}`);
+        return sendDownload(
+          response,
+          200,
+          material.bytes,
+          `${material.fileName || "application-template.docx"}`,
+          material.contentType || "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        );
       }
 
       const approvalMatch = url.pathname.match(/^\/api\/approvals\/([^/]+)$/);
@@ -258,11 +280,11 @@ function sendJson(response, statusCode, body) {
   response.end(payload);
 }
 
-function sendText(response, statusCode, body, fileName) {
-  const payload = Buffer.from(String(body), "utf8");
+function sendDownload(response, statusCode, body, fileName, contentType) {
+  const payload = Buffer.isBuffer(body) ? body : Buffer.from(body);
   const safeName = String(fileName).replace(/[^A-Za-z0-9._-]/g, "-");
   response.writeHead(statusCode, {
-    "Content-Type": "text/markdown; charset=utf-8",
+    "Content-Type": contentType,
     "Content-Disposition": `attachment; filename="${safeName}"`,
     "Content-Length": payload.length,
     "Cache-Control": "no-store",

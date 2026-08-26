@@ -149,6 +149,31 @@ async function withDashboard(run) {
     },
     async markUpdateDeferred() {},
   };
+  const localResetService = {
+    requests: [],
+    async reset(payload) {
+      this.requests.push(payload);
+      if (payload.confirmation !== "RESET") throw new TypeError("Enter RESET to confirm the fresh-start archive and reset.");
+      return {
+        resetAt: "2026-08-25T12:00:00.000Z",
+        opportunitiesCleared: 1,
+        archivePath: path.join(directory, "reset-archives", "synthetic-reset"),
+        spreadsheetPath: runtimePaths.spreadsheet,
+      };
+    },
+  };
+  const applicationMaterialStore = {
+    async listMaterials() { return []; },
+    async readMaterial(materialId) {
+      if (materialId !== "material-dashboard-001") return null;
+      return {
+        materialId,
+        fileName: "cover-letter-outline.docx",
+        contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        bytes: Buffer.from([0x50, 0x4b, 0x03, 0x04]),
+      };
+    },
+  };
   const dashboard = createDashboardServer({
     runManager,
     spreadsheetTracker,
@@ -156,12 +181,14 @@ async function withDashboard(run) {
     runtimePaths,
     notificationConfiguration,
     studentResponseService,
+    applicationMaterialStore,
+    localResetService,
     requestToken: "synthetic-local-token",
     clock: () => new Date("2026-08-25T12:00:00.000Z"),
   });
   const address = await dashboard.listen({ port: 0 });
   try {
-    await run({ dashboard, address, runManager, memoryStore, notificationConfiguration, studentResponseService, runtimePaths });
+    await run({ dashboard, address, runManager, memoryStore, notificationConfiguration, studentResponseService, runtimePaths, localResetService });
   } finally {
     await dashboard.close();
     await rm(directory, { recursive: true, force: true });
@@ -302,6 +329,43 @@ test("student notification email can be configured through the protected local e
     assert.equal(saved.status, 200);
     assert.equal(notificationConfiguration.current, "student@example.edu");
     assert.equal((await saved.json()).settings.configured, true);
+  });
+});
+
+test("Reset Collection requires the local token and exact confirmation", async () => {
+  await withDashboard(async ({ address, localResetService }) => {
+    const rejected = await fetch(`${address.url}/api/reset`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ confirmation: "RESET" }),
+    });
+    assert.equal(rejected.status, 403);
+
+    const invalid = await fetch(`${address.url}/api/reset`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Local-Request-Token": "synthetic-local-token" },
+      body: JSON.stringify({ confirmation: "reset" }),
+    });
+    assert.equal(invalid.status, 400);
+
+    const accepted = await fetch(`${address.url}/api/reset`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Local-Request-Token": "synthetic-local-token" },
+      body: JSON.stringify({ confirmation: "RESET" }),
+    });
+    assert.equal(accepted.status, 200);
+    assert.equal((await accepted.json()).result.opportunitiesCleared, 1);
+    assert.equal(localResetService.requests.length, 2);
+  });
+});
+
+test("application materials download as Word documents", async () => {
+  await withDashboard(async ({ address }) => {
+    const response = await fetch(`${address.url}/api/materials/material-dashboard-001`);
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("content-type"), "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    assert.match(response.headers.get("content-disposition"), /cover-letter-outline\.docx/);
+    assert.deepEqual([...new Uint8Array(await response.arrayBuffer())], [0x50, 0x4b, 0x03, 0x04]);
   });
 });
 

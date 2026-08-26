@@ -30,6 +30,8 @@ Internship Application Prep Agent
 
 The controller should start or resume the approved thread, submit the concise workflow instruction, surface approval requests, and translate Codex runtime events into dashboard status. It must not implement a second model-reasoning or tool-selection loop. Detailed runtime behavior belongs in `runtime/codex-runtime.md`.
 
+**Reset Collection** is a separate local-controller operation. It must not start or reuse an agent thread because no model reasoning is required to archive and reinitialize local data.
+
 ## Dashboard summary
 
 Show a concise summary with indicators for:
@@ -69,6 +71,22 @@ Use the visible link text **Source** regardless of the provider's or career site
 Do not expose a standalone **Fit** column. Fit assessment remains structured agent evidence, but the dashboard should present what a student can act on: the recommendation, why the role aligns, verified matches, genuine gaps, and exact clarification needed. Translate internal `INSUFFICIENT INFORMATION` into **Needs clarification** and show the missing facts.
 
 The student should be able to search, filter, sort, and open an opportunity without losing the current dashboard context.
+
+Do not show a separate dashboard-wide **Information needed to continue** box that repeats the selected-opportunity or opportunity-card content. Put each exact question, missing fact, response status, and **Update Opportunity** control directly on the affected opportunity. The selected-opportunities area may summarize the same opportunity immediately after a run, but it should link the student to that single actionable record rather than create a second response surface.
+
+## Reset Collection experience
+
+Provide a secondary **Reset Collection** control near the current collection. It should be visually distinct from **Collect Opportunities** and unavailable while a workflow is active.
+
+Selecting it must open a confirmation dialog that explains exactly what will happen:
+
+- the active opportunity spreadsheet will be reinitialized with zero opportunity rows;
+- opportunity-related operational memory, run history, application-material drafts, and notification previews will leave the active collection;
+- the prior private runtime data will be copied to a dated local reset archive for recovery;
+- saved student context, the notification recipient, Codex and Outlook authentication, and the Codex-managed daily schedule will remain; and
+- email already submitted cannot be recalled.
+
+Require the student to enter `RESET` before enabling the final **Archive and Reset** action. After success, refresh all collection, run-summary, material, and activity views; show the archive location; and make the next **Collect Opportunities** action start a new Codex thread with an empty current collection.
 
 ## Collect Opportunities experience
 
@@ -129,7 +147,9 @@ The interface may display concise stage labels, but the primary status should be
 - **Remembering**
 - **Finished**
 
-Examples include “Searching public career pages for internships matching your preferences,” “Comparing eight validated candidates,” and “Updating Northstar Foods using the information you just provided.” Do not imply access to hidden reasoning.
+Examples include “Reading your verified role, location, timing, and work-authorization preferences,” “Searching employer career pages for Summer 2027 analyst internships in California,” “Comparing eight validated candidates against your required qualifications,” “Adding Northstar Foods — Business Systems Intern to the local spreadsheet,” “Creating a Word cover-letter outline for Northstar Foods,” and “Submitting three verified opportunity-update emails to your saved address.” Use a company, role, candidate count, file type, or action count only when it is present in observable runtime data. Do not imply access to hidden reasoning.
+
+Avoid vague descriptions such as “Carrying out a permitted local action.” When low-level activity cannot be classified more precisely, say what approved resource is being read or what output is being prepared, and explicitly avoid claiming that a write or external action succeeded before verification.
 
 Display an accessible progress bar and percentage derived from completed or reached workflow stages. Treat the percentage as an approximate stage-based indicator, not a prediction of remaining time. It must move forward monotonically during a workflow, reach 100% only after verification and memory completion, and never be fabricated from chain-of-thought or token activity.
 
@@ -144,7 +164,10 @@ Dashboard progress and pixel-character behavior must be grounded in observable C
 | Reading approved context or specifications | **Retrieving** |
 | Web-search or browser activity | **Searching** |
 | Structured candidate review, ranking, or fit-assessment activity | **Assessing** |
-| Permitted tool or file action | **Acting** or the more specific **Updating Collection** / **Sending Notifications** |
+| Reading verified context, source rules, or prior state | **Retrieving**, naming the approved resource category being read |
+| Spreadsheet add or update requested by the controller | **Updating Collection**, naming the affected opportunity when available |
+| Word application-template generation | **Preparing Word Draft**, naming the opportunity and requested draft type when available |
+| Informational email submission | **Sending Notifications**, showing the number of messages and saved-recipient wording when available |
 | Verification activity or an observable outcome check | **Verifying** |
 | Successful turn completion after required run-finalization work | **Finished** |
 | Approval request or runtime failure | **Action required**, with the exact requested approval or recoverable action |
@@ -294,7 +317,7 @@ Provide a **Prepare materials** action for tracked opportunities. The student ma
 - cover-letter outline; and
 - application-question worksheet.
 
-Prepared artifacts should appear in the opportunity details with type, creation time, unresolved placeholders, and an **Open / Download draft** action. Every artifact must say **Draft template — student review required**. The dashboard must never offer **Submit application**, automatic form completion, employer upload, or a control that makes a template appear final.
+Prepared artifacts should be saved as professionally formatted Microsoft Word `.docx` files and appear in the opportunity details with type, creation time, unresolved placeholders, and a **Download Word draft** action. Every document and dashboard record must say **Draft template — student review required**. Raw Markdown must not be the student-facing saved artifact. The dashboard must never offer **Submit application**, automatic form completion, employer upload, or a control that makes a template appear final.
 
 ## Opportunity detail view
 

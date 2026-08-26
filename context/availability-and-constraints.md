@@ -36,6 +36,9 @@
 - Qualifications, experience, coursework, projects, responsibilities, and results cannot be fabricated or embellished.
 - The agent must preserve explicit student decisions and allow the student to override or dismiss any recommendation.
 
-## Intentionally unspecified information
+## Work authorization and legal-eligibility authority
 
-Work-authorization, sponsorship, and other legal eligibility details are intentionally not included in this sandbox context. If a posting makes such information relevant, the agent must ask the student and must not infer an answer.
+- The synthetic student is a U.S. citizen, is permanently authorized to work in the United States, and does not require current or future employment sponsorship.
+- These facts intentionally match the authoritative resume and candidate profile in `career-preferences.md`.
+- The agent may use only these explicit facts when screening a posting. It must not infer security-clearance eligibility, age, driving status, export-control status, background-check results, or any other legal or personal qualification that is not supplied in context.
+- If a posting asks an eligibility question not answered by these files, the agent must request the specific missing information rather than generalizing from citizenship or work authorization.

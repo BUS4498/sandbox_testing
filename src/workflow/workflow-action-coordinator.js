@@ -53,8 +53,15 @@ export class WorkflowActionCoordinator {
     let notificationPreviews = 0;
     const notificationWork = [];
 
-    onStage("UPDATING_COLLECTION", "Applying permitted material updates to the local collection.");
+    onStage("UPDATING_COLLECTION", `Preparing ${result.selectedOpportunities.length} selected ${result.selectedOpportunities.length === 1 ? "opportunity" : "opportunities"} for the local collection.`);
     for (const selection of result.selectedOpportunities) {
+      const recordLabel = `${selection.opportunity.company} — ${selection.opportunity.roleTitle}`;
+      onStage(
+        "UPDATING_COLLECTION",
+        selection.updateDisposition === "NEW"
+          ? `Checking for duplicates, then adding ${recordLabel} to the local spreadsheet if it is distinct.`
+          : `Updating the existing spreadsheet row for ${recordLabel} with the verified material changes.`,
+      );
       const processed = await this.#processSelection({ runId, selection, unresolved });
       selectedOutcomes.push(processed.publicOutcome);
       if (processed.collectionOutcome === "ADDED") newOpportunitiesAdded += 1;
@@ -62,14 +69,14 @@ export class WorkflowActionCoordinator {
       if (processed.collectionOutcome === "DUPLICATE_IGNORED") duplicatesIgnored += 1;
 
       await this.#applyStudentInputResolution({ runId, selection, processed });
-      await this.#saveApplicationMaterials({ runId, selection, processed, unresolved });
+      await this.#saveApplicationMaterials({ runId, selection, processed, unresolved, onStage });
 
       if (!processed.materialUpdate) continue;
       notificationWork.push({ selection, processed });
     }
 
     if (notificationWork.length > 0) {
-      onStage("SENDING_NOTIFICATIONS", "Submitting permitted informational updates through the configured student notification channel.");
+      onStage("SENDING_NOTIFICATIONS", `Submitting ${notificationWork.length} verified opportunity-update ${notificationWork.length === 1 ? "email" : "emails"} to the saved student address.`);
       const notifications = await this.#notifyBatchSafely({ runId, work: notificationWork, unresolved });
       notifications.forEach((notification, index) => {
         const processed = notificationWork[index].processed;
@@ -85,9 +92,9 @@ export class WorkflowActionCoordinator {
       });
     }
 
-    onStage("VERIFYING", "Reconciling spreadsheet, notification, and duplicate-prevention outcomes.");
+    onStage("VERIFYING", `Checking the spreadsheet read-back, duplicate count, Word drafts, and ${notificationWork.length} notification ${notificationWork.length === 1 ? "outcome" : "outcomes"}.`);
     const failed = selectedOutcomes.filter((item) => item.processingOutcome === "FAILURE").length;
-    onStage("REMEMBERING", "Saving the verified run summary and unresolved next actions.");
+    onStage("REMEMBERING", `Saving the verified run summary for ${selectedOutcomes.length} processed ${selectedOutcomes.length === 1 ? "opportunity" : "opportunities"} and recording any unresolved next actions.`);
 
     const summary = {
       ...result.runSummary,
@@ -372,7 +379,7 @@ export class WorkflowActionCoordinator {
     });
   }
 
-  async #saveApplicationMaterials({ runId, selection, processed, unresolved }) {
+  async #saveApplicationMaterials({ runId, selection, processed, unresolved, onStage }) {
     const prep = selection.applicationPrep;
     processed.publicOutcome.materials = [];
     if (prep?.status !== "PREPARED" || prep.templates.length === 0 || !processed.record) return;
@@ -385,6 +392,7 @@ export class WorkflowActionCoordinator {
     }
     for (const template of prep.templates) {
       try {
+        onStage("PREPARING_WORD_DRAFT", `Creating ${template.title} as a review-only Word document for ${processed.record.company} — ${processed.record.roleTitle}.`);
         const saved = await this.applicationMaterialStore.saveTemplate({
           runId,
           opportunityId: processed.record.opportunityId,

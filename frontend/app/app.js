@@ -8,7 +8,7 @@ const elements = {
   responseDialog: $("#response-dialog"), responseForm: $("#response-form"), toast: $("#toast"),
   runtimeReadiness: $("#runtime-readiness"), runtimeRecheck: $("#runtime-recheck"),
   notificationForm: $("#notification-settings-form"), notificationEmail: $("#notification-email"),
-  updateNeededPanel: $("#update-needed-panel"), updateNeededList: $("#update-needed-list"),
+  resetButton: $("#reset-collection"), resetDialog: $("#reset-dialog"), resetForm: $("#reset-form"), resetConfirmation: $("#reset-confirmation"),
 };
 
 let dashboard = null;
@@ -27,11 +27,13 @@ elements.search.addEventListener("input", renderCollection);
 elements.decisionFilter.addEventListener("change", renderCollection);
 elements.runtimeRecheck.addEventListener("click", recheckRuntime);
 elements.notificationForm.addEventListener("submit", saveNotificationEmail);
+elements.resetButton.addEventListener("click", openResetDialog);
+elements.resetForm.addEventListener("submit", resetCollection);
+elements.resetConfirmation.addEventListener("input", () => { $("#reset-submit").disabled = elements.resetConfirmation.value.trim() !== "RESET"; });
 elements.responseForm.addEventListener("submit", saveStudentResponse);
 elements.responseForm.addEventListener("change", updateResponseFields);
 elements.collectionList.addEventListener("click", handleOpportunityAction);
 elements.selectedList.addEventListener("click", handleOpportunityAction);
-elements.updateNeededList.addEventListener("click", handleOpportunityAction);
 $("#copy-spreadsheet-path").addEventListener("click", () => copyText(dashboard?.sync?.spreadsheetPath, "Spreadsheet path copied."));
 $("#copy-schedule-prompt").addEventListener("click", () => copyText(DAILY_AUTOMATION_PROMPT, "Daily automation setup prompt copied."));
 $("#approval-accept").addEventListener("click", () => resolveApproval(activeApproval?.questions?.length ? "respond" : "accept"));
@@ -86,6 +88,7 @@ function connectEventStream() {
       elements.approvalDialog.close();
       showToast("Your approval response was recorded.");
     }
+    if (event.type === "collection.reset") await refreshDashboard();
   };
   events.onerror = () => {
     if (!dashboard?.run?.active) updateAgent("NEEDS_ATTENTION", "Progress connection interrupted", "Live progress is temporarily disconnected. Your saved local data is unaffected.", dashboard?.run?.progressPercent || 0);
@@ -114,8 +117,9 @@ function renderDashboard() {
   setText("#metric-prioritize", dashboard.metrics.prioritize);
   setText("#metric-deadlines", dashboard.metrics.approachingDeadlines);
   setText("#metric-attention", dashboard.metrics.needsAttention);
-  renderRuntime(); renderNotificationSettings(); renderCollection(); renderAttention(); renderRun(dashboard.run); renderSync();
+  renderRuntime(); renderNotificationSettings(); renderCollection(); renderRun(dashboard.run); renderSync();
   renderAutomation(); renderSelected(); renderActivity(); renderNotification();
+  elements.resetButton.disabled = Boolean(dashboard.run?.active) || dashboard.metrics.totalTracked === 0;
   if (dashboard.pendingApprovals?.length) showApproval(dashboard.pendingApprovals[0]);
 }
 
@@ -176,26 +180,6 @@ function opportunityCard(record) {
   return card;
 }
 
-function renderAttention() {
-  const items = dashboard?.attentionItems || [];
-  elements.updateNeededPanel.hidden = items.length === 0;
-  setText("#update-needed-count", items.length);
-  elements.updateNeededList.replaceChildren(...items.map((item) => {
-    const row = make("article", "update-needed-item");
-    row.dataset.opportunityId = item.opportunityId;
-    const copy = make("div");
-    copy.append(
-      makeText("strong", `${item.company} — ${item.roleTitle}`),
-      makeText("p", item.prompt),
-    );
-    const button = actionButton(item.actionLabel || "Update Opportunity", "respond");
-    button.classList.add("attention-update-button");
-    button.disabled = Boolean(dashboard?.run?.active);
-    row.append(copy, button);
-    return row;
-  }));
-}
-
 function evidenceDisclosure(record) {
   const details = make("details", "evidence-disclosure");
   details.append(makeText("summary", record.fitAssessment === "INSUFFICIENT INFORMATION" ? "See missing information" : "See evidence and gaps"));
@@ -218,7 +202,7 @@ function materialList(materials = []) {
   if (materials.length === 0) { section.hidden = true; return section; }
   section.append(makeText("strong", "Prepared drafts"));
   for (const material of materials) {
-    const link = makeText("a", `${materialTitle(material.type)} · student review required`);
+    const link = makeText("a", `${materialTitle(material.type)} · Download Word draft`);
     link.href = `/api/materials/${encodeURIComponent(material.materialId)}`;
     link.className = "material-link";
     section.append(link);
@@ -242,10 +226,10 @@ function renderRun(run) {
     : `Discovery counts appear as the bounded collection workflow runs.${firstRun}`;
   setText("#run-message", run?.error?.message || (run?.finishedAt ? `${run.statusDetail || "Workflow finished."} Completed ${formatDateTime(run.finishedAt)} in ${formatDuration(run.durationMs)}.${shortfall}` : workflowContext));
   const stage = run?.stage || "WAITING";
-  const informationNeeded = !run?.active && stage === "NEEDS_ATTENTION" && (dashboard?.attentionItems?.length || 0) > 0;
-  const statusLabel = informationNeeded ? "Information needed to continue" : run?.label === "Needs Attention" ? "Action required" : run?.label || "Waiting";
-  const detail = informationNeeded
-    ? `${dashboard.attentionItems.length} ${dashboard.attentionItems.length === 1 ? "opportunity needs" : "opportunities need"} information from you. Select Update Opportunity beside the relevant item to continue it immediately.`
+  const attention = !run?.active && stage === "NEEDS_ATTENTION" ? dashboard?.attentionItems?.[0] : null;
+  const statusLabel = attention ? `Update ${attention.company} — ${attention.roleTitle}` : run?.label === "Needs Attention" ? "Action required" : run?.label || "Waiting";
+  const detail = attention
+    ? `${attention.prompt} Use Update Opportunity on this opportunity’s card to continue it immediately.`
     : run?.statusDetail || (run?.active ? "The approved workflow is running locally through Codex." : run?.outcome === "SUCCESS" ? "The latest workflow completed and was verified." : run?.outcome ? "Review the specific update request shown below." : "Ready to collect opportunities or update an existing one.");
   updateAgent(stage, statusLabel, detail, run?.progressPercent ?? (run?.finishedAt ? 100 : 0));
   setRunButton(Boolean(run?.active) || !runtimeReady(), run?.active ? "Workflow active" : "Collect Opportunities");
@@ -267,6 +251,9 @@ function renderSync() {
   setText("#sync-time", dashboard.sync.lastSuccessfulUpdate ? `Updated ${formatDateTime(dashboard.sync.lastSuccessfulUpdate)}` : "No verified update yet");
   $("#sync-dot").classList.toggle("available", dashboard.sync.status === "AVAILABLE"); setText("#spreadsheet-path", dashboard.sync.spreadsheetPath || "Local spreadsheet path unavailable");
   setText("#storage-availability", dashboard.sync.status === "AVAILABLE" ? "Spreadsheet available on this device. Prepared drafts are stored beside other private runtime data." : "The spreadsheet will be created after the first verified opportunity update.");
+  const resetArchive = $("#last-reset-archive");
+  resetArchive.hidden = !dashboard.sync.lastResetArchive;
+  resetArchive.textContent = dashboard.sync.lastResetArchive ? `Previous collection archive: ${dashboard.sync.lastResetArchive}` : "";
 }
 
 function renderAutomation() {
@@ -292,6 +279,35 @@ async function saveNotificationEmail(event) {
   event.preventDefault(); const button = elements.notificationForm.querySelector("button[type='submit']"); button.disabled = true; button.textContent = "Saving…";
   try { const response = await localFetch("/api/settings/notification", { email: elements.notificationEmail.value.trim() }); const body = await response.json(); if (!response.ok) throw new Error(body.error || "The address could not be saved."); await refreshDashboard(); showToast(body.settings.deliveryStatus === "CONNECTED" ? "Address saved. Outlook notifications are ready." : "Address saved locally. Review the Outlook connection status above."); }
   catch (error) { showToast(error.message); } finally { button.disabled = false; button.textContent = "Save"; }
+}
+
+function openResetDialog() {
+  if (dashboard?.run?.active) return showToast("Wait for the active workflow to finish before resetting the collection.");
+  if (!dashboard?.metrics?.totalTracked) return showToast("The collection is already empty.");
+  elements.resetForm.reset();
+  $("#reset-submit").disabled = true;
+  elements.resetDialog.showModal();
+  elements.resetConfirmation.focus();
+}
+
+async function resetCollection(event) {
+  event.preventDefault();
+  const button = $("#reset-submit");
+  button.disabled = true;
+  button.textContent = "Archiving…";
+  try {
+    const response = await localFetch("/api/reset", { confirmation: elements.resetConfirmation.value.trim() });
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error || "The collection could not be reset.");
+    elements.resetDialog.close();
+    await refreshDashboard();
+    showToast(`Collection reset. The previous private data was archived at ${body.result.archivePath}`);
+  } catch (error) {
+    showToast(error.message);
+  } finally {
+    button.textContent = "Archive and Reset";
+    button.disabled = elements.resetConfirmation.value.trim() !== "RESET";
+  }
 }
 
 function handleOpportunityAction(event) {

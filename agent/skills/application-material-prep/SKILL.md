@@ -32,6 +32,7 @@ If essential information is missing, create a visible placeholder or return a pr
 6. Explain which verified evidence supports each suggested point.
 7. Identify genuine gaps and unresolved questions transparently.
 8. End with the exact student review step required before any material could become final.
+9. Organize the content into a Word-ready hierarchy of title, short purpose statement, headings, paragraphs, real list items, evidence references, visible placeholders, and a final review checklist. Do not depend on raw Markdown formatting as the delivered student experience.
 
 ## Output contract
 
@@ -39,7 +40,7 @@ Return:
 
 - opportunity ID;
 - requested template types;
-- one or more draft-template records containing type, title, Markdown content, evidence references, placeholders, and unresolved questions;
+- one or more draft-template records containing type, title, Word-ready structured content, evidence references, placeholders, and unresolved questions; the local controller may receive a safe Markdown-like intermediate, but the saved and downloadable artifact must be a formatted `.docx` file;
 - concise preparation rationale;
 - exact next student review step; and
 - a confirmation that nothing was submitted or sent.

@@ -24,7 +24,7 @@ Run after **DECIDE** when an action is authorized, a local update is needed, a d
 3. Update relevant status, recommendation, next action, deadline, or next review date.
 4. After a material spreadsheet update succeeds, submit one informational email to the student's configured address through the connected Outlook Email app. Do not send a new-update notification when nothing materially changed.
 5. Accept a student confirmation, clarification, not-interested choice, or preparation request through the local dashboard; write student-owned notes without overwriting other student decisions; and immediately start the scoped **Update Opportunity** workflow. If the runtime is unavailable, preserve the response as pending and show a clear retry action.
-6. When requested and supported by verified evidence, use the `application-material-prep` Skill and Local Application Materials tool to create review-only templates. Label them as drafts and do not change final application materials.
+6. When requested and supported by verified evidence, use the `application-material-prep` Skill and Local Application Materials tool to create review-only Microsoft Word `.docx` templates. Label them as drafts, keep unresolved placeholders visible, and do not change final application materials.
 7. Prepare professional communication drafts without sending them to an employer.
 8. Request student approval where required, flag missing information, or record an unresolved task.
 9. Record the next review date or recommend a Codex automation change when appropriate. The agent must not create or modify the Codex automation.

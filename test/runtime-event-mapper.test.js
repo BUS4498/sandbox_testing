@@ -52,11 +52,29 @@ test("approval-waiting status becomes an explicit action request", () => {
   assert.match(event.detail, /specific approval request/);
 });
 
-test("generic observable tool activity remains generic rather than claiming a spreadsheet update", () => {
+test("generic observable tool activity explains the safe observable operation without claiming success", () => {
   const event = mapRuntimeEvent({
     method: "item/started",
-    params: { item: { type: "commandExecution", command: "node check.js" } },
+    params: { item: { type: "commandExecution", command: "node process-candidate.js" } },
   });
   assert.equal(event.stage, "ACTING");
   assert.equal(event.label, "Acting");
+  assert.match(event.detail, /approved repository instructions/);
+  assert.doesNotMatch(event.detail, /permitted local action/i);
+});
+
+test("recognizes verified context and Word-draft activity from observable metadata", () => {
+  const context = mapRuntimeEvent({
+    method: "item/started",
+    params: { item: { type: "commandExecution", command: "read context/career-preferences.md" } },
+  });
+  assert.equal(context.stage, "RETRIEVING_PREFERENCES");
+  assert.match(context.detail, /verified resume, career preferences/);
+
+  const word = mapRuntimeEvent({
+    method: "item/started",
+    params: { item: { type: "fileChange", path: "data/local/application-materials/draft.docx" } },
+  });
+  assert.equal(word.stage, "PREPARING_WORD_DRAFT");
+  assert.match(word.detail, /Word application draft/);
 });

@@ -169,6 +169,17 @@ export class RunNowManager extends EventEmitter {
     return structuredClone(publicRun);
   }
 
+  resetForFreshCollection() {
+    if (this.currentRun?.active) throw new RunAlreadyActiveError(this.currentRun.runId);
+    this.currentRun = null;
+    this.#completionWaiters.clear();
+    this.#completedTurns.clear();
+    this.#pendingApprovals.clear();
+    this.#finalMessages.clear();
+    this.#observedSearchCounts.clear();
+    this.#mcpToolCalls.clear();
+  }
+
   async checkRuntimeReadiness() {
     if (this.#readinessPromise) return this.#readinessPromise;
     const checkedAt = this.clock().toISOString();

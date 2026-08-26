@@ -32,7 +32,12 @@ test("dashboard exposes separate Collect and immediate Update experiences", () =
   assert.match(javascript, /formatDuration/);
   assert.match(javascript, /fitEvidence/);
   assert.match(html, /role="progressbar"/);
-  assert.match(html, /Information needed to continue/);
+  assert.match(html, /Reset Collection/);
+  assert.match(html, /Archive and Reset/);
+  assert.match(javascript, /api\/reset/);
+  assert.match(javascript, /Download Word draft/);
+  assert.doesNotMatch(html, /id="update-needed-panel"/);
+  assert.doesNotMatch(javascript, /Carrying out a permitted local action/);
   assert.match(javascript, /api\/collect/);
   assert.match(javascript, /\/update/);
   assert.doesNotMatch(javascript, /Source ·/);
@@ -69,6 +74,7 @@ test("pixel agent has distinct observable animations for approved workflow state
     ASSESSING_FIT: "sort-cards",
     ACTING: "folder-work",
     UPDATING_COLLECTION: "file-card",
+    PREPARING_WORD_DRAFT: "file-card",
     SENDING_NOTIFICATIONS: "send-envelope",
     VERIFYING: "pulse-check",
     REMEMBERING: "folder-work",

@@ -6,6 +6,7 @@ import { RunNowManager } from "../src/controller/run-now-manager.js";
 import { CodexOutlookTransport } from "../src/notifications/codex-outlook-transport.js";
 import { StudentEmailNotifier } from "../src/notifications/student-email-notifier.js";
 import { LocalApplicationMaterialStore } from "../src/persistence/application-material-store.js";
+import { LocalRuntimeResetService } from "../src/persistence/local-runtime-reset-service.js";
 import { OperationalMemoryStore } from "../src/persistence/operational-memory-store.js";
 import { LocalSettingsStore } from "../src/persistence/local-settings-store.js";
 import { resolveRuntimePaths } from "../src/persistence/runtime-paths.js";
@@ -31,6 +32,7 @@ if (notificationMode === "LIVE") {
 const configuredNotificationEmail = (await settingsStore.getNotificationEmail()) || process.env.NOTIFICATION_EMAIL || null;
 const workflowCoordinator = new WorkflowActionCoordinator({ spreadsheetTracker, memoryStore, applicationMaterialStore });
 const runManager = new RunNowManager({ workspaceRoot: repositoryRoot, memoryStore, workflowCoordinator });
+const localResetService = new LocalRuntimeResetService({ runtimePaths, spreadsheetTracker, memoryStore, applicationMaterialStore, runManager });
 const outlookTransport = notificationMode === "OUTLOOK" ? new CodexOutlookTransport({ runManager }) : null;
 const createNotifier = (recipient) => recipient
   ? new StudentEmailNotifier({
@@ -66,6 +68,7 @@ const dashboard = createDashboardServer({
   notificationConfiguration,
   studentResponseService,
   applicationMaterialStore,
+  localResetService,
 });
 
 const port = parsePort(process.env.PORT || "4318");

@@ -14,7 +14,7 @@ Observation memory records relevant facts produced by approved inputs, actions, 
 - email service reported submission, delivery, failure, or unknown status;
 - Outlook app was callable, unavailable, denied, or required reconnection;
 - student supplied a confirmation, clarification, not-interested choice, or preparation request;
-- application template was saved, unavailable, or failed verification;
+- Word application template was saved, unavailable, unreadable, or failed verification;
 - deadline changed;
 - scheduled run was missed;
 - tool failed;

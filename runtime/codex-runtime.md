@@ -96,7 +96,13 @@ The dashboard should display the resolved runtime folder and spreadsheet path. `
 
 ## Events and User Approvals
 
-The controller may use Codex runtime events to show plain-English business progress and an explicitly approximate completion percentage. The percentage must be derived from reached workflow stages, not hidden reasoning or fabricated task counts. When student information is required, the interface should identify the affected opportunity, requested information, and **Update Opportunity** control instead of relying on a generic attention label.
+The controller may use Codex runtime events to show plain-English business progress and an explicitly approximate completion percentage. The percentage must be derived from reached workflow stages, not hidden reasoning or fabricated task counts. Status text should identify the observable object and operation whenever that information is available—for example, reading verified student preferences, validating a named posting, adding a named opportunity to the spreadsheet, creating a Word draft for a named opportunity, or submitting a specific number of student notifications. Avoid generic phrases such as “carrying out a permitted local action” when a safer, more concrete description is available. When student information is required, the interface should identify the affected opportunity, requested information, and **Update Opportunity** control instead of relying on a generic attention label.
+
+## Fresh-start reset
+
+The local controller may provide a student-initiated **Reset Collection** operation. This is not an agent decision and must not start a Codex turn. It must be unavailable while a workflow is active, require an explicit destructive-action confirmation, archive the prior private runtime collection locally for recovery, and then initialize an empty spreadsheet and empty opportunity-related operational memory.
+
+Reset should also remove current application-material drafts and notification-preview history from the active collection. It must preserve the authoritative files under `context/`, the locally saved notification recipient, Codex/ChatGPT authentication, Outlook authentication, and Codex-managed automation configuration. Previously sent email cannot be recalled. After reset, the next collection run must start a new Codex thread so prior opportunity history is not silently treated as current state.
 
 When Codex requests approval, the controller must show the student the proposed consequential action and enough information to make an informed decision. Existing authority rules remain controlling: Codex integration does not authorize application submission, employer communication, final material changes, or any other action reserved for the student.
 

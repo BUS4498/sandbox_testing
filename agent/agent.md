@@ -26,9 +26,12 @@ The eventual system should:
 - allow a targeted **Update Opportunity** action that immediately processes newly supplied student information for one tracked opportunity without performing web discovery;
 - optionally run automatically once per day;
 - send the student informational email notifications through the student's connected Outlook app when tracked opportunities materially change; and
-- prepare local, review-only application templates when the student requests them.
+- prepare local, review-only Microsoft Word application templates when the student requests them; and
+- let the student explicitly archive and reset the current local collection without changing authoritative context, notification settings, authentication, or Codex-managed scheduling.
 
 The system is an internship-preparation assistant, not an autonomous job applicant. It has no application-submission capability.
+
+Collection reset is a confirmed local-controller operation, not an agent workflow stage or model decision.
 
 ## Runtime
 

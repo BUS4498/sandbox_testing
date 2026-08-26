@@ -6,6 +6,7 @@ const EXPLICIT_BUSINESS_STAGES = Object.freeze({
   ASSESSING_FIT: "Assessing Fit",
   ACTING: "Acting",
   UPDATING_COLLECTION: "Updating Collection",
+  PREPARING_WORD_DRAFT: "Preparing Word Draft",
   SENDING_NOTIFICATIONS: "Sending Notifications",
   VERIFYING: "Verifying",
   REMEMBERING: "Remembering",
@@ -21,6 +22,7 @@ const STAGE_PROGRESS = Object.freeze({
   ASSESSING_FIT: 62,
   ACTING: 70,
   UPDATING_COLLECTION: 78,
+  PREPARING_WORD_DRAFT: 82,
   SENDING_NOTIFICATIONS: 86,
   VERIFYING: 92,
   REMEMBERING: 97,
@@ -78,20 +80,29 @@ export function mapRuntimeEvent(message) {
   }
 
   if (["commandExecution", "fileChange", "dynamicToolCall", "mcpToolCall"].includes(item.type)) {
-    const toolName = String(item.tool ?? item.appContext?.actionName ?? "").toLowerCase();
-    if (/spreadsheet|workbook|excel|collection/.test(toolName)) {
+    const activity = observableActivityText(item);
+    if (/context[\\/]|career-preferences|availability-and-constraints|is-junior-resume|student-profile/.test(activity)) {
+      return businessState("RETRIEVING_PREFERENCES", "Reading the verified resume, career preferences, availability, and constraints needed for this run.");
+    }
+    if (/memory|state\.json|decisions\.jsonl|actions\.jsonl|observations\.jsonl|evaluations\.jsonl/.test(activity)) {
+      return businessState("RETRIEVING_PREFERENCES", "Checking prior opportunity observations and actions so unchanged postings and duplicate work are not repeated.");
+    }
+    if (/spreadsheet|workbook|excel|collection|\.xlsx/.test(activity)) {
       return businessState("UPDATING_COLLECTION", "Updating the verified opportunity record in your local spreadsheet.");
     }
-    if (/email|notification/.test(toolName)) {
+    if (/docx|word|application-material|cover-letter|resume-tailoring|question-worksheet/.test(activity)) {
+      return businessState("PREPARING_WORD_DRAFT", "Creating a review-only Word application draft in the selected opportunity’s private local folder.");
+    }
+    if (/email|notification|outlook/.test(activity)) {
       return businessState("SENDING_NOTIFICATIONS", "Sending permitted informational updates to your saved notification address.");
     }
-    if (/verify|check|confirm/.test(toolName)) {
+    if (/verify|check|confirm|read-back/.test(activity)) {
       return businessState("VERIFYING", "Checking that the intended spreadsheet, notification, and preparation actions actually succeeded.");
     }
-    if (/memory|remember|state/.test(toolName)) {
-      return businessState("REMEMBERING", "Saving verified outcomes and the next action for the next cycle.");
+    if (item.type === "fileChange") {
+      return businessState("ACTING", "Preparing a local structured result for controller verification. No application or employer message is being sent.");
     }
-    return businessState("ACTING", "Carrying out a permitted local action for the selected opportunity.");
+    return businessState("ACTING", "Checking approved repository instructions and local workflow inputs needed for this stage. No application is being submitted.");
   }
 
   // Never map reasoning, plans, or message text into a more detailed status.
@@ -112,4 +123,16 @@ export function publicRuntimeEvent(message) {
 
 function businessState(stage, detail) {
   return { stage, label: EXPLICIT_BUSINESS_STAGES[stage], detail, progressPercent: STAGE_PROGRESS[stage] ?? 0 };
+}
+
+function observableActivityText(item) {
+  return [
+    item.tool,
+    item.appContext?.actionName,
+    item.appContext?.appName,
+    item.command,
+    item.cwd,
+    item.path,
+    ...(Array.isArray(item.changes) ? item.changes.map((change) => change?.path ?? change?.filePath) : []),
+  ].filter(Boolean).join(" ").toLowerCase();
 }

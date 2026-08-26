@@ -8,7 +8,7 @@ The Internship Application Prep Agent is a local-first prototype for an undergra
 
 The application runs on the student's computer and provides a local browser-based dashboard. A local spreadsheet at `data/local/internship_pipeline.xlsx` serves as the student's user-facing collection of current internship opportunities. The surrounding `data/local/` folder also holds operational memory, local settings, notification records, and prepared templates and is excluded from Git. After a material collection update succeeds, a deterministic message may be submitted through the Outlook Email app connected in Codex. The recipient is chosen in the dashboard; Outlook credentials remain in Codex.
 
-The agent can also prepare local draft templates such as a resume-tailoring checklist, cover-letter outline, or application-question worksheet. These artifacts require student review and cannot submit an application.
+The agent can also prepare formatted Microsoft Word `.docx` draft templates such as a resume-tailoring checklist, cover-letter outline, or application-question worksheet. These artifacts require student review and cannot submit an application.
 
 ## Opportunity sources
 
@@ -76,7 +76,7 @@ The controller foundation requires Node.js 22 or newer. Run `npm install` once t
 
 By default, active local files are stored under `data/local/` in this project folder. The dashboard displays the resolved folder and spreadsheet path. `INTERNSHIP_AGENT_DATA_DIR` may be set in an ignored local `.env` file only when another local storage location is intentionally required.
 
-The dashboard checks Codex App Server readiness before enabling agent actions and provides a read-only **Recheck** action. **Collect Opportunities** performs bounded web discovery. **Update Opportunity** processes newly supplied information for one tracked opportunity immediately, without launching discovery or requiring a later collection run. Account email, plan information, tokens, credentials, and raw process errors are not returned to the browser.
+The dashboard checks Codex App Server readiness before enabling agent actions and provides a read-only **Recheck** action. **Collect Opportunities** performs bounded web discovery. **Update Opportunity** processes newly supplied information for one tracked opportunity immediately, without launching discovery or requiring a later collection run. **Reset Collection** archives the active local collection and starts a fresh one only after explicit confirmation; it does not remove context, authentication, notification-recipient settings, or Codex automation configuration. Account email, plan information, tokens, credentials, and raw process errors are not returned to the browser.
 
 The live-validation run respected the approved funnel: three web searches produced 15 screened candidates and five selected opportunities. Local actions created five temporary workbook rows and five dry-run notification previews; the run correctly ended as `PARTIAL SUCCESS` because each selected opportunity retained an issue requiring student attention. No real email, application submission, or employer communication occurred, and no validation workbook is committed to the repository.
 

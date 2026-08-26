@@ -30,7 +30,9 @@ Local runtime data may include:
 
 The dashboard shows the resolved runtime folder and spreadsheet path so the student can find the files on the current device.
 
-Student notification recipient settings may be stored locally in this runtime area. Outlook authentication remains managed by Codex and must not be copied into runtime files. Application templates should be grouped by opportunity, labeled for student review, and never treated as submitted or final materials.
+Student notification recipient settings may be stored locally in this runtime area. Outlook authentication remains managed by Codex and must not be copied into runtime files. Application templates should be grouped by opportunity, saved as formatted Microsoft Word `.docx` files, labeled for student review, and never treated as submitted or final materials.
+
+The dashboard may provide a confirmed **Reset Collection** operation. A reset should archive the prior spreadsheet, opportunity-related memory, material drafts, and notification previews under a private Git-ignored reset archive before initializing the active collection again. It should preserve local notification settings and Codex-managed authentication and schedule information.
 
 ## Git boundary
 

@@ -39,7 +39,7 @@ For informational email, verify that:
 
 For a student response, verify that the intended opportunity received the student-owned note, the targeted update workflow processed the same response identifier, the reassessed recommendation or remaining clarification is visible, and no unrelated opportunity or discovery search was processed. If immediate processing could not start or finish, preserve the response as pending and provide a clear **Update Opportunity** retry action.
 
-For an application template, verify that the intended draft file exists in the private local material area, belongs to the correct opportunity, carries the student-review label, and does not claim submission or final approval.
+For an application template, verify that the intended `.docx` file exists in the private local material area, is a readable Word package, belongs to the correct opportunity, carries the student-review label, preserves required placeholders and content, and does not claim submission or final approval.
 
 For Outlook delivery, treat a completed Outlook send tool call as `SUBMITTED` unless the connector provides stronger delivery evidence. A connector failure, missing app, denied approval, or unconfirmed tool outcome must remain visible as failed or unknown.
 

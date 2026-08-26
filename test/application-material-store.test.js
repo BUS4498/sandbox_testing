@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readdir, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -25,12 +25,18 @@ test("saves a verified review-only application template in private runtime stora
       placeholders: ["Confirm weekly availability"],
     });
     assert.equal(saved.verified, true);
-    assert.match(saved.markdown, /^# Draft template — student review required/);
-    assert.match(saved.markdown, /cannot submit|submit it yourself/i);
+    assert.match(saved.fileName, /\.docx$/);
+    assert.equal(saved.contentType, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    assert.equal(saved.format, "DOCX");
+    const material = await store.readMaterial("material-001");
+    assert.equal(material.verified, true);
+    assert.equal(material.bytes[0], 0x50);
+    assert.equal(material.bytes[1], 0x4b);
     const [listed] = await store.listMaterials({ opportunityId: "opp-001" });
     assert.equal(listed.materialId, "material-001");
     assert.equal(listed.status, "DRAFT_REVIEW_REQUIRED");
     assert.equal("filePath" in listed, false);
+    assert.equal((await readdir(path.join(directory, "application-materials", "opp-001"))).some((name) => name.endsWith(".md")), false);
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

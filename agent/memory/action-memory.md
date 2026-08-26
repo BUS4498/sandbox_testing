@@ -11,7 +11,7 @@ Action memory records attempted and completed actions, such as:
 - Outlook email notification submitted or sent;
 - student response recorded;
 - application-template preparation requested;
-- application template saved and verified;
+- Word application template saved and verified;
 - communication draft prepared; and
 - student approval requested.
 

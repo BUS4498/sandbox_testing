@@ -18,6 +18,8 @@ export function resolveRuntimePaths({ rootDir, repositoryRoot = process.cwd() } 
     logs: path.join(resolvedRoot, "logs"),
     notificationOutbox: path.join(resolvedRoot, "notification-outbox"),
     applicationMaterials: path.join(resolvedRoot, "application-materials"),
+    resetArchives: path.join(resolvedRoot, "reset-archives"),
+    resetSummary: path.join(resolvedRoot, "last-reset.json"),
     settings: path.join(resolvedRoot, "settings.json"),
   });
 }
