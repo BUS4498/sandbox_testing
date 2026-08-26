@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The `data/` area documents the local persistence that a future Internship Application Operations Agent will need. During the later implementation phase, the application should keep changing operational data on the student's computer rather than in the committed repository.
+The `data/` area documents the local persistence that the Internship Application Prep Agent needs. The application keeps changing operational data on the student's computer rather than in the committed repository.
 
 ## Future spreadsheet
 
@@ -25,9 +25,12 @@ Future local runtime data may include:
 - operational memory or other runtime persistence;
 - logs;
 - temporary files; and
+- locally prepared, review-only application templates;
 - backups or recovery files needed for safe local operation.
 
 The exact storage layout should be selected during implementation and shown clearly in the local dashboard.
+
+Student notification recipient settings may be stored locally in this runtime area. Outlook authentication remains managed by Codex and must not be copied into runtime files. Application templates should be grouped by opportunity, labeled for student review, and never treated as submitted or final materials.
 
 ## Git boundary
 

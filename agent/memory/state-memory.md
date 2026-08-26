@@ -11,7 +11,9 @@ State memory stores the latest known operational state for each opportunity and 
 - next action and next-action date;
 - next review time;
 - outstanding tasks and unresolved issues;
-- current daily schedule status, last run, and next scheduled run;
+- latest student response status and whether its targeted update is starting, in progress, resolved, awaiting clarification, failed, or ready for retry;
+- pending or prepared application-template requests and local material identifiers;
+- current Codex-reported daily automation status, last run, and next scheduled run;
 - last verified time; and
 - links to the observations, decisions, actions, and evaluations supporting the state.
 
@@ -23,7 +25,7 @@ State memory lets a later cycle resume from the current operational position wit
 
 ## When it is written
 
-Write state memory after a new opportunity is accepted, a material field changes, an action or verification changes current status, the student supplies an authoritative update, or schedule/task state changes. Use version-aware updates and preserve links to the prior state.
+Write state memory after a new opportunity is accepted, a material field changes, an action or verification changes current status, the student supplies an authoritative update or preparation request, a local template is prepared, or a schedule/task state change is observed. Use version-aware updates and preserve links to the prior state.
 
 ## When it is retrieved
 

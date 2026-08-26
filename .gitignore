@@ -17,6 +17,8 @@
 /memory-store/
 /data/runtime/
 /data/local/
+/application-materials/
+/data/application-materials/
 
 # Generated internship spreadsheet files
 /internship_pipeline.xlsx

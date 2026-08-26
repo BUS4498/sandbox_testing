@@ -31,7 +31,8 @@ A structured observation that may include:
 - responsibilities;
 - required qualifications;
 - preferred qualifications;
-- application URL; and
+- source or posting URL;
+- direct application URL when separately available; and
 - posting status.
 
 The output must also include source provenance, observation time, completeness, and field-level uncertainty. Unavailable information remains `unknown`; the tool must not invent it.

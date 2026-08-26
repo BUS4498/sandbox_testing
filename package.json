@@ -1,0 +1,18 @@
+{
+  "name": "internship-application-prep-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local-first internship application preparation agent powered by the Codex App Server harness.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "start": "node scripts/start-local-app.js",
+    "test": "node --test",
+    "check:codex": "node scripts/check-codex-app-server.js"
+  },
+  "devDependencies": {
+    "@openai/codex": "^0.149.1"
+  }
+}

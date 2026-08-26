@@ -12,12 +12,14 @@ Define when the agent must ask the student rather than improvise, assume authori
 - duplicate status is uncertain;
 - the spreadsheet cannot be read, written, or verified;
 - an informational email fails or has an unknown outcome;
-- scheduler configuration or a scheduled run fails;
+- the Outlook Email app is missing, disabled, inaccessible, non-callable, denied, or requires unresolved reconnection;
+- the Codex automation is unavailable, a scheduled run is missed, or a scheduled run fails;
 - a consequential external action is proposed;
 - required approval is missing, expired, or no longer matches the action;
 - a decision falls outside the agent's defined authority;
 - a student instruction conflicts with current recorded state;
 - a source is inaccessible and the missing information affects the decision; or
+- an application template requires a qualification, legal response, or personal fact not present in verified context or a student response; or
 - privacy, credential, or data-integrity risk is suspected.
 
 ## Escalation content
@@ -41,7 +43,7 @@ Do not fabricate a value, repeat a possibly successful external action, or conti
 
 - **Critical:** suspected secret exposure, unauthorized disclosure, or imminent irreversible action; stop the affected workflow.
 - **Time-sensitive:** deadline, interview, or opportunity status requires prompt student input.
-- **Blocking:** essential evidence, approval, spreadsheet access, email, or scheduler capability is unavailable.
+- **Blocking:** essential evidence, approval, spreadsheet access, email, or the required Codex automation trigger is unavailable.
 - **Review:** ambiguity can safely wait while other scoped work continues.
 
 ## Carry forward

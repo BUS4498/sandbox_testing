@@ -25,10 +25,13 @@ Run after **SENSE** when a valid new or tracked opportunity requires assessment,
 5. Incorporate relevant prior student decisions and evaluations without treating them as permanent authority.
 6. Explain conflicts and uncertainty.
 7. Never fabricate qualifications, experience, coursework, projects, or preferences.
+8. If a pending student response addresses a prior unknown or unresolved issue, evaluate that response as student-supplied evidence, identify what it resolves, and state whether more information is still required.
+9. When application-template preparation was requested, identify the verified facts, posting requirements, gaps, and placeholders that the `application-material-prep` Skill may use. Do not prepare or finalize the material inside the fit assessment itself.
+10. During a targeted **Update Opportunity** workflow, reason only about the selected opportunity and the new response. Do not search for or rank other internships.
 
 ## Expected output
 
-Structured supporting evidence that includes requirement-to-student comparisons, constraints, deadline and urgency, strengths, gaps, unresolved questions, confidence, and an explainable assessment. A numerical fit score, if used, must not stand alone or replace the evidence.
+Structured supporting evidence that includes requirement-to-student comparisons, constraints, deadline and urgency, strengths, gaps, unresolved questions, confidence, and an explainable assessment. When evidence is insufficient, identify the exact clarification needed rather than exposing only the label `INSUFFICIENT INFORMATION`. A numerical fit score, if used, must not stand alone or replace the evidence.
 
 ## Failure and exception handling
 

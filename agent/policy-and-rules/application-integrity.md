@@ -32,3 +32,5 @@ When evidence is missing, stale, incomplete, or contradictory, mark the claim as
 ## Application materials
 
 Drafts may reorganize or clarify verified information, but they must not add unsupported claims. Final resumes, cover letters, application answers, and portfolios remain subject to student review and approval.
+
+Application-preparation templates must remain labeled as drafts, keep unresolved placeholders visible, and cite the verified student evidence used. A template is not a final material and must never be treated as an application-submission capability.

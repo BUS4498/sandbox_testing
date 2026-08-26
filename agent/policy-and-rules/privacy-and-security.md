@@ -9,7 +9,8 @@ Keep student information, credentials, local runtime data, and external access a
 - Do not expose credentials.
 - Do not place passwords, tokens, or API keys in specification files.
 - Keep secrets outside GitHub in a local secret store or ignored local configuration.
-- Keep email credentials and recipient settings local.
+- Keep the student recipient setting local.
+- Keep Outlook authentication inside Codex-managed connector storage; do not copy Outlook credentials or OAuth tokens into this repository, local settings, memory, spreadsheet data, or the frontend.
 - Do not expose secrets through the frontend, logs, errors, spreadsheet cells, or operational memory.
 - Redact sensitive values before displaying diagnostics.
 
@@ -31,6 +32,8 @@ Keep student information, credentials, local runtime data, and external access a
 ## External services
 
 Use only student-approved services and transfer the minimum necessary information. Apply least-privilege access, validate destinations, and record material external transfers. Never bypass service access controls.
+
+Routine student notifications should use minimum non-identifying disclosure: opportunity facts, decision, deadline, and next action may be included, but resume evidence, student responses, legal-eligibility information, and unrelated context should not be sent. Application templates remain local unless the student separately authorizes a specific external action.
 
 ## Security failures
 

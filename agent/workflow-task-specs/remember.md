@@ -15,7 +15,7 @@ Run after **VERIFY** at the end of each cycle, including cycles that fail, stop 
 - Action attempts.
 - Verification records.
 - Student approvals, rejections, responses, or newly expressed preferences.
-- Current schedule and next-review state.
+- Current schedule state reported by Codex and the next-review state.
 
 ## Instructions
 
@@ -29,9 +29,13 @@ Persist relevant information such as:
 - observed result and evaluation;
 - unresolved issue;
 - next review date;
-- schedule state;
-- student approval or rejection; and
-- explicit student preferences learned from user choices.
+- schedule state reported by Codex;
+- student approval or rejection;
+- explicit student preferences learned from user choices;
+- student confirmations, clarifications, not-interested choices, and preparation requests;
+- whether each student input is awaiting review, resolved, or needs more information; and
+- whether the targeted update started, completed, failed, or remains ready for an explicit retry;
+- locally prepared application-template identifiers and verification outcomes.
 
 Link records so a later cycle can answer:
 
@@ -54,7 +58,7 @@ If a memory write fails, preserve the unsaved records for safe retry, surface th
 
 ## What is passed to the next stage
 
-Pass a concise cycle summary and one control outcome: finish, wait for information, wait for approval, repeat for a specific unresolved issue, or run at the next configured schedule.
+Pass a concise cycle summary and one control outcome: finish, request a specific student update, wait for approval, retry a failed targeted update, or await the next enabled Codex daily collection automation.
 
 ## What should be remembered
 

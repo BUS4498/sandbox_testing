@@ -6,7 +6,7 @@ Load only the student context, prior operational state, and tracked-opportunity 
 
 ## When this task runs
 
-Run first in every manual or scheduled cycle. Run again only if a later stage identifies a specific missing record needed to continue.
+Run first in every manual collection, scheduled collection, or targeted opportunity-update cycle. Run again only if a later stage identifies a specific missing record needed to continue.
 
 ## Inputs
 
@@ -23,10 +23,12 @@ Run first in every manual or scheduled cycle. Run again only if a later stage id
 4. Consult the current spreadsheet record when needed to determine whether an opportunity exists, its application status, latest recommendation, deadline, next action, and last update time.
 5. Preserve source references, snapshot or record versions, and freshness.
 6. Do not load all context, memory, or spreadsheet records indiscriminately.
+7. For a targeted update, retrieve only the selected opportunity, its newly saved student response, relevant verified context, and related operational history. Do not retrieve unrelated opportunities.
+8. Keep student-supplied information out of public-web search queries. A targeted update performs no internship-market discovery search.
 
 ## Expected output
 
-A scoped retrieval package containing the relevant student facts, opportunity state, prior operational history, unresolved items, source references, freshness, and identified information gaps.
+A scoped retrieval package containing the relevant student facts, opportunity state, prior operational history, pending student responses or preparation requests, unresolved items, source references, freshness, and identified information gaps.
 
 ## Failure and exception handling
 

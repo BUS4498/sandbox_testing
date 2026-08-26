@@ -17,7 +17,7 @@ Assess an internship against the student's authoritative context. Return structu
 - Availability, location, and timing constraints.
 - Current deadline and unresolved information.
 
-If decisive posting or student information is missing, return `INSUFFICIENT INFORMATION` and identify what must be retrieved or asked.
+If decisive posting or student information is missing, return `INSUFFICIENT INFORMATION` internally and identify what must be retrieved or asked. A user-facing interface should translate this into **Needs clarification** plus the exact missing information rather than show an unexplained fit label.
 
 ## Assessment instructions
 
@@ -70,6 +70,8 @@ Return:
 - concise explanation and confidence based on evidence completeness;
 - unresolved questions; and
 - candidate considerations for the **DECIDE** stage.
+
+The overall label supports internal routing and audit. The dashboard should emphasize the evidence, decision rationale, gaps, and clarification request rather than display a standalone Fit column.
 
 ## Boundaries
 

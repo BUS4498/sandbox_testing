@@ -31,10 +31,18 @@ Run after **REASON** whenever a valid opportunity or unresolved issue requires a
 5. State whether the local spreadsheet needs a new record or material update.
 6. Respect explicit student decisions and approval boundaries.
 7. Do not use an unexplained numerical fit score as the decision.
+8. Make a human-dependent next action actionable by defining:
+   - the exact question or confirmation needed;
+   - the accepted response type, such as confirmation, short text, choice, or preparation request;
+   - the urgency or due date;
+   - what the agent will do after the student responds; and
+   - whether the response will trigger reassessment or application-template preparation.
+9. A recommendation to prepare materials may request the `application-material-prep` Skill, but it must not imply that an application will be completed or submitted.
+10. For a targeted update, explicitly state whether the student's information resolved the prior issue, changed the recommendation or next action, triggered a review-only preparation task, or still requires a narrower clarification.
 
 ## Expected output
 
-A decision record containing the decision, concise rationale, relevant supporting evidence, urgency, recommended next action, human-input requirement, and spreadsheet-update requirement.
+A decision record containing the decision, concise rationale, relevant supporting evidence, urgency, recommended next action, human-input requirement, actionable input request when needed, immediate student-response resolution when applicable, application-template recommendation when applicable, and spreadsheet-update requirement.
 
 ## Failure and exception handling
 

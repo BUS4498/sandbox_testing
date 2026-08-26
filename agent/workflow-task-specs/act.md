@@ -13,7 +13,7 @@ Run after **DECIDE** when an action is authorized, a local update is needed, a d
 - Decision record and intended outcome.
 - Current opportunity record and material change set.
 - Required approval state.
-- Local spreadsheet, notification, scheduler, drafting, and memory capabilities as relevant.
+- Local spreadsheet, notification, application-template storage, drafting, and memory capabilities as relevant.
 
 ## Instructions
 
@@ -22,18 +22,20 @@ Run after **DECIDE** when an action is authorized, a local update is needed, a d
    - a valid new opportunity is accepted into the collection; or
    - an existing opportunity has materially changed.
 3. Update relevant status, recommendation, next action, deadline, or next review date.
-4. After a material spreadsheet update succeeds, send one informational email to the student describing the update. Do not send a new-update notification when nothing materially changed.
-5. Prepare professional communication drafts without sending them to an employer.
-6. Request student approval where required, flag missing information, or record an unresolved task.
-7. Schedule the next local review or configured daily run when appropriate.
+4. After a material spreadsheet update succeeds, submit one informational email to the student's configured address through the connected Outlook Email app. Do not send a new-update notification when nothing materially changed.
+5. Accept a student confirmation, clarification, not-interested choice, or preparation request through the local dashboard; write student-owned notes without overwriting other student decisions; and immediately start the scoped **Update Opportunity** workflow. If the runtime is unavailable, preserve the response as pending and show a clear retry action.
+6. When requested and supported by verified evidence, use the `application-material-prep` Skill and Local Application Materials tool to create review-only templates. Label them as drafts and do not change final application materials.
+7. Prepare professional communication drafts without sending them to an employer.
+8. Request student approval where required, flag missing information, or record an unresolved task.
+9. Record the next review date or recommend a Codex automation change when appropriate. The agent must not create or modify the Codex automation.
 
-The agent may autonomously read approved information, assess opportunities, update its local sandbox spreadsheet and memory, schedule local reviews, send informational update emails to the student, and prepare drafts or recommendations.
+The agent may autonomously read approved information, assess opportunities, immediately process a student-supplied update for one tracked opportunity, update its local sandbox spreadsheet and memory, record next-review dates, send informational update emails to the student's configured address through Outlook, and prepare local review-only templates, drafts, or recommendations.
 
-Student approval is required before changing final resume content, sending recruiter or employer communication, submitting an application, accepting or declining interviews, or making another consequential external commitment. The agent must never fabricate qualifications, impersonate the student, send unapproved employer-facing messages, or override explicit student decisions.
+Student approval is required before changing final resume content, treating an application template as final, sending recruiter or employer communication, submitting an application, accepting or declining interviews, or making another consequential external commitment. The agent must never fabricate qualifications, impersonate the student, send unapproved employer-facing messages, override explicit student decisions, or implement an application-submission capability.
 
 ## Expected output
 
-An action record listing each attempted action, target, approval basis, spreadsheet result, notification result, next review or schedule change, draft or user request created, and provisional outcome.
+An action record listing each attempted action, target, approval basis, spreadsheet result, notification result, next review, automation-change recommendation, draft or user request created, and provisional outcome.
 
 ## Failure and exception handling
 
@@ -41,7 +43,7 @@ Stop any action lacking required approval. If the spreadsheet update fails, do n
 
 ## What is passed to the next stage
 
-Pass intended outcomes, action attempts, receipts or errors, spreadsheet changes, notification attempts, and schedule changes to **VERIFY**.
+Pass intended outcomes, action attempts, receipts or errors, spreadsheet changes, notification attempts, and next-review changes to **VERIFY**.
 
 ## What should be remembered
 
