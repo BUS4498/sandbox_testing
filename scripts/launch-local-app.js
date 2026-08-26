@@ -43,18 +43,22 @@ export async function waitForDashboard(url, {
 
 export function browserLaunchCommand(url, platform = process.platform) {
   if (platform === "win32") {
-    return { command: "cmd.exe", args: ["/d", "/s", "/c", `start "" "${url}"`] };
+    return { command: "explorer.exe", args: [url] };
   }
   if (platform === "darwin") return { command: "open", args: [url] };
   return { command: "xdg-open", args: [url] };
 }
 
-export function openDashboard(url, { platform = process.platform, spawnImpl = spawn } = {}) {
+export async function openDashboard(url, { platform = process.platform, spawnImpl = spawn } = {}) {
   const launch = browserLaunchCommand(url, platform);
   const child = spawnImpl(launch.command, launch.args, {
     detached: true,
     stdio: "ignore",
     windowsHide: true,
+  });
+  await new Promise((resolve, reject) => {
+    child.once("spawn", resolve);
+    child.once("error", reject);
   });
   child.unref();
 }
@@ -105,7 +109,7 @@ export async function launchLocalApp({
   }
 
   process.stdout.write(`Dashboard ready at ${url}\n`);
-  if (openBrowser) openDashboard(url);
+  if (openBrowser) await openDashboard(url);
   return { url, logPath, alreadyRunning: logPath === null };
 }
 
