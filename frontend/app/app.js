@@ -8,7 +8,12 @@ const elements = {
   responseDialog: $("#response-dialog"), responseForm: $("#response-form"), toast: $("#toast"),
   runtimeReadiness: $("#runtime-readiness"), runtimeRecheck: $("#runtime-recheck"),
   notificationForm: $("#notification-settings-form"), notificationEmail: $("#notification-email"),
+  scheduleForm: $("#schedule-form"), scheduleEnabled: $("#schedule-enabled"), scheduleTime: $("#schedule-time"),
   resetButton: $("#reset-collection"), resetDialog: $("#reset-dialog"), resetForm: $("#reset-form"), resetConfirmation: $("#reset-confirmation"),
+  profileUploadForm: $("#resume-upload-form"), profileFile: $("#resume-file"), profileReview: $("#profile-review"),
+  profilePreview: $("#profile-preview"), profileIdentifiersRemoved: $("#profile-identifiers-removed"),
+  profileConfirm: $("#profile-confirm"), profileUseDemo: $("#profile-use-demo"), profileUseReal: $("#profile-use-real"),
+  studentContextForm: $("#student-context-form"),
 };
 
 let dashboard = null;
@@ -17,25 +22,27 @@ let activeApproval = null;
 let activeOpportunity = null;
 let runTimer = null;
 let displayedRun = null;
-
-const DAILY_AUTOMATION_PROMPT = `Create a daily scheduled task in this internship-agent task at my chosen local time.
-
-Collect internship opportunities with the Internship Application Prep Agent. Follow AGENTS.md, agent/agent.md, and the relevant specifications. Use no more than 3 targeted searches, collect no more than 15 candidates, and select the top 3 to 5 relevant new or materially changed opportunities when at least 3 qualify. If fewer than 3 qualify, record the reason. Update the spreadsheet, send permitted Outlook notifications, verify outcomes, update memory, save the run summary, and stop. Never submit applications.`;
+let renderedStudentContextVersion = null;
 
 elements.runButton.addEventListener("click", startCollection);
 elements.search.addEventListener("input", renderCollection);
 elements.decisionFilter.addEventListener("change", renderCollection);
 elements.runtimeRecheck.addEventListener("click", recheckRuntime);
 elements.notificationForm.addEventListener("submit", saveNotificationEmail);
+elements.scheduleForm.addEventListener("submit", saveSchedule);
 elements.resetButton.addEventListener("click", openResetDialog);
 elements.resetForm.addEventListener("submit", resetCollection);
+elements.profileUploadForm.addEventListener("submit", uploadResume);
+elements.profileConfirm.addEventListener("click", confirmStudentProfile);
+elements.profileUseDemo.addEventListener("click", () => selectStudentSetupMode("demo"));
+elements.profileUseReal.addEventListener("click", () => selectStudentSetupMode("real"));
+elements.studentContextForm.addEventListener("submit", saveStudentContext);
 elements.resetConfirmation.addEventListener("input", () => { $("#reset-submit").disabled = elements.resetConfirmation.value.trim() !== "RESET"; });
 elements.responseForm.addEventListener("submit", saveStudentResponse);
 elements.responseForm.addEventListener("change", updateResponseFields);
 elements.collectionList.addEventListener("click", handleOpportunityAction);
 elements.selectedList.addEventListener("click", handleOpportunityAction);
 $("#copy-spreadsheet-path").addEventListener("click", () => copyText(dashboard?.sync?.spreadsheetPath, "Spreadsheet path copied."));
-$("#copy-schedule-prompt").addEventListener("click", () => copyText(DAILY_AUTOMATION_PROMPT, "Daily automation setup prompt copied."));
 $("#approval-accept").addEventListener("click", () => resolveApproval(activeApproval?.questions?.length ? "respond" : "accept"));
 $("#approval-decline").addEventListener("click", () => resolveApproval(activeApproval?.questions?.length ? "cancel" : "decline"));
 document.addEventListener("click", (event) => {
@@ -58,8 +65,8 @@ async function refreshDashboard() {
   } catch {
     updateAgent("NEEDS_ATTENTION", "Dashboard unavailable", "The local dashboard could not load current data. Restart the local application, then refresh this page.", 0);
     setText("#notification-config-status", "Check failed");
-    setText("#notification-settings-detail", "The Outlook connection could not be checked. Restart the local application, then refresh this page.");
-    $("#outlook-dot").dataset.status = "UNKNOWN";
+    setText("#notification-settings-detail", "Local notification settings could not be checked. Restart the local application, then refresh this page.");
+    $("#notification-dot").dataset.status = "UNKNOWN";
     elements.runButton.disabled = true;
   }
 }
@@ -79,7 +86,7 @@ function connectEventStream() {
     }
     if (event.type === "run.completed") {
       await refreshDashboard();
-      setRunButton(!runtimeReady(), "Collect Opportunities");
+      setRunButton(!collectionReady(), "Collect Opportunities");
       showToast(event.run.outcome === "SUCCESS" ? "Workflow finished and verified." : "Workflow finished. Review the specific action shown on the dashboard.");
     }
     if (event.type === "approval.requested") showApproval(event.approval);
@@ -96,7 +103,8 @@ function connectEventStream() {
 }
 
 async function startCollection() {
-  if (!runtimeReady()) return showToast("Codex must be ready before collection can start.");
+  if (!studentSetupReady()) return showToast(studentSetupMessage());
+  if (!runtimeReady()) return showToast(dashboard?.runtime?.detail || "Verify the OpenAI connection before collection can start.");
   setRunButton(true, "Starting…");
   updateAgent("RETRIEVING_PREFERENCES", "Reading your search preferences", "Reviewing your verified roles, locations, timing, and current collection before searching.", 6);
   try {
@@ -117,7 +125,7 @@ function renderDashboard() {
   setText("#metric-prioritize", dashboard.metrics.prioritize);
   setText("#metric-deadlines", dashboard.metrics.approachingDeadlines);
   setText("#metric-attention", dashboard.metrics.needsAttention);
-  renderRuntime(); renderNotificationSettings(); renderCollection(); renderRun(dashboard.run); renderSync();
+  renderRuntime(); renderStudentProfile(); renderNotificationSettings(); renderCollection(); renderRun(dashboard.run); renderSync();
   renderAutomation(); renderSelected(); renderActivity(); renderNotification();
   elements.resetButton.disabled = Boolean(dashboard.run?.active) || dashboard.metrics.totalTracked === 0;
   if (dashboard.pendingApprovals?.length) showApproval(dashboard.pendingApprovals[0]);
@@ -126,17 +134,171 @@ function renderDashboard() {
 function renderRuntime() {
   const runtime = dashboard?.runtime ?? {};
   elements.runtimeReadiness.dataset.status = display(runtime.status);
-  setText("#runtime-label", runtime.label || "Codex readiness unknown");
-  setText("#runtime-authentication", runtime.authentication || "Authentication status unknown");
-  setText("#runtime-detail", runtime.detail || "Recheck the local agent harness before starting a run.");
-  elements.runtimeRecheck.textContent = runtime.status === "READY" ? "Check again" : "Recheck";
+  setText("#runtime-label", runtime.label || "API readiness unknown");
+  setText("#runtime-authentication", runtime.authentication || "API configuration status unknown");
+  setText("#runtime-detail", runtime.detail || "Recheck the server-side API configuration before starting a run.");
+  elements.runtimeRecheck.textContent = "Check connection";
 }
 
 async function recheckRuntime() {
   elements.runtimeRecheck.disabled = true;
   elements.runtimeRecheck.textContent = "Checking…";
-  try { await refreshDashboard(); showToast(runtimeReady() ? "Codex is ready." : "Codex still needs attention."); }
-  finally { elements.runtimeRecheck.disabled = false; }
+  try {
+    const response = await localFetch("/api/runtime/validate", {});
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error || "The OpenAI connection could not be checked.");
+    dashboard.runtime = body.runtime;
+    renderRuntime(); renderRun(dashboard.run);
+    showToast(runtimeReady() ? "OpenAI connection and model access verified." : body.runtime.detail);
+  } catch (error) { showToast(error.message); }
+  finally { elements.runtimeRecheck.disabled = false; elements.runtimeRecheck.textContent = "Check connection"; }
+}
+
+function renderStudentProfile() {
+  const profile = dashboard?.studentProfile ?? {};
+  const ready = profile.readyForCollection === true;
+  const demoActive = profile.mode === "DEMO";
+  const realActive = profile.mode === "REAL";
+  const status = $("#student-profile-status");
+  status.textContent = profile.requiresConfirmation ? "Resume review required" : ready ? "Ready" : "Setup incomplete";
+  status.className = `status-pill ${profile.requiresConfirmation ? "active" : ready ? "success" : "failure"}`;
+  setText("#student-profile-detail", profile.error || (ready
+    ? `${profile.activeLabel} is ready for collection and assessment.`
+    : "Complete the items below before the agent can collect or assess opportunities."));
+  setText("#profile-source-note", demoActive
+    ? "Synthetic demonstration resume, preferences, and constraints are explicitly active. No real-student claims are implied."
+    : `Resume extraction stays on this device. Preferences: ${profile.preferencesSource || "not confirmed"}. Constraints: ${profile.constraintsSource || "not confirmed"}.`);
+  elements.profileReview.hidden = !profile.requiresConfirmation;
+  if (profile.requiresConfirmation) $("#student-setup-details").open = true;
+  if (profile.requiresConfirmation) {
+    elements.profilePreview.value = profile.previewText || "";
+    elements.profileIdentifiersRemoved.checked = false;
+  }
+  const missing = Array.isArray(profile.missingItems) ? profile.missingItems : [];
+  $("#student-setup-alert").hidden = ready;
+  $("#student-setup-missing").replaceChildren(...missing.map((item) => makeText("li", item)));
+  elements.profileUseDemo.disabled = demoActive;
+  elements.profileUseDemo.textContent = demoActive ? "Demonstration setup active" : "Use synthetic demonstration setup";
+  elements.profileUseReal.disabled = realActive;
+  elements.profileUseReal.textContent = realActive ? "Using my information" : "Use my information";
+  renderStudentContextForm(profile);
+}
+
+function renderStudentContextForm(profile) {
+  const context = profile.preferencesAndConstraints;
+  const version = context?.confirmedAt || "none";
+  if (renderedStudentContextVersion === version) return;
+  renderedStudentContextVersion = version;
+  const roles = new Set(context?.preferredRoles || []);
+  const defaultRoles = new Set(profile.defaultRoleChoices || []);
+  for (const input of elements.studentContextForm.querySelectorAll("input[name='preferredRoles']")) input.checked = roles.has(input.value);
+  $("#custom-role").value = [...roles].find((role) => !defaultRoles.has(role)) || "";
+  $("#availability-start").value = context?.availabilityStart || "";
+  $("#availability-end").value = context?.availabilityEnd || "";
+  $("#hours-per-week").value = context?.hoursPerWeek || "";
+  $("#paid-requirement").value = context?.paidRequirement || "";
+  $("#relocation").value = context?.relocation || "";
+  $("#work-authorization").value = context?.workAuthorization || "";
+  $("#geographic-limits").value = context?.geographicLimits || "";
+  $("#additional-constraints").value = context?.additionalConstraints || "";
+  const arrangements = new Set(context?.workArrangements || []);
+  for (const input of elements.studentContextForm.querySelectorAll("input[name='workArrangements']")) input.checked = arrangements.has(input.value);
+  $("#student-context-confirmed").checked = false;
+  setText("#student-context-saved", context?.confirmedAt ? `Saved locally ${formatDateTime(context.confirmedAt)}.` : "Not saved yet.");
+}
+
+async function uploadResume(event) {
+  event.preventDefault();
+  const file = elements.profileFile.files?.[0];
+  if (!file) return showToast("Choose a resume file first.");
+  if (file.size > 5 * 1024 * 1024) return showToast("The resume file must be 5 MB or smaller.");
+  const button = elements.profileUploadForm.querySelector("button[type='submit']");
+  button.disabled = true; button.textContent = "Extracting…";
+  try {
+    const response = await localFetch("/api/profile/resume", { fileName: file.name, mediaType: file.type, dataBase64: await fileToBase64(file) });
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error || "The resume could not be processed locally.");
+    dashboard.studentProfile = body.profile;
+    if (mode === "real") $("#student-setup-details").open = true;
+    if (mode === "demo") $("#student-setup-details").open = false;
+    renderStudentProfile();
+    showToast("Resume extracted locally. Review and confirm the agent-facing profile before it can be used.");
+  } catch (error) { showToast(error.message); }
+  finally { button.disabled = false; button.textContent = "Upload locally"; }
+}
+
+async function confirmStudentProfile() {
+  elements.profileConfirm.disabled = true;
+  elements.profileConfirm.textContent = "Confirming…";
+  try {
+    const response = await localFetch("/api/profile/confirm", {
+      profileText: elements.profilePreview.value,
+      identifyingDetailsRemoved: elements.profileIdentifiersRemoved.checked,
+    });
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error || "The private profile could not be confirmed.");
+    dashboard.studentProfile = body.profile;
+    renderStudentProfile();
+    showToast(body.profile.readyForCollection
+      ? "Private resume profile confirmed. Student setup is ready."
+      : "Private resume profile confirmed. Save your roles, availability, and constraints to finish setup.");
+  } catch (error) { showToast(error.message); }
+  finally { elements.profileConfirm.disabled = false; elements.profileConfirm.textContent = "Confirm and use profile"; }
+}
+
+async function selectStudentSetupMode(mode) {
+  const button = mode === "demo" ? elements.profileUseDemo : elements.profileUseReal;
+  button.disabled = true;
+  try {
+    const endpoint = mode === "demo" ? "/api/profile/demo" : "/api/profile/real";
+    const response = await localFetch(endpoint, {});
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error || "The student setup mode could not be changed.");
+    dashboard.studentProfile = body.profile;
+    renderStudentProfile();
+    renderRun(dashboard.run);
+    showToast(mode === "demo"
+      ? "Synthetic demonstration setup activated explicitly."
+      : body.profile.readyForCollection
+        ? "Your confirmed student setup is active."
+        : studentSetupMessage());
+  } catch (error) { showToast(error.message); }
+  finally { button.disabled = false; }
+}
+
+async function saveStudentContext(event) {
+  event.preventDefault();
+  const button = elements.studentContextForm.querySelector("button[type='submit']");
+  button.disabled = true; button.textContent = "Saving…";
+  const preferredRoles = [...elements.studentContextForm.querySelectorAll("input[name='preferredRoles']:checked")].map((input) => input.value);
+  const workArrangements = [...elements.studentContextForm.querySelectorAll("input[name='workArrangements']:checked")].map((input) => input.value);
+  try {
+    const response = await localFetch("/api/profile/context", {
+      preferredRoles,
+      customRole: $("#custom-role").value,
+      availabilityStart: $("#availability-start").value,
+      availabilityEnd: $("#availability-end").value,
+      hoursPerWeek: Number($("#hours-per-week").value),
+      workArrangements,
+      geographicLimits: $("#geographic-limits").value,
+      paidRequirement: $("#paid-requirement").value,
+      relocation: $("#relocation").value,
+      workAuthorization: $("#work-authorization").value,
+      additionalConstraints: $("#additional-constraints").value,
+      confirmed: $("#student-context-confirmed").checked,
+    });
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error || "Your preferences and constraints could not be saved.");
+    dashboard.studentProfile = body.profile;
+    renderedStudentContextVersion = null;
+    renderStudentProfile();
+    if (body.profile.readyForCollection) $("#student-setup-details").open = false;
+    renderRun(dashboard.run);
+    showToast(body.profile.readyForCollection
+      ? "Student setup saved locally and ready for collection and assessment."
+      : "Preferences and constraints saved. Confirm a resume to finish setup.");
+  } catch (error) { showToast(error.message); }
+  finally { button.disabled = false; button.textContent = "Save student setup"; }
 }
 
 function renderCollection() {
@@ -219,20 +381,26 @@ function renderRun(run) {
   pill.textContent = run?.active ? "Running" : run?.outcome ? titleCase(run.outcome) : "Not run";
   pill.className = `status-pill ${run?.active ? "active" : run?.outcome === "SUCCESS" ? "success" : run?.outcome ? "failure" : "neutral"}`;
   setText("#summary-title", run?.workflowType === "UPDATE" ? "Opportunity update" : "Today’s collection");
-  const firstRun = run?.active && run?.firstRun ? " First run can take longer while Codex initializes the approved thread." : "";
+  const firstRun = run?.active && run?.firstRun ? " The first run can take longer while the API performs the initial bounded search." : "";
   const shortfall = summary.selectionShortfallReason ? ` Fewer than three were selected: ${summary.selectionShortfallReason}` : "";
   const workflowContext = run?.workflowType === "UPDATE"
     ? `Targeted update for ${run.targetLabel || "one opportunity"}. No web search is performed.`
     : `Discovery counts appear as the bounded collection workflow runs.${firstRun}`;
   setText("#run-message", run?.error?.message || (run?.finishedAt ? `${run.statusDetail || "Workflow finished."} Completed ${formatDateTime(run.finishedAt)} in ${formatDuration(run.durationMs)}.${shortfall}` : workflowContext));
-  const stage = run?.stage || "WAITING";
+  const setupBlock = !run?.active && !studentSetupReady()
+    ? { label: "Complete student setup", detail: studentSetupMessage() }
+    : null;
+  const runtimeBlock = !run?.active && !runtimeReady() ? dashboard?.runtime : null;
+  const prerequisiteBlock = setupBlock || runtimeBlock;
+  const stage = prerequisiteBlock ? "NEEDS_ATTENTION" : run?.stage || "WAITING";
   const attention = !run?.active && stage === "NEEDS_ATTENTION" ? dashboard?.attentionItems?.[0] : null;
-  const statusLabel = attention ? `Update ${attention.company} — ${attention.roleTitle}` : run?.label === "Needs Attention" ? "Action required" : run?.label || "Waiting";
-  const detail = attention
+  const statusLabel = prerequisiteBlock?.label || (attention ? `Update ${attention.company} — ${attention.roleTitle}` : run?.label === "Needs Attention" ? "Action required" : run?.label || "Waiting");
+  const detail = prerequisiteBlock?.detail || (attention
     ? `${attention.prompt} Use Update Opportunity on this opportunity’s card to continue it immediately.`
-    : run?.statusDetail || (run?.active ? "The approved workflow is running locally through Codex." : run?.outcome === "SUCCESS" ? "The latest workflow completed and was verified." : run?.outcome ? "Review the specific update request shown below." : "Ready to collect opportunities or update an existing one.");
-  updateAgent(stage, statusLabel, detail, run?.progressPercent ?? (run?.finishedAt ? 100 : 0));
-  setRunButton(Boolean(run?.active) || !runtimeReady(), run?.active ? "Workflow active" : "Collect Opportunities");
+    : run?.statusDetail || (run?.active ? "The local controller is running the approved workflow with server-side API support." : run?.outcome === "SUCCESS" ? "The latest workflow completed and was verified." : run?.outcome ? "Review the specific update request shown below." : "Ready to collect opportunities or update an existing one."));
+  updateAgent(stage, statusLabel, detail, prerequisiteBlock ? 0 : run?.progressPercent ?? (run?.finishedAt ? 100 : 0));
+  if (prerequisiteBlock) setText("#run-elapsed", "Elapsed time: —");
+  setRunButton(Boolean(run?.active) || !collectionReady(), run?.active ? "Workflow active" : "Collect Opportunities");
 }
 
 function renderSelected() {
@@ -252,12 +420,37 @@ function renderSync() {
   $("#sync-dot").classList.toggle("available", dashboard.sync.status === "AVAILABLE"); setText("#spreadsheet-path", dashboard.sync.spreadsheetPath || "Local spreadsheet path unavailable");
   setText("#storage-availability", dashboard.sync.status === "AVAILABLE" ? "Spreadsheet available on this device. Prepared drafts are stored beside other private runtime data." : "The spreadsheet will be created after the first verified opportunity update.");
   const resetArchive = $("#last-reset-archive");
-  resetArchive.hidden = !dashboard.sync.lastResetArchive;
-  resetArchive.textContent = dashboard.sync.lastResetArchive ? `Previous collection archive: ${dashboard.sync.lastResetArchive}` : "";
+  const archiveMessage = dashboard.sync.recoveryArchive
+    ? `An unreadable earlier spreadsheet was preserved at: ${dashboard.sync.recoveryArchive}`
+    : dashboard.sync.lastResetArchive
+      ? `Previous collection archive: ${dashboard.sync.lastResetArchive}`
+      : "";
+  resetArchive.hidden = !archiveMessage;
+  resetArchive.textContent = archiveMessage;
 }
 
 function renderAutomation() {
   setText("#automation-status", display(dashboard.automation.status)); setText("#automation-schedule", display(dashboard.automation.schedule)); setText("#automation-timezone", display(dashboard.automation.timezone)); setText("#automation-last", formatMaybeDate(dashboard.automation.lastRun)); setText("#automation-next", formatMaybeDate(dashboard.automation.nextRun));
+  elements.scheduleEnabled.checked = Boolean(dashboard.automation.enabled);
+  elements.scheduleTime.value = dashboard.automation.time || "09:00";
+}
+
+async function saveSchedule(event) {
+  event.preventDefault();
+  if (elements.scheduleEnabled.checked && !studentSetupReady()) {
+    elements.scheduleEnabled.checked = false;
+    return showToast(`Daily collection was not enabled. ${studentSetupMessage()}`);
+  }
+  const button = elements.scheduleForm.querySelector("button[type='submit']");
+  button.disabled = true; button.textContent = "Saving…";
+  try {
+    const response = await localFetch("/api/settings/schedule", { enabled: elements.scheduleEnabled.checked, time: elements.scheduleTime.value });
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error || "The local schedule could not be saved.");
+    await refreshDashboard();
+    showToast(body.schedule.enabled ? `Daily collection enabled for ${body.schedule.time} while this app is running.` : "Daily collection disabled.");
+  } catch (error) { showToast(error.message); }
+  finally { button.disabled = false; button.textContent = "Save schedule"; }
 }
 
 function renderActivity() {
@@ -268,16 +461,16 @@ function renderActivity() {
 function renderNotification() { const notification = dashboard.notification; setText("#email-status", notification ? `Email: ${titleCase(notification.status)}` : "No email yet"); }
 
 function renderNotificationSettings() {
-  const settings = dashboard.notificationSettings ?? {}; const outlook = settings.outlook ?? {};
+  const settings = dashboard.notificationSettings ?? {};
   const status = $("#notification-config-status"); status.textContent = settings.configured ? "Address saved" : "Add address"; status.className = `status-pill ${settings.configured ? "success" : "neutral"}`;
   elements.notificationEmail.value = ""; elements.notificationEmail.placeholder = settings.recipientHint || "student@example.edu";
-  $("#outlook-dot").dataset.status = outlook.status || settings.deliveryStatus || "UNKNOWN";
-  setText("#notification-settings-detail", `${outlook.label || "Outlook status unknown"}. ${settings.explanation || "The address stays in local settings."}`);
+  $("#notification-dot").dataset.status = settings.deliveryStatus || "UNKNOWN";
+  setText("#notification-settings-detail", settings.explanation || "The address stays in local settings.");
 }
 
 async function saveNotificationEmail(event) {
   event.preventDefault(); const button = elements.notificationForm.querySelector("button[type='submit']"); button.disabled = true; button.textContent = "Saving…";
-  try { const response = await localFetch("/api/settings/notification", { email: elements.notificationEmail.value.trim() }); const body = await response.json(); if (!response.ok) throw new Error(body.error || "The address could not be saved."); await refreshDashboard(); showToast(body.settings.deliveryStatus === "CONNECTED" ? "Address saved. Outlook notifications are ready." : "Address saved locally. Review the Outlook connection status above."); }
+  try { const response = await localFetch("/api/settings/notification", { email: elements.notificationEmail.value.trim() }); const body = await response.json(); if (!response.ok) throw new Error(body.error || "The address could not be saved."); await refreshDashboard(); showToast("Address saved locally. Material updates will create notification previews; no external email is sent."); }
   catch (error) { showToast(error.message); } finally { button.disabled = false; button.textContent = "Save"; }
 }
 
@@ -333,6 +526,7 @@ function updateResponseFields() {
 
 async function saveStudentResponse(event) {
   event.preventDefault(); if (!activeOpportunity) return;
+  if (!studentSetupReady()) return showToast(studentSetupMessage());
   const type = elements.responseForm.elements.responseType.value; const templateTypes = [...$("#template-options").querySelectorAll("input:checked")].map((input) => input.value);
   const button = $("#response-submit"); button.disabled = true; button.textContent = "Starting update…";
   try {
@@ -386,6 +580,12 @@ function setText(selector, value) { const node = $(selector); if (node) node.tex
 function display(value) { return value === null || value === undefined || String(value).trim() === "" ? "Unknown" : String(value); }
 function displayNumber(value) { return Number.isFinite(Number(value)) ? String(Number(value)) : "—"; }
 function runtimeReady() { return dashboard?.runtime?.status === "READY"; }
+function studentSetupReady() { return dashboard?.studentProfile?.readyForCollection === true; }
+function collectionReady() { return runtimeReady() && studentSetupReady(); }
+function studentSetupMessage() {
+  const missing = dashboard?.studentProfile?.missingItems;
+  return `Complete student setup before collection or assessment: ${Array.isArray(missing) && missing.length ? missing.join("; ") : "required information is missing"}.`;
+}
 function joinKnown(...values) { return values.filter((value) => value && String(value).trim()).join(" · ") || "Unknown"; }
 function titleCase(value) { return String(value || "").toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase()); }
 function decisionClass(value) { return String(value || "").toLowerCase().replace(/[^a-z]+/g, "-"); }
@@ -396,6 +596,29 @@ function formatDuration(value) { const total = Math.max(0, Math.floor(Number(val
 function safeHttpUrl(value) { try { const url = new URL(value); return ["http:", "https:"].includes(url.protocol) ? url.href : null; } catch { return null; } }
 function studentInputLabel(input) { if (["READY_FOR_AGENT_REVIEW", "READY_FOR_UPDATE"].includes(input.status)) return "Your response is saved and ready for a targeted update."; if (["UPDATE_STARTING", "UPDATE_IN_PROGRESS"].includes(input.status)) return "The agent is processing your update now."; if (input.status === "UPDATE_FAILED") return input.nextStep || "The update did not finish; your response is still saved."; if (input.status === "REVIEWED") return `Reviewed: ${input.outcome || "complete"}`; return input.status === "NEEDS_MORE_INFORMATION" ? `More information needed: ${input.nextStep || "Review the next action."}` : titleCase(input.status); }
 function materialTitle(type) { return ({ RESUME_TAILORING_CHECKLIST: "Resume-tailoring checklist", COVER_LETTER_OUTLINE: "Cover-letter outline", APPLICATION_QUESTION_WORKSHEET: "Application-question worksheet" })[type] || titleCase(type); }
-async function localFetch(url, body) { return fetch(url, { method: "POST", headers: { "Content-Type": "application/json", "X-Local-Request-Token": requestToken }, body: JSON.stringify(body) }); }
+async function localFetch(url, body) {
+  const send = () => fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Local-Request-Token": requestToken },
+    body: JSON.stringify(body),
+  });
+  let response = await send();
+  if (response.status !== 403) return response;
+
+  const priorToken = requestToken;
+  try {
+    const dashboardResponse = await fetch("/api/dashboard", { headers: { Accept: "application/json" } });
+    if (!dashboardResponse.ok) return response;
+    const currentDashboard = await dashboardResponse.json();
+    const currentToken = currentDashboard?.application?.requestToken;
+    if (!currentToken || currentToken === priorToken) return response;
+    requestToken = currentToken;
+    response = await send();
+  } catch {
+    return response;
+  }
+  return response;
+}
+async function fileToBase64(file) { const bytes = new Uint8Array(await file.arrayBuffer()); let binary = ""; const size = 32_768; for (let offset = 0; offset < bytes.length; offset += size) binary += String.fromCharCode(...bytes.subarray(offset, offset + size)); return btoa(binary); }
 async function copyText(value, confirmation) { if (!value) return showToast("Nothing is available to copy yet."); try { await navigator.clipboard.writeText(String(value)); showToast(confirmation); } catch { showToast("Copy was blocked. Select the visible text and copy it manually."); } }
 function showToast(message) { elements.toast.textContent = message; elements.toast.hidden = false; window.clearTimeout(showToast.timer); showToast.timer = window.setTimeout(() => { elements.toast.hidden = true; }, 6_000); }

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readdir, rm } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -11,25 +11,10 @@ import {
   SpreadsheetConflictError,
 } from "../src/persistence/spreadsheet-tracker.js";
 
-const ARTIFACT_TOOL_MODULE =
-  process.env.ARTIFACT_TOOL_MODULE_PATH ||
-  path.join(
-    os.homedir(),
-    ".cache",
-    "codex-runtimes",
-    "codex-primary-runtime",
-    "dependencies",
-    "node",
-    "node_modules",
-    "@oai",
-    "artifact-tool",
-  );
-
 async function withTracker(run) {
   const directory = await mkdtemp(path.join(os.tmpdir(), "internship-sheet-test-"));
   const tracker = new LocalSpreadsheetTracker({
     filePath: path.join(directory, "internship_pipeline.xlsx"),
-    artifactToolModulePath: ARTIFACT_TOOL_MODULE,
     clock: () => new Date("2026-08-25T12:00:00.000Z"),
     idFactory: (() => {
       let counter = 0;
@@ -83,6 +68,27 @@ test("creates a readable collection and removes temporary workbook artifacts", a
     const runtimeFiles = await readdir(directory);
     assert.deepEqual(runtimeFiles, ["internship_pipeline.xlsx"]);
   });
+});
+
+test("preserves an unreadable workbook and creates a verified empty replacement", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "internship-sheet-recovery-test-"));
+  const filePath = path.join(directory, "internship_pipeline.xlsx");
+  await writeFile(filePath, "legacy workbook bytes", "utf8");
+  const tracker = new LocalSpreadsheetTracker({
+    filePath,
+    clock: () => new Date("2026-09-25T12:00:00.000Z"),
+    idFactory: () => "recovery-test",
+  });
+
+  try {
+    await tracker.initialize();
+    assert.match(tracker.lastRecovery.archivePath, /recovery-archives/);
+    assert.equal(await readFile(tracker.lastRecovery.archivePath, "utf8"), "legacy workbook bytes");
+    assert.deepEqual(await tracker.readRecords(), []);
+    assert.deepEqual((await readdir(directory)).sort(), ["internship_pipeline.xlsx", "recovery-archives"]);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 });
 
 test("deduplicates canonical URLs before adding a second row", async () => {

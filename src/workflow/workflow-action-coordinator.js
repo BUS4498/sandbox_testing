@@ -82,7 +82,7 @@ export class WorkflowActionCoordinator {
         const processed = notificationWork[index].processed;
         processed.publicOutcome.notificationStatus = notification.status;
         if (["SUBMITTED", "DELIVERED"].includes(notification.status)) notificationsSent += 1;
-        if (notification.status === "DRY_RUN") notificationPreviews += 1;
+        if (notification.status === "PREVIEWED") notificationPreviews += 1;
         if (["FAILED", "UNKNOWN", "BLOCKED_RUN_LIMIT", "NOT_CONFIGURED"].includes(notification.status)) {
           const issue = notification.issue || `Student notification was not confirmed for ${processed.record.company} — ${processed.record.roleTitle}.`;
           if (!unresolved.includes(issue)) unresolved.push(issue);

@@ -6,9 +6,11 @@ const DEFAULT_ALLOWED_KEYS = new Set([
   "EMAIL_SERVICE_USERNAME",
   "EMAIL_SERVICE_PASSWORD",
   "INTERNSHIP_AGENT_DATA_DIR",
+  "OPENAI_API_KEY",
+  "OPENAI_API_KEY_FILE",
+  "OPENAI_MODEL",
+  "OPENAI_REASONING_EFFORT",
   "PORT",
-  "CODEX_BINARY",
-  "ARTIFACT_TOOL_MODULE_PATH",
 ]);
 
 /** Load only recognized local configuration names. No interpolation or command expansion is performed. */

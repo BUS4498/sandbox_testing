@@ -6,11 +6,13 @@ export async function buildDashboardData({
   runManager,
   runtimePaths,
   notificationConfiguration = null,
+  scheduleConfiguration = null,
   applicationMaterialStore = null,
+  studentProfileStore = null,
   requestToken,
   clock = () => new Date(),
 }) {
-  const [records, state, runs, actions, evaluations, decisions, workbookAvailable, runtimeReadiness, notificationSettings, applicationMaterials] = await Promise.all([
+  const [records, state, runs, actions, evaluations, decisions, workbookAvailable, runtimeReadiness, notificationSettings, scheduleSettings, applicationMaterials, studentProfile] = await Promise.all([
     spreadsheetTracker.readRecords(),
     memoryStore.getState(),
     memoryStore.list("run", { limit: 10 }),
@@ -20,7 +22,9 @@ export async function buildDashboardData({
     fileExists(runtimePaths.spreadsheet),
     readRuntimeReadiness(runManager, clock),
     readNotificationSettings(notificationConfiguration),
+    readScheduleSettings(scheduleConfiguration),
     typeof applicationMaterialStore?.listMaterials === "function" ? applicationMaterialStore.listMaterials() : [],
+    readStudentProfile(studentProfileStore),
   ]);
 
   const latestRun = runs.at(-1) ?? null;
@@ -47,6 +51,7 @@ export async function buildDashboardData({
       requestToken,
     },
     runtime: runtimeReadiness,
+    studentProfile,
     metrics: {
       totalTracked: records.length,
       newlyAdded: numericOrZero(latestRun?.newOpportunitiesAdded),
@@ -70,6 +75,8 @@ export async function buildDashboardData({
       spreadsheetPath: runtimePaths.spreadsheet,
       lastResetAt: lastReset?.resetAt ?? null,
       lastResetArchive: lastReset?.archivePath ?? null,
+      recoveryArchive: spreadsheetTracker.lastRecovery?.archivePath ?? null,
+      recoveredAt: spreadsheetTracker.lastRecovery?.recoveredAt ?? null,
     },
     notificationSettings,
     notification: latestNotification
@@ -80,14 +87,14 @@ export async function buildDashboardData({
           recipientHint: latestNotification.recipientHint,
         }
       : null,
-    automation: {
-      status: state.runtime?.schedule?.status ?? "UNKNOWN",
-      schedule: state.runtime?.schedule?.schedule ?? "Unknown",
-      timezone: state.runtime?.schedule?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
-      lastRun: state.runtime?.schedule?.lastRun ?? "Unknown",
-      nextRun: state.runtime?.schedule?.nextRun ?? "Unknown",
-      managedBy: "Codex",
-      managementLocation: "Scheduled in the ChatGPT desktop app",
+    automation: scheduleSettings ?? state.runtime?.schedule ?? {
+      enabled: false,
+      status: "UNKNOWN",
+      schedule: "Unknown",
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      lastRun: null,
+      nextRun: null,
+      managedBy: "Local controller",
     },
     pendingApprovals: runManager.pendingApprovals,
     activity: buildActivity(actions, evaluations),
@@ -328,8 +335,8 @@ async function readRuntimeReadiness(runManager, clock) {
     } catch {
       return {
         status: "UNAVAILABLE",
-        label: "Codex unavailable",
-        detail: "The local Codex readiness check failed. Restart the local application, then recheck.",
+        label: "OpenAI API unavailable",
+        detail: "The local API readiness check failed. Review the local configuration, then recheck.",
         authentication: "Unknown",
         checkedAt: clock().toISOString(),
         diagnosticCode: "READINESS_CHECK_FAILED",
@@ -338,7 +345,7 @@ async function readRuntimeReadiness(runManager, clock) {
   }
   return {
     status: "UNKNOWN",
-    label: "Codex readiness unknown",
+    label: "API readiness unknown",
     detail: "This controller does not expose a runtime readiness check.",
     authentication: "Unknown",
     checkedAt: clock().toISOString(),
@@ -354,16 +361,9 @@ async function readNotificationSettings(notificationConfiguration) {
       return {
         configured: false,
         recipientHint: null,
-        mode: "OUTLOOK",
-        deliveryStatus: "UNKNOWN",
-        outlook: {
-          status: "UNKNOWN",
-          label: "Outlook check failed",
-          detail: "The Outlook connection could not be checked. Restart the local application, then try again.",
-          appId: null,
-          appName: null,
-        },
-        explanation: "The Outlook connection could not be checked. No email was sent.",
+        mode: "DRY_RUN",
+        deliveryStatus: "LOCAL_PREVIEW_ONLY",
+        explanation: "Notification settings could not be checked. No external email was sent.",
       };
     }
   }
@@ -374,4 +374,62 @@ async function readNotificationSettings(notificationConfiguration) {
     deliveryStatus: "LOCAL_PREVIEW_ONLY",
     explanation: "Add a student email address to create local notification previews.",
   };
+}
+
+async function readScheduleSettings(scheduleConfiguration) {
+  if (typeof scheduleConfiguration?.snapshot !== "function") return null;
+  try {
+    return await scheduleConfiguration.snapshot();
+  } catch {
+    return {
+      enabled: false,
+      status: "UNKNOWN",
+      schedule: "Unknown",
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      lastRun: null,
+      nextRun: null,
+      managedBy: "Local controller",
+    };
+  }
+}
+
+async function readStudentProfile(studentProfileStore) {
+  if (typeof studentProfileStore?.snapshot !== "function") {
+    return {
+      status: "ERROR",
+      mode: null,
+      readyForCollection: false,
+      missingItems: ["Student setup storage is unavailable"],
+      activeSource: "SETUP_INCOMPLETE",
+      activeLabel: "Student setup unavailable",
+      pending: null,
+      confirmed: null,
+      previewText: null,
+      requiresConfirmation: false,
+      preferencesSource: "Unavailable",
+      constraintsSource: "Unavailable",
+      preferencesAndConstraints: null,
+      defaultRoleChoices: [],
+    };
+  }
+  try { return await studentProfileStore.snapshot(); }
+  catch {
+    return {
+      status: "ERROR",
+      mode: null,
+      readyForCollection: false,
+      missingItems: ["Student setup could not be read"],
+      activeSource: "SETUP_INCOMPLETE",
+      activeLabel: "Student setup unavailable",
+      pending: null,
+      confirmed: null,
+      previewText: null,
+      requiresConfirmation: false,
+      preferencesSource: "Unavailable",
+      constraintsSource: "Unavailable",
+      preferencesAndConstraints: null,
+      defaultRoleChoices: [],
+      error: "The private local student setup could not be read. Collection and assessment remain disabled.",
+    };
+  }
 }

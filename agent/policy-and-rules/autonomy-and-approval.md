@@ -13,8 +13,8 @@ Within approved local scope, the agent may:
 - recommend priorities and next actions;
 - update the local sandbox spreadsheet without overwriting student-owned fields;
 - update internal memory;
-- record a next-review date or recommend that the student change the Codex daily automation;
-- send informational update emails to the student's verified address through the connected Outlook app after successful material spreadsheet updates;
+- record a next-review date or update the student-configured local daily schedule through deterministic controller logic;
+- create informational notification previews after successful material spreadsheet updates;
 - prepare local, clearly labeled application-material templates for student review when requested;
 - prepare drafts for student review;
 - identify unresolved issues; and
@@ -22,9 +22,13 @@ Within approved local scope, the agent may:
 
 Autonomy does not expand when a daily run is enabled.
 
-The agent must not create, enable, disable, or change the Codex daily automation. The student manages that harness-level trigger in Codex.
+In the owner-only Sites pilot, the same information-only notification permission applies only after the owner connects Outlook and confirms the recipient as the same account. This does not authorize employer-facing mail or any other external disclosure. The first hosted checkpoint has manual collection only; it must not imply a Daily Run occurred.
+
+The model must not create, enable, disable, or change the local schedule. The student manages it through explicit dashboard controls enforced by the local controller.
 
 The agent must not reset the collection autonomously. **Reset Collection** is a separate student-initiated local-controller operation that requires an explicit destructive-action confirmation and a recoverable local archive.
+
+The hosted pilot must not expose Reset Collection until a recoverable private hosted archive and reset verification exist.
 
 ## Human Approval Required
 

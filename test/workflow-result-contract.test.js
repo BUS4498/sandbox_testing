@@ -95,9 +95,16 @@ test("requires an explicit reason when fewer than three opportunities are select
   assert.throws(() => parseAndValidateWorkflowResult(JSON.stringify(value)), /selectionShortfallReason/);
 });
 
-test("rejects quotas above three searches, fifteen candidates, or five updates", () => {
+test("accepts six searches and rejects quotas above six searches, fifteen candidates, or five updates", () => {
+  const atSearchLimit = resultObject({
+    runSummary: { searchesPerformed: 6, candidatesDiscovered: 4, duplicatesOrInvalid: 0, candidatesRanked: 4, selectionShortfallReason: "Only one candidate qualified in this bounded test." },
+  });
+  assert.equal(
+    parseAndValidateWorkflowResult(JSON.stringify(atSearchLimit), { observedSearches: 6 }).runSummary.searchesPerformed,
+    6,
+  );
   assert.throws(
-    () => parseAndValidateWorkflowResult(JSON.stringify(resultObject({ runSummary: { searchesPerformed: 4, candidatesDiscovered: 4, duplicatesOrInvalid: 0, candidatesRanked: 4 } }))),
+    () => parseAndValidateWorkflowResult(JSON.stringify(resultObject({ runSummary: { searchesPerformed: 7, candidatesDiscovered: 4, duplicatesOrInvalid: 0, candidatesRanked: 4 } }))),
     WorkflowResultValidationError,
   );
   assert.throws(

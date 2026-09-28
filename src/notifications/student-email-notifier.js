@@ -12,7 +12,7 @@ const BLOCKED_CLASSIFICATIONS = new Set([
   "INCOMPLETE",
   "FILTERED_OUT",
 ]);
-const COMPLETED_NOTIFICATION_OUTCOMES = new Set(["DRY_RUN", "SUBMITTED", "DELIVERED"]);
+const COMPLETED_NOTIFICATION_OUTCOMES = new Set(["PREVIEWED", "SUBMITTED", "DELIVERED"]);
 const LIVE_PROVIDER_STATUSES = new Set(["SUBMITTED", "DELIVERED", "FAILED", "UNKNOWN"]);
 const MAX_NOTIFICATIONS_PER_RUN = 5;
 
@@ -46,19 +46,15 @@ export class StudentEmailNotifier {
     this.clock = clock;
     this.idFactory = idFactory;
 
-    if (!new Set(["DRY_RUN", "LIVE", "OUTLOOK"]).has(this.mode)) {
+    if (!new Set(["DRY_RUN", "LIVE"]).has(this.mode)) {
       throw new TypeError(`Unsupported notification mode: ${mode}.`);
     }
     if (this.mode === "LIVE" && typeof transport?.send !== "function") {
       throw new TypeError("LIVE notification mode requires an approved transport with a send method.");
     }
-    if (this.mode === "OUTLOOK" && typeof transport?.sendBatch !== "function") {
-      throw new TypeError("OUTLOOK notification mode requires the Codex Outlook transport.");
-    }
   }
 
   notifyMaterialUpdate(input, { retry = false } = {}) {
-    if (this.mode === "OUTLOOK") return this.notifyMaterialUpdates([input], { retry }).then((results) => results[0]);
     return this.#enqueue(() => this.#notifyMaterialUpdate(input, { retry }));
   }
 
@@ -66,78 +62,7 @@ export class StudentEmailNotifier {
     if (!Array.isArray(inputs) || inputs.length > MAX_NOTIFICATIONS_PER_RUN) {
       throw new TypeError("A notification batch must contain no more than five updates.");
     }
-    if (this.mode !== "OUTLOOK") {
-      return Promise.all(inputs.map((input) => this.notifyMaterialUpdate(input, { retry })));
-    }
-    return this.#enqueue(() => this.#notifyOutlookBatch(inputs, { retry }));
-  }
-
-  async #notifyOutlookBatch(inputs, { retry }) {
-    inputs.forEach(validateEligibility);
-    const priorActions = inputs.length ? await this.memoryStore.list("action", { runId: inputs[0].runId }) : [];
-    const results = Array(inputs.length).fill(null);
-    const pending = [];
-    for (const [index, input] of inputs.entries()) {
-      const prior = priorActions
-        .filter((entry) => entry.actionType === "STUDENT_UPDATE_NOTIFICATION")
-        .findLast((entry) => entry.idempotencyKey === input.idempotencyKey);
-      if (prior && (COMPLETED_NOTIFICATION_OUTCOMES.has(prior.outcome) || !retry)) {
-        results[index] = { status: "SKIPPED_DUPLICATE", messageAttemptId: prior.messageAttemptId, idempotencyKey: input.idempotencyKey };
-        continue;
-      }
-      const messageAttemptId = this.idFactory();
-      const message = composeStudentUpdateEmail(input);
-      pending.push({ index, input, message, messageAttemptId, attemptedAt: this.clock().toISOString() });
-    }
-    if (pending.length === 0) return results;
-
-    let providerResults;
-    try {
-      providerResults = await this.transport.sendBatch(pending.map(({ message }) => ({
-        to: this.recipient,
-        subject: message.subject,
-        text: message.text,
-      })));
-    } catch (error) {
-      providerResults = pending.map(() => ({ status: "FAILED", providerReceipt: null, error: { code: safeErrorCode(error?.code) } }));
-    }
-
-    for (const [pendingIndex, item] of pending.entries()) {
-      const provider = providerResults?.[pendingIndex] ?? { status: "UNKNOWN", providerReceipt: null };
-      const status = LIVE_PROVIDER_STATUSES.has(String(provider.status).toUpperCase()) ? String(provider.status).toUpperCase() : "UNKNOWN";
-      const action = await this.memoryStore.appendAction({
-        runId: item.input.runId,
-        opportunityId: item.input.opportunityId,
-        materialUpdateId: item.input.materialUpdateId,
-        actionType: "STUDENT_UPDATE_NOTIFICATION",
-        idempotencyKey: item.input.idempotencyKey,
-        messageAttemptId: item.messageAttemptId,
-        recipientHint: maskEmailAddress(this.recipient),
-        attemptedAt: item.attemptedAt,
-        outcome: status,
-        providerReceipt: provider.providerReceipt ?? null,
-        transport: "CODEX_OUTLOOK_APP",
-      });
-      await this.memoryStore.appendEvaluation({
-        runId: item.input.runId,
-        opportunityId: item.input.opportunityId,
-        expectedOutcome: "Submit one informational update through the connected Outlook Email app.",
-        observedOutcome: notificationOutcomeDescription(status),
-        outcome: evaluationOutcome(status),
-        unresolvedIssue: ["FAILED", "UNKNOWN"].includes(status) ? "The Outlook notification outcome was not confirmed." : null,
-        recommendedCorrectiveAction: ["FAILED", "UNKNOWN"].includes(status) ? "Review the Outlook connection and retry with the same idempotency key." : null,
-      });
-      results[item.index] = {
-        status,
-        providerReceipt: provider.providerReceipt ?? null,
-        messageAttemptId: item.messageAttemptId,
-        idempotencyKey: item.input.idempotencyKey,
-        attemptedAt: item.attemptedAt,
-        recipientHint: maskEmailAddress(this.recipient),
-        actionMemoryId: action.memoryId,
-      };
-    }
-    return results;
+    return Promise.all(inputs.map((input) => this.notifyMaterialUpdate(input, { retry })));
   }
 
   async #notifyMaterialUpdate(input, { retry }) {
@@ -204,7 +129,7 @@ export class StudentEmailNotifier {
         )}\n`,
         { encoding: "utf8", flag: "wx" },
       );
-      result = { status: "DRY_RUN", previewPath, providerReceipt: null };
+      result = { status: "PREVIEWED", previewPath, providerReceipt: null };
     } else {
       result = await this.#sendLive({ input, message, messageAttemptId });
     }
@@ -338,14 +263,14 @@ function safeErrorCode(value) {
 }
 
 function evaluationOutcome(status) {
-  if (["DRY_RUN", "SUBMITTED", "DELIVERED"].includes(status)) return "SUCCESS";
+  if (["PREVIEWED", "SUBMITTED", "DELIVERED"].includes(status)) return "SUCCESS";
   if (status === "UNKNOWN") return "PARTIAL SUCCESS";
   return "FAILURE";
 }
 
 function notificationOutcomeDescription(status) {
   const descriptions = {
-    DRY_RUN: "A local notification preview was created; no external email was sent.",
+    PREVIEWED: "A local notification preview was created; no external email was sent.",
     SUBMITTED: "The provider accepted the informational email for delivery.",
     DELIVERED: "The provider reported delivery of the informational email.",
     UNKNOWN: "The provider outcome could not be confirmed.",

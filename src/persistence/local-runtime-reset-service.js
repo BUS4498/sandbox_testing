@@ -73,9 +73,10 @@ export class LocalRuntimeResetService {
         spreadsheetPath: this.runtimePaths.spreadsheet,
         preserved: [
           "student context",
+          "private student profile",
           "notification recipient",
-          "Codex and Outlook authentication",
-          "Codex-managed automation configuration",
+          "server-side API configuration reference",
+          "local daily schedule configuration",
         ],
       };
       await writeFile(this.runtimePaths.resetSummary, `${JSON.stringify(result, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });

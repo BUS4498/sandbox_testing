@@ -1,3 +1,5 @@
+import { MAX_DISCOVERY_SEARCHES } from "./workflow-limits.js";
+
 const DECISIONS = new Set(["PRIORITIZE", "MONITOR", "PREPARE", "FOLLOW UP", "ARCHIVE", "ESCALATE TO USER"]);
 const FIT_ASSESSMENTS = new Set(["STRONG", "MODERATE", "WEAK", "INSUFFICIENT INFORMATION"]);
 const DISPOSITIONS = new Set(["NEW", "MATERIALLY_CHANGED"]);
@@ -6,6 +8,156 @@ const RESPONSE_TYPES = new Set(["NONE", "CONFIRMATION", "TEXT", "CHOICE"]);
 const PREP_STATUSES = new Set(["NOT_REQUESTED", "PREPARED", "NEEDS_INFORMATION"]);
 const TEMPLATE_TYPES = new Set(["RESUME_TAILORING_CHECKLIST", "COVER_LETTER_OUTLINE", "APPLICATION_QUESTION_WORKSHEET"]);
 const FORBIDDEN_KEY = /(password|api[_-]?key|access[_-]?token|refresh[_-]?token|secret|credential|raw[_-]?(html|page))/i;
+
+const STRING_ARRAY_SCHEMA = Object.freeze({
+  type: "array",
+  items: { type: "string" },
+});
+
+const FIT_EVIDENCE_SCHEMA = Object.freeze({
+  type: "object",
+  properties: {
+    requiredMatches: STRING_ARRAY_SCHEMA,
+    preferredMatches: STRING_ARRAY_SCHEMA,
+    gaps: STRING_ARRAY_SCHEMA,
+    unknowns: STRING_ARRAY_SCHEMA,
+    preferenceAlignment: STRING_ARRAY_SCHEMA,
+  },
+  required: ["requiredMatches", "preferredMatches", "gaps", "unknowns", "preferenceAlignment"],
+  additionalProperties: false,
+});
+
+const OPPORTUNITY_SCHEMA = Object.freeze({
+  type: "object",
+  properties: {
+    opportunityId: { type: ["string", "null"] },
+    company: { type: "string" },
+    roleTitle: { type: "string" },
+    location: { type: "string" },
+    workArrangement: { type: "string" },
+    internshipPeriod: { type: "string" },
+    deadline: { type: "string" },
+    source: { type: "string" },
+    postingUrl: { type: "string" },
+    applicationUrl: { type: "string" },
+    employerPostingId: { type: "string" },
+    postingStatus: { type: "string", enum: ["ACTIVE", "CLOSED", "UNCERTAIN"] },
+    dateDiscovered: { type: "string" },
+    lastVerified: { type: "string" },
+  },
+  required: [
+    "opportunityId", "company", "roleTitle", "location", "workArrangement", "internshipPeriod",
+    "deadline", "source", "postingUrl", "applicationUrl", "employerPostingId", "postingStatus",
+    "dateDiscovered", "lastVerified",
+  ],
+  additionalProperties: false,
+});
+
+const NEXT_ACTION_REQUEST_SCHEMA = Object.freeze({
+  type: "object",
+  properties: {
+    prompt: { type: "string" },
+    responseType: { type: "string", enum: ["NONE", "CONFIRMATION", "TEXT", "CHOICE"] },
+    options: STRING_ARRAY_SCHEMA,
+    whatHappensNext: { type: "string" },
+  },
+  required: ["prompt", "responseType", "options", "whatHappensNext"],
+  additionalProperties: false,
+});
+
+const STUDENT_INPUT_RESOLUTION_SCHEMA = Object.freeze({
+  anyOf: [
+    { type: "null" },
+    {
+      type: "object",
+      properties: {
+        responseId: { type: "string" },
+        status: { type: "string", enum: ["REVIEWED", "NEEDS_MORE_INFORMATION"] },
+        outcome: { type: "string" },
+        nextStep: { type: "string" },
+      },
+      required: ["responseId", "status", "outcome", "nextStep"],
+      additionalProperties: false,
+    },
+  ],
+});
+
+const APPLICATION_PREP_SCHEMA = Object.freeze({
+  type: "object",
+  properties: {
+    status: { type: "string", enum: ["NOT_REQUESTED", "PREPARED", "NEEDS_INFORMATION"] },
+    templates: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          type: { type: "string", enum: ["RESUME_TAILORING_CHECKLIST", "COVER_LETTER_OUTLINE", "APPLICATION_QUESTION_WORKSHEET"] },
+          title: { type: "string" },
+          markdown: { type: "string" },
+          placeholders: STRING_ARRAY_SCHEMA,
+        },
+        required: ["type", "title", "markdown", "placeholders"],
+        additionalProperties: false,
+      },
+    },
+    nextStep: { type: "string" },
+  },
+  required: ["status", "templates", "nextStep"],
+  additionalProperties: false,
+});
+
+export const WORKFLOW_RESULT_JSON_SCHEMA = Object.freeze({
+  type: "object",
+  properties: {
+    schemaVersion: { type: "integer", enum: [1] },
+    runSummary: {
+      type: "object",
+      properties: {
+        searchesPerformed: { type: "integer", minimum: 0, maximum: MAX_DISCOVERY_SEARCHES },
+        candidatesDiscovered: { type: "integer", minimum: 0, maximum: 15 },
+        duplicatesOrInvalid: { type: "integer", minimum: 0, maximum: 15 },
+        candidatesRanked: { type: "integer", minimum: 0, maximum: 15 },
+        selectionShortfallReason: { type: "string" },
+      },
+      required: ["searchesPerformed", "candidatesDiscovered", "duplicatesOrInvalid", "candidatesRanked", "selectionShortfallReason"],
+      additionalProperties: false,
+    },
+    selectedOpportunities: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          updateDisposition: { type: "string", enum: ["NEW", "MATERIALLY_CHANGED"] },
+          existingOpportunityId: { type: ["string", "null"] },
+          opportunity: OPPORTUNITY_SCHEMA,
+          fitAssessment: { type: "string", enum: ["STRONG", "MODERATE", "WEAK", "INSUFFICIENT INFORMATION"] },
+          agentDecision: { type: "string", enum: ["PRIORITIZE", "MONITOR", "PREPARE", "FOLLOW UP", "ARCHIVE", "ESCALATE TO USER"] },
+          decisionRationale: { type: "string" },
+          selectionEvidence: STRING_ARRAY_SCHEMA,
+          fitEvidence: FIT_EVIDENCE_SCHEMA,
+          whatChanged: STRING_ARRAY_SCHEMA,
+          nextAction: { type: "string" },
+          nextActionRequest: NEXT_ACTION_REQUEST_SCHEMA,
+          nextActionDate: { type: "string" },
+          unresolvedIssue: { type: "string" },
+          attentionRequired: { type: "boolean" },
+          studentInputResolution: STUDENT_INPUT_RESOLUTION_SCHEMA,
+          applicationPrep: APPLICATION_PREP_SCHEMA,
+        },
+        required: [
+          "updateDisposition", "existingOpportunityId", "opportunity", "fitAssessment", "agentDecision",
+          "decisionRationale", "selectionEvidence", "fitEvidence", "whatChanged", "nextAction",
+          "nextActionRequest", "nextActionDate", "unresolvedIssue", "attentionRequired",
+          "studentInputResolution", "applicationPrep",
+        ],
+        additionalProperties: false,
+      },
+    },
+    unresolvedIssues: STRING_ARRAY_SCHEMA,
+  },
+  required: ["schemaVersion", "runSummary", "selectedOpportunities", "unresolvedIssues"],
+  additionalProperties: false,
+});
 
 const RESULT_CONTRACT_INSTRUCTION = `
 Return the final business result as one JSON object only. Do not use Markdown fences or include prose before or after the JSON.
@@ -91,7 +243,7 @@ export class WorkflowResultValidationError extends Error {
 
 export function parseAndValidateWorkflowResult(text, { observedSearches, mode = "DISCOVERY", targetOpportunityId } = {}) {
   if (typeof text !== "string" || text.trim() === "") {
-    throw new WorkflowResultValidationError("The Codex turn did not provide a structured workflow result.", "MISSING_RESULT");
+    throw new WorkflowResultValidationError("The model response did not provide a structured workflow result.", "MISSING_RESULT");
   }
   if (text.length > 200_000) {
     throw new WorkflowResultValidationError("The workflow result exceeded the local size limit.", "RESULT_TOO_LARGE");
@@ -111,14 +263,14 @@ export function parseAndValidateWorkflowResult(text, { observedSearches, mode = 
   if (!Array.isArray(result.unresolvedIssues)) throw new WorkflowResultValidationError("unresolvedIssues must be an array.");
 
   const summary = {
-    searchesPerformed: boundedInteger(result.runSummary.searchesPerformed, "searchesPerformed", 0, 3),
+    searchesPerformed: boundedInteger(result.runSummary.searchesPerformed, "searchesPerformed", 0, MAX_DISCOVERY_SEARCHES),
     candidatesDiscovered: boundedInteger(result.runSummary.candidatesDiscovered, "candidatesDiscovered", 0, 15),
     duplicatesOrInvalid: boundedInteger(result.runSummary.duplicatesOrInvalid, "duplicatesOrInvalid", 0, 15),
     candidatesRanked: boundedInteger(result.runSummary.candidatesRanked, "candidatesRanked", 0, 15),
     selectionShortfallReason: optionalString(result.runSummary.selectionShortfallReason, 1_000),
   };
   if (observedSearches !== undefined) {
-    boundedInteger(observedSearches, "observedSearches", 0, 3);
+    boundedInteger(observedSearches, "observedSearches", 0, MAX_DISCOVERY_SEARCHES);
     if (Number(observedSearches) !== summary.searchesPerformed) {
       throw new WorkflowResultValidationError(
         `The structured search count (${summary.searchesPerformed}) did not match observable web-search activity (${observedSearches}).`,

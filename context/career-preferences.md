@@ -81,4 +81,3 @@ Industry is a preference rather than a strict eligibility requirement.
 ## Preference authority
 
 The candidate profile provides factual qualifications for opportunity matching. The remaining preferences guide prioritization but do not create automatic rejection rules unless a preference is explicitly stated as a constraint in `availability-and-constraints.md`.
-

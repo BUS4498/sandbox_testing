@@ -13,7 +13,7 @@ State memory stores the latest known operational state for each opportunity and 
 - outstanding tasks and unresolved issues;
 - latest student response status and whether its targeted update is starting, in progress, resolved, awaiting clarification, failed, or ready for retry;
 - pending or prepared application-template requests and local material identifiers;
-- current Codex-reported daily automation status, last run, and next scheduled run;
+- current local daily-schedule status, last run, next expected run, and missed-run state;
 - last verified time; and
 - links to the observations, decisions, actions, and evaluations supporting the state.
 

@@ -3,6 +3,12 @@ import { spawn } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  DASHBOARD_API_VERSION,
+  DASHBOARD_APPLICATION_ID,
+  DASHBOARD_RUNTIME_ID,
+} from "../src/server/runtime-metadata.js";
+
 const scriptPath = fileURLToPath(import.meta.url);
 const repositoryRoot = path.resolve(path.dirname(scriptPath), "..");
 
@@ -15,17 +21,54 @@ export function parseLauncherPort(value = "4318") {
 }
 
 export async function dashboardIsReady(url, { fetchImpl = globalThis.fetch } = {}) {
+  const health = await readDashboardHealth(url, { fetchImpl });
+  return health.compatible;
+}
+
+export async function readDashboardHealth(url, { fetchImpl = globalThis.fetch } = {}) {
   try {
     const response = await fetchImpl(`${url}/api/health`, {
       headers: { Accept: "application/json" },
       signal: AbortSignal.timeout(1_500),
     });
-    if (!response.ok) return false;
+    if (!response.ok) return { reachable: true, compatible: false, statusCode: response.status ?? null };
     const body = await response.json();
-    return body?.status === "ok" && body?.local === true;
+    return {
+      reachable: true,
+      compatible:
+        body?.status === "ok" &&
+        body?.local === true &&
+        body?.applicationId === DASHBOARD_APPLICATION_ID &&
+        body?.runtime === DASHBOARD_RUNTIME_ID &&
+        Number(body?.apiVersion) === DASHBOARD_API_VERSION,
+      body,
+    };
   } catch {
-    return false;
+    return { reachable: false, compatible: false, body: null };
   }
+}
+
+export function isOutdatedDashboard(health) {
+  const body = health?.body;
+  return health?.reachable === true &&
+    body?.status === "ok" &&
+    body?.local === true &&
+    body?.applicationId === DASHBOARD_APPLICATION_ID &&
+    body?.runtime === DASHBOARD_RUNTIME_ID &&
+    Number(body?.apiVersion) !== DASHBOARD_API_VERSION;
+}
+
+export async function stopOutdatedDashboard(health, {
+  killImpl = process.kill,
+  sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)),
+} = {}) {
+  if (!isOutdatedDashboard(health)) return false;
+  const processId = Number(health.body?.processId);
+  if (!Number.isInteger(processId) || processId < 1 || processId === process.pid) return false;
+  if (health.body?.restartSafe !== true) return false;
+  killImpl(processId, "SIGTERM");
+  await sleep(350);
+  return true;
 }
 
 export async function waitForDashboard(url, {
@@ -94,15 +137,31 @@ export function startDashboardProcess({
 export async function launchLocalApp({
   openBrowser = true,
   environment = process.env,
+  fetchImpl = globalThis.fetch,
+  killImpl = process.kill,
 } = {}) {
   const port = parseLauncherPort(environment.PORT || "4318");
   const url = `http://127.0.0.1:${port}`;
   let logPath = null;
+  let existing = await readDashboardHealth(url, { fetchImpl });
 
-  if (!(await dashboardIsReady(url))) {
+  if (existing.reachable && !existing.compatible) {
+    const stopped = await stopOutdatedDashboard(existing, { killImpl });
+    if (stopped) {
+      existing = await readDashboardHealth(url, { fetchImpl });
+    }
+    if (existing.reachable && !existing.compatible) {
+      const detail = isOutdatedDashboard(existing)
+        ? "An older version of the Internship Application Prep Agent is still running. Finish any active run, close the app window, and launch it again."
+        : `Port ${port} is already used by a different local application.`;
+      throw new Error(detail);
+    }
+  }
+
+  if (!existing.compatible) {
     process.stdout.write("Starting the Internship Application Prep Agent...\n");
     logPath = startDashboardProcess({ environment });
-    const ready = await waitForDashboard(url);
+    const ready = await waitForDashboard(url, { fetchImpl });
     if (!ready) {
       throw new Error(`The dashboard did not start within 30 seconds. Review ${logPath}`);
     }

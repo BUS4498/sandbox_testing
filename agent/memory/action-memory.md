@@ -8,14 +8,14 @@ Action memory records attempted and completed actions, such as:
 - opportunity added to the spreadsheet;
 - opportunity updated in the spreadsheet;
 - notification attempted;
-- Outlook email notification submitted or sent;
+- local notification preview created, or a future provider notification submitted or sent;
 - student response recorded;
 - application-template preparation requested;
 - Word application template saved and verified;
 - communication draft prepared; and
 - student approval requested.
 
-Each record should include action ID, opportunity and decision IDs, timestamp, action type, target, intended effect, approval reference when required, idempotency key, attempt number, tool result or error, and provisional status. Outlook actions may retain a non-secret tool-call receipt and masked recipient, but not the sender identity, token, or full message body.
+Each record should include action ID, opportunity and decision IDs, timestamp, action type, target, intended effect, approval reference when required, idempotency key, attempt number, tool result or error, and provisional status. Notification actions may retain a local preview reference or non-secret provider response metadata and masked recipient, but not a sender identity, OAuth token, API key, or unnecessary full message body. For hosted Graph sending, persist `ATTEMPTING` before the request and then append `SUBMITTED`, `FAILED`, or `UNKNOWN`; an uncertain result blocks automatic replay.
 
 A web-search action should retain the approved search scope, search time, query and result counts, tool outcome, and links to relevant structured observations. It should not duplicate unnecessary full web pages in action memory.
 

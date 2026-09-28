@@ -46,7 +46,7 @@ The funnel should reduce the candidate pool before expensive model reasoning. It
 1. Use the relevant verified student search preferences supplied by **RETRIEVE**. If essential preferences are missing, request a scoped retrieval rather than infer them.
 2. Invoke the [`internship-web-search`](../tools/internship-web-search.md) tool.
 3. Select source-focused searches from the approved priority portfolio in the tool specification, using the highest-priority sources relevant to the current student context and recent source coverage.
-4. Perform no more than three targeted general public web searches. The three-query budget does not require searching every approved source in one run.
+4. Perform no more than six targeted general public web-search tool calls. Count each hosted search action once even when it reports multiple related query variants. The six-call budget does not require searching every approved source in one run.
 
 ### Step 2 — Collect candidate pool
 
@@ -169,7 +169,7 @@ For every processed result, return a structured opportunity observation or stude
 
 For an agent-discovery cycle, also return:
 
-- searches performed, up to three;
+- searches performed, up to six;
 - candidates collected, up to 15;
 - candidates validated;
 - duplicates consolidated or removed;
@@ -189,7 +189,7 @@ For a targeted student update, return the response identifier, selected opportun
 
 If content is inaccessible, incomplete, ambiguous, or contradictory, preserve what was actually observed and classify or label the limitation appropriately. Do not treat a failed search, inaccessible page, missing result, or failed recheck as evidence that a posting closed.
 
-An `UNCERTAIN` or `INVALID / INCOMPLETE` result must not be silently converted into a valid new opportunity. Preserve any source-verification issue for later review or escalation. A failed query does not expand the three-query budget or justify lowering validation and relevance standards.
+An `UNCERTAIN` or `INVALID / INCOMPLETE` result must not be silently converted into a valid new opportunity. Preserve any source-verification issue for later review or escalation. A failed search call does not expand the six-call budget or justify lowering validation and relevance standards.
 
 ## What is passed to the next stage
 

@@ -1,247 +1,168 @@
 import assert from "node:assert/strict";
-import { EventEmitter } from "node:events";
 import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 
-import { RUN_NOW_INSTRUCTION, RunAlreadyActiveError, RunNowManager } from "../src/controller/run-now-manager.js";
+import { RunAlreadyActiveError, RunNowManager } from "../src/controller/run-now-manager.js";
 import { OperationalMemoryStore } from "../src/persistence/operational-memory-store.js";
 
-class FakeCodexClient extends EventEmitter {
-  constructor() {
-    super();
-    this.calls = [];
-    this.responses = [];
-  }
+const REPOSITORY_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-  async initialize() {
-    this.calls.push(["initialize"]);
+class FakeResponsesClient {
+  constructor() { this.calls = []; this.release = null; }
+  async readiness({ checkedAt } = {}) {
+    return { status: "READY", label: "OpenAI API ready", detail: "Configured locally.", authentication: "API key configured", checkedAt };
   }
-
-  async readAccount(params) {
-    this.calls.push(["readAccount", params]);
-    return { account: { type: "chatgpt", email: "not-exposed@example.edu", planType: "synthetic" }, requiresOpenaiAuth: true };
+  async runWorkflow({ input, allowWebSearch, onEvent }) {
+    this.calls.push({ input, allowWebSearch });
+    if (this.release) await this.release;
+    const searchesPerformed = allowWebSearch ? 6 : 0;
+    onEvent?.({ type: "response.completed", searchesPerformed, sourceCount: allowWebSearch ? 6 : 0 });
+    return { outputText: "{}", responseId: "resp_synthetic", searchesPerformed, sources: [] };
   }
-
-  async startThread(params) {
-    this.calls.push(["startThread", params]);
-    return { thread: { id: "thr_test" } };
-  }
-
-  async resumeThread(threadId, params) {
-    this.calls.push(["resumeThread", threadId, params]);
-    return { thread: { id: threadId } };
-  }
-
-  async startTurn(threadId, input, params) {
-    this.calls.push(["startTurn", threadId, input, params]);
-    const targetedUpdate = input?.[0]?.text?.includes("Update Opportunity mode");
-    queueMicrotask(() => {
-      this.emit("notification", {
-        method: "turn/started",
-        params: { turn: { id: "turn_test", status: "inProgress" } },
-      });
-      if (!targetedUpdate) {
-        this.emit("notification", {
-          method: "item/started",
-          params: { item: { id: "web_1", type: "webSearch", action: { type: "search" } } },
-        });
-        this.emit("notification", {
-          method: "item/completed",
-          params: {
-            item: {
-              id: "web_1",
-              type: "webSearch",
-              action: { type: "search", queries: ["query one", "query two", "query three"] },
-            },
-          },
-        });
-      }
-      this.emit("notification", {
-        method: "turn/completed",
-        params: { turn: { id: "turn_test", status: "completed" } },
-      });
-    });
-    return { turn: { id: "turn_test" } };
-  }
-
-  respondResult(id, result) {
-    this.responses.push({ id, result });
-  }
-
   async close() {}
 }
 
-async function withManager(run) {
+async function withManager(run, { studentProfileStore = null } = {}) {
   const directory = await mkdtemp(path.join(os.tmpdir(), "internship-run-manager-test-"));
   const memoryStore = await new OperationalMemoryStore({ rootDir: path.join(directory, "memory") }).initialize();
-  const client = new FakeCodexClient();
+  const client = new FakeResponsesClient();
   const manager = new RunNowManager({
-    workspaceRoot: directory,
+    workspaceRoot: REPOSITORY_ROOT,
     memoryStore,
     clientFactory: () => client,
     clock: () => new Date("2026-08-25T12:00:00.000Z"),
-    idFactory: (() => {
-      let counter = 0;
-      return () => `generated-${++counter}`;
-    })(),
+    idFactory: (() => { let counter = 0; return () => `generated-${++counter}`; })(),
+    studentProfileStore: studentProfileStore ?? readyDemoStore(),
   });
-  try {
-    await run({ manager, memoryStore, client, directory });
-  } finally {
-    await manager.close();
-    await rm(directory, { recursive: true, force: true });
-  }
+  try { await run({ manager, memoryStore, client }); }
+  finally { await manager.close(); await rm(directory, { recursive: true, force: true }); }
 }
 
-test("Run Now uses the bounded approved instruction and records completion", async () => {
+test("Collect uses a task-scoped bounded API request and records completion", async () => {
   await withManager(async ({ manager, memoryStore, client }) => {
-    const events = [];
-    manager.on("event", (event) => events.push(event));
-    const started = manager.startRun();
-    assert.equal(started.active, true);
+    const started = manager.startCollection();
     const completed = await manager.waitForRun(started.runId);
-
     assert.equal(completed.outcome, "SUCCESS");
-    assert.equal(completed.stage, "FINISHED");
-    assert.equal(completed.searchesPerformed, 3);
-    assert.equal(completed.workflowType, "COLLECT");
+    assert.equal(completed.searchesPerformed, 6);
     assert.equal(completed.progressPercent, 100);
-    const turnCall = client.calls.find(([method]) => method === "startTurn");
-    assert.match(turnCall[2][0].text, /no more than 3 targeted public-web searches/);
-    assert.match(turnCall[2][0].text, /Greenhouse, Lever, or Ashby postings first/);
-    assert.match(turnCall[2][0].text, /SimplifyJobs Summer 2027 GitHub list/);
-    assert.match(turnCall[2][0].text, /USAJOBS Student Opportunities/);
-    assert.match(turnCall[2][0].text, /CalCareers Student Employment/);
-    assert.match(turnCall[2][0].text, /LinkedIn, Indeed, or Wellfound only as public-access fallbacks/);
-    assert.match(turnCall[2][0].text, /never bypass login or access controls/);
-    assert.match(turnCall[2][0].text, /Do not directly edit the internship spreadsheet/);
-    assert.match(turnCall[2][0].text, /Return the final business result as one JSON object only/);
-    assert.equal(turnCall[2][0].text, RUN_NOW_INSTRUCTION);
-    assert.equal(turnCall[2][1].type, "skill");
-    assert.equal(turnCall[2][1].name, "job-fit-assessment");
-    assert.match(turnCall[2][1].path, /agent[\\/]skills[\\/]job-fit-assessment[\\/]SKILL\.md$/);
-    assert.equal(events.some((event) => event.type === "run.completed"), true);
-    assert.equal((await memoryStore.list("run"))[0].outcome, "SUCCESS");
-    assert.equal((await memoryStore.getState()).runtime.threadId, "thr_test");
-    assert.deepEqual(client.calls.find(([method]) => method === "readAccount"), ["readAccount", { refreshToken: false }]);
+    assert.equal(client.calls[0].allowWebSearch, true);
+    assert.match(client.calls[0].input, /no more than 6 targeted public-web searches/i);
+    assert.match(client.calls[0].input, /agent\/skills\/job-fit-assessment\/SKILL\.md/);
+    assert.match(client.calls[0].input, /Explicitly selected synthetic demonstration setup/);
+    assert.doesNotMatch(client.calls[0].input, /sk-[A-Za-z0-9_-]{12,}/);
+    assert.equal((await memoryStore.list("run"))[0].providerResponseId, "resp_synthetic");
   });
+});
+
+test("confirmed private resume evidence replaces the synthetic resume in task-scoped input", async () => {
+  const studentProfileStore = {
+    async snapshot() {
+      return { readyForCollection: true, mode: "REAL", activeLabel: "Confirmed real-student setup", missingItems: [] };
+    },
+    async activeStudentContext() {
+      return {
+        mode: "REAL",
+        sourceType: "PRIVATE_CONFIRMED",
+        sourceLabel: "Student-confirmed private non-identifying setup",
+        confirmedAt: "2026-09-26T12:00:00.000Z",
+        resume: "EDUCATION\nBSBA Information Systems\nSKILLS\nSQL and Excel",
+        preferencesAndConstraints: {
+          preferredRoles: ["AI Business Analyst Intern"],
+          availabilityStart: "2027-05-15",
+          availabilityEnd: "2027-08-31",
+          hoursPerWeek: 40,
+          workArrangements: ["HYBRID"],
+          geographicLimits: "California",
+          paidRequirement: "REQUIRED",
+          relocation: "NO",
+          workAuthorization: "AUTHORIZED_NO_SPONSORSHIP",
+        },
+      };
+    },
+  };
+  await withManager(async ({ manager, client }) => {
+    const started = manager.startCollection();
+    await manager.waitForRun(started.runId);
+    assert.match(client.calls[0].input, /source_type="PRIVATE_CONFIRMED"/);
+    assert.match(client.calls[0].input, /BSBA Information Systems/);
+    assert.doesNotMatch(client.calls[0].input, /repository_document path="context\/is-junior-resume\.md"/);
+  }, { studentProfileStore });
+});
+
+test("incomplete student setup stops before provider readiness or workflow calls", async () => {
+  const studentProfileStore = {
+    async snapshot() {
+      return { readyForCollection: false, mode: "REAL", missingItems: ["Upload and confirm a resume"] };
+    },
+  };
+  await withManager(async ({ manager, client }) => {
+    const started = manager.startCollection();
+    const completed = await manager.waitForRun(started.runId);
+    assert.equal(completed.outcome, "FAILURE");
+    assert.equal(completed.error.code, "STUDENT_SETUP_INCOMPLETE");
+    assert.match(completed.error.message, /Upload and confirm a resume/);
+    assert.equal(client.calls.length, 0);
+  }, { studentProfileStore });
 });
 
 test("Update Opportunity processes one saved response without web discovery", async () => {
   await withManager(async ({ manager, memoryStore, client }) => {
     await memoryStore.upsertOpportunityState("opp-update-001", {
       studentInput: {
-        responseId: "response-update-001",
-        opportunityId: "opp-update-001",
-        type: "PROVIDE_INFORMATION",
-        text: "I can work the required Tuesday schedule.",
-        templateTypes: [],
-        submittedAt: "2026-08-25T12:00:00.000Z",
-        status: "READY_FOR_UPDATE",
+        responseId: "response-update-001", opportunityId: "opp-update-001", type: "PROVIDE_INFORMATION",
+        text: "I can work the required Tuesday schedule.", templateTypes: [],
+        submittedAt: "2026-08-25T12:00:00.000Z", status: "READY_FOR_UPDATE",
       },
     });
-    const opportunity = {
-      opportunityId: "opp-update-001",
-      company: "Northstar",
-      roleTitle: "IS Intern",
-      postingUrl: "https://careers.example.edu/jobs/opp-update-001",
-      applicationUrl: "https://apply.example.edu/jobs/opp-update-001",
-      source: "Employer career page",
-      postingStatus: "ACTIVE",
-      nextAction: "Confirm Tuesday availability",
-    };
-    const started = manager.startUpdate({
-      opportunityId: opportunity.opportunityId,
-      opportunity,
-      responseId: "response-update-001",
-    });
+    const opportunity = { opportunityId: "opp-update-001", company: "Northstar", roleTitle: "IS Intern", postingStatus: "ACTIVE" };
+    const started = manager.startUpdate({ opportunityId: opportunity.opportunityId, opportunity, responseId: "response-update-001" });
     const completed = await manager.waitForRun(started.runId);
-    assert.equal(completed.workflowType, "UPDATE");
-    assert.equal(completed.targetOpportunityId, "opp-update-001");
+    assert.equal(completed.outcome, "SUCCESS");
     assert.equal(completed.searchesPerformed, 0);
-    assert.equal(completed.progressPercent, 100);
-    const turnCall = client.calls.find(([method]) => method === "startTurn");
-    assert.match(turnCall[2][0].text, /process only existing opportunity opp-update-001/);
-    assert.match(turnCall[2][0].text, /do not search the web/);
-    assert.match(turnCall[2][0].text, /Targeted-update rules/);
-    assert.match(turnCall[2][2].text, /response-update-001/);
-    assert.doesNotMatch(JSON.stringify(client.calls), /query one/);
+    assert.equal(client.calls[0].allowWebSearch, false);
+    assert.match(client.calls[0].input, /process only existing opportunity opp-update-001/i);
+    assert.match(client.calls[0].input, /response-update-001/);
   });
 });
 
-test("reports sanitized Codex readiness without exposing account identity", async () => {
+test("reports sanitized API readiness", async () => {
   await withManager(async ({ manager }) => {
     const readiness = await manager.checkRuntimeReadiness();
     assert.equal(readiness.status, "READY");
-    assert.equal(readiness.authentication, "ChatGPT managed sign-in");
-    assert.doesNotMatch(JSON.stringify(readiness), /not-exposed|example\.edu|synthetic/);
+    assert.equal(readiness.authentication, "API key configured");
+    assert.doesNotMatch(JSON.stringify(readiness), /sk-/);
   });
 });
 
-test("uses installed Outlook runtime state when the app directory cannot be listed", async () => {
+test("prevents simultaneous duplicate workflows", async () => {
   await withManager(async ({ manager, client }) => {
-    client.listApps = async () => {
-      throw new Error("Request failed with status 403 Forbidden: <html><style>private provider page</style></html>");
-    };
-    client.installedApps = async () => ({
-      apps: [{ id: "outlook-email", runtimeName: "Outlook Email", enabled: true, callable: true }],
-    });
-
-    const readiness = await manager.checkOutlookReadiness();
-    assert.equal(readiness.status, "CONNECTED");
-    assert.equal(readiness.appId, "outlook-email");
-    assert.doesNotMatch(JSON.stringify(readiness), /html|style|provider page/i);
-  });
-});
-
-test("reports an app-access restriction without exposing the provider response", async () => {
-  await withManager(async ({ manager, client }) => {
-    const denied = async () => {
-      throw new Error("Request failed with status 403 Forbidden: <html><style>private provider page</style></html>");
-    };
-    client.listApps = denied;
-    client.installedApps = denied;
-
-    const readiness = await manager.checkOutlookReadiness();
-    assert.equal(readiness.status, "ACCESS_BLOCKED");
-    assert.equal(readiness.label, "Outlook access unavailable");
-    assert.match(readiness.detail, /not permitted/);
-    assert.doesNotMatch(JSON.stringify(readiness), /html|style|provider page/i);
-  });
-});
-
-test("prevents simultaneous duplicate runs", async () => {
-  await withManager(async ({ manager }) => {
-    const started = manager.startRun();
-    assert.throws(() => manager.startRun(), RunAlreadyActiveError);
+    let release;
+    client.release = new Promise((resolve) => { release = resolve; });
+    const started = manager.startCollection();
+    assert.throws(() => manager.startCollection(), RunAlreadyActiveError);
+    release();
     await manager.waitForRun(started.runId);
   });
 });
 
-test("surfaces approval requests and returns only an explicit student decision", async () => {
-  await withManager(async ({ manager, client, memoryStore }) => {
-    const events = [];
-    manager.on("event", (event) => events.push(event));
-    const started = manager.startRun();
-    client.emit("server-request", {
-      id: 99,
-      method: "item/commandExecution/requestApproval",
-      params: {
-        reason: "Run approved local verification; token=do-not-display",
-        command: ["node", "check.js", "API_KEY=do-not-display"],
-        cwd: "C:\\synthetic\\workspace",
-      },
-    });
-    const approval = events.find((event) => event.type === "approval.requested").approval;
-    assert.match(approval.reason, /token=\[REDACTED\]/i);
-    assert.doesNotMatch(JSON.stringify(approval.command), /do-not-display/);
-    assert.equal(client.responses.length, 0);
-
-    await manager.respondToApproval(approval.approvalId, "decline");
-    assert.deepEqual(client.responses[0], { id: 99, result: { decision: "decline" } });
-    assert.equal((await memoryStore.list("action"))[0].outcome, "DECLINE");
-    await manager.waitForRun(started.runId);
-  });
-});
+function readyDemoStore() {
+  return {
+    async snapshot() {
+      return { readyForCollection: true, mode: "DEMO", activeLabel: "Synthetic demonstration setup", missingItems: [] };
+    },
+    async activeStudentContext() {
+      return {
+        mode: "DEMO",
+        sourceType: "SYNTHETIC_DEMONSTRATION",
+        sourceLabel: "Explicitly selected synthetic demonstration setup",
+        confirmedAt: null,
+        resume: "SYNTHETIC RESUME\nInformation Systems student with SQL and Excel.",
+        preferences: "Preferred internship roles include AI Business Analyst Intern.",
+        constraints: "Available for a Summer 2027 paid internship in California.",
+      };
+    },
+  };
+}
