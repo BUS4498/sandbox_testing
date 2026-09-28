@@ -3,14 +3,15 @@ import { fileURLToPath } from "node:url";
 
 import { loadLocalEnvironment } from "../src/config/local-env.js";
 import { RunNowManager } from "../src/controller/run-now-manager.js";
-import { CodexOutlookTransport } from "../src/notifications/codex-outlook-transport.js";
 import { StudentEmailNotifier } from "../src/notifications/student-email-notifier.js";
 import { LocalApplicationMaterialStore } from "../src/persistence/application-material-store.js";
 import { LocalRuntimeResetService } from "../src/persistence/local-runtime-reset-service.js";
 import { OperationalMemoryStore } from "../src/persistence/operational-memory-store.js";
 import { LocalSettingsStore } from "../src/persistence/local-settings-store.js";
+import { LocalStudentProfileStore } from "../src/persistence/student-profile-store.js";
 import { resolveRuntimePaths } from "../src/persistence/runtime-paths.js";
 import { LocalSpreadsheetTracker } from "../src/persistence/spreadsheet-tracker.js";
+import { LocalDailyScheduler } from "../src/schedule/local-daily-scheduler.js";
 import { createDashboardServer } from "../src/server/dashboard-server.js";
 import { WorkflowActionCoordinator } from "../src/workflow/workflow-action-coordinator.js";
 import { StudentResponseService } from "../src/workflow/student-response-service.js";
@@ -23,34 +24,34 @@ const runtimePaths = resolveRuntimePaths({
 });
 const memoryStore = await new OperationalMemoryStore({ rootDir: runtimePaths.memory }).initialize();
 const settingsStore = await new LocalSettingsStore({ filePath: runtimePaths.settings }).initialize();
-const spreadsheetTracker = new LocalSpreadsheetTracker({ filePath: runtimePaths.spreadsheet });
+const spreadsheetTracker = await new LocalSpreadsheetTracker({ filePath: runtimePaths.spreadsheet }).initialize();
+if (spreadsheetTracker.lastRecovery) {
+  process.stdout.write(`Unreadable spreadsheet preserved at ${spreadsheetTracker.lastRecovery.archivePath}\n`);
+}
 const applicationMaterialStore = await new LocalApplicationMaterialStore({ rootDir: runtimePaths.applicationMaterials }).initialize();
-const notificationMode = String(process.env.EMAIL_NOTIFICATIONS_MODE || "OUTLOOK").toUpperCase();
-if (notificationMode === "LIVE") {
-  throw new Error("Use OUTLOOK for Codex-managed email or DRY_RUN for local previews; no SMTP provider is implemented.");
+const studentProfileStore = await new LocalStudentProfileStore({ rootDir: runtimePaths.studentProfile }).initialize();
+const notificationMode = String(process.env.EMAIL_NOTIFICATIONS_MODE || "DRY_RUN").toUpperCase();
+if (notificationMode !== "DRY_RUN") {
+  throw new Error("This version supports DRY_RUN notification previews only; no live email provider is implemented.");
 }
 const configuredNotificationEmail = (await settingsStore.getNotificationEmail()) || process.env.NOTIFICATION_EMAIL || null;
 const workflowCoordinator = new WorkflowActionCoordinator({ spreadsheetTracker, memoryStore, applicationMaterialStore });
-const runManager = new RunNowManager({ workspaceRoot: repositoryRoot, memoryStore, workflowCoordinator });
+const runManager = new RunNowManager({ workspaceRoot: repositoryRoot, memoryStore, spreadsheetTracker, workflowCoordinator, studentProfileStore });
 const localResetService = new LocalRuntimeResetService({ runtimePaths, spreadsheetTracker, memoryStore, applicationMaterialStore, runManager });
-const outlookTransport = notificationMode === "OUTLOOK" ? new CodexOutlookTransport({ runManager }) : null;
 const createNotifier = (recipient) => recipient
   ? new StudentEmailNotifier({
       recipient,
       memoryStore,
       outboxDir: runtimePaths.notificationOutbox,
       mode: notificationMode,
-      transport: outlookTransport,
     })
   : null;
 workflowCoordinator.setNotifier(createNotifier(configuredNotificationEmail));
 const notificationConfiguration = {
   async snapshot() {
-    const outlook = notificationMode === "OUTLOOK" ? await outlookTransport.readiness() : null;
     return settingsStore.publicNotificationSettings({
       mode: notificationMode,
       fallbackEmail: process.env.NOTIFICATION_EMAIL || null,
-      outlook,
     });
   },
   async setRecipient(email) {
@@ -59,6 +60,7 @@ const notificationConfiguration = {
     return this.snapshot();
   },
 };
+const scheduleConfiguration = await new LocalDailyScheduler({ settingsStore, memoryStore, runManager }).initialize();
 const studentResponseService = new StudentResponseService({ spreadsheetTracker, memoryStore });
 const dashboard = createDashboardServer({
   runManager,
@@ -66,9 +68,11 @@ const dashboard = createDashboardServer({
   memoryStore,
   runtimePaths,
   notificationConfiguration,
+  scheduleConfiguration,
   studentResponseService,
   applicationMaterialStore,
   localResetService,
+  studentProfileStore,
 });
 
 const port = parsePort(process.env.PORT || "4318");
@@ -81,6 +85,7 @@ async function shutdown() {
   if (closing) return;
   closing = true;
   await dashboard.close();
+  await scheduleConfiguration.close();
   await runManager.close();
 }
 

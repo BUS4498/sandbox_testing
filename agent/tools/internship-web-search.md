@@ -6,7 +6,7 @@
 
 ## Purpose
 
-Allow the production agent to discover relevant current internship opportunities through general public web search provided through the Codex agent harness rather than a specialized job-search API.
+Allow the production agent to discover relevant current internship opportunities through the OpenAI Responses API `web_search` tool rather than a specialized job-search API.
 
 The purpose is not to find every available internship or provide exhaustive market coverage. The tool should build a small candidate pool from which the agent can identify the opportunities most deserving of the student's attention.
 
@@ -14,9 +14,9 @@ This document specifies a future capability. It does not implement web search or
 
 ## Runtime capability
 
-The production agent should perform discovery using the web-search or browser capabilities made available by the local Codex runtime. This specification defines how the agent may use those capabilities; it does not define a separate search service, custom web crawler, or dedicated job-search integration.
+The production agent should perform discovery using the Responses API web-search capability. This specification defines how the local controller may request and validate that capability; it does not define a separate search service, custom web crawler, or dedicated job-search integration.
 
-The thin local controller invokes the approved Codex thread and receives runtime events, but it should not independently reproduce the search funnel or call a specialized job-search API. Codex remains responsible for carrying out permitted search and posting-inspection work under this tool specification, the configured runtime permissions, and the repository's policies.
+The local controller supplies a bounded, task-scoped request and counts observable API search calls. The model may gather and structure permitted public evidence, but the controller retains limit validation, deterministic duplicate checks, local actions, verification, and memory responsibilities.
 
 ## When the agent may use it
 
@@ -42,20 +42,20 @@ All student facts must come from verified `context/` sources. Missing preference
 
 ## Daily search budget
 
-For the initial system, every discovery run, whether initiated through **Collect Opportunities** or the Codex daily automation, must apply these maximum limits:
+For the initial system, every discovery run, whether initiated through **Collect Opportunities** or the local daily schedule, must apply these maximum limits:
 
-- targeted web-search queries: **3**;
+- hosted web-search tool calls: **6**;
 - candidate opportunities collected for screening: **15**;
 - opportunities selected for detailed processing: **3–5 when at least three qualify, with an absolute maximum of 5**; and
 - material opportunity updates surfaced during the run: **5**.
 
-The query, candidate, and five-update values are hard maximums. Three is the normal minimum selected-result objective when at least three candidates satisfy validity, relevance, hard-constraint, evidence, and duplicate-prevention requirements. If only two qualify, the tool should return two with a concise selection shortfall reason rather than include a weak opportunity.
+The search-call, candidate, and five-update values are hard maximums. One hosted `web_search` action counts as one search call even when the provider reports multiple related query variants inside that action. Three is the normal minimum selected-result objective when at least three candidates satisfy validity, relevance, hard-constraint, evidence, and duplicate-prevention requirements. If only two qualify, the tool should return two with a concise selection shortfall reason rather than include a weak opportunity.
 
 The detailed-processing limit applies to the combined set of genuinely new and materially changed opportunities selected for the current run. A tracked posting that has closed or otherwise changed materially may use one of the five available processing positions. Existing unchanged opportunities, invalid results, and duplicates do not count as selected opportunities, although the run may report them in its screening summary.
 
 ## Search strategy
 
-Construct no more than three targeted searches from the student's current verified context. Search themes may include categories such as:
+Construct no more than six targeted searches from the student's current verified context. Search themes may include categories such as:
 
 - Information Systems internships;
 - Business Analyst internships;
@@ -71,7 +71,7 @@ Queries should be meaningfully distinct and should use only the context needed f
 
 Discovery searches should focus on the following sources in priority order. This is a relevance-focused source portfolio, not an instruction to query every source during every run.
 
-| Priority | Website or source | Expected Codex accessibility | Recommended use |
+| Priority | Website or source | Expected public accessibility | Recommended use |
 |---:|---|---|---|
 | 1 | Employer career pages hosted by Greenhouse, Lever, or Ashby | Excellent | Primary source for verifying requirements and obtaining the official application link |
 | 2 | [Simplify — Top Summer Internships 2027](https://simplify.jobs/l/Top-Summer-Internships-2027) | Excellent | Student-focused discovery across business, data, product, AI, and technology |
@@ -83,7 +83,7 @@ Discovery searches should focus on the following sources in priority order. This
 | 8 | [Indeed](https://www.indeed.com/) | Partial | Broad discovery only when public access is reliable for the current result |
 | 9 | [Wellfound](https://wellfound.com/jobs) | Partial | Startup and technology discovery when a listing is public |
 
-Within the three-query budget, select up to three source-focused searches using the highest-priority sources that are relevant to the student's current roles, internship period, California location, and work-arrangement preferences. A query may cover a related source group, such as the three approved employer-hosted applicant-tracking systems, when the general web-search capability supports it.
+Within the six-call budget, select up to six source-focused searches using the highest-priority sources that are relevant to the student's current roles, internship period, California location, and work-arrangement preferences. A search call may cover a related source group, such as the three approved employer-hosted applicant-tracking systems, when the general web-search capability supports it.
 
 Do not attempt to visit all nine sources merely because they appear in this portfolio. Use prior search observations to vary source coverage across later runs when doing so is useful, but do not repeatedly search a lower-priority source after the current run already has enough strong candidates.
 
@@ -161,7 +161,7 @@ Selection for detailed processing is a relevance-focused discovery decision, not
 
 Stop the discovery portion of a run when any of these conditions is met:
 
-- 3 targeted searches have been completed;
+- 6 hosted web-search calls have been processed;
 - 15 candidate opportunities have been collected;
 - enough strong candidates exist to select the top five;
 - additional searches are producing no meaningful new candidates; or
@@ -171,7 +171,7 @@ Do not continue searching after the approved stop conditions merely to force thr
 
 ## Permissions
 
-The tool may construct up to three targeted queries, search publicly available web content, screen up to 15 candidates, inspect accessible postings, and return up to five selected structured observations to **SENSE**. It may use only the scoped student context and relevant existing state supplied for the current search.
+The tool may make up to six hosted web-search calls, search publicly available web content, screen up to 15 candidates, inspect accessible postings, and return up to five selected structured observations to **SENSE**. It may use only the scoped student context and relevant existing state supplied for the current search.
 
 The tool may not make a final fit assessment, select a final agent decision, write to the spreadsheet, send email, contact an employer, or submit an application. Those activities remain governed by their respective workflow stages, tools, policies, and approval requirements.
 
@@ -181,7 +181,7 @@ If search is unavailable, a result cannot be opened, a source conflicts with ano
 
 One failed query or inaccessible source should not invalidate other independently verified results. Return partial results with their provenance and identify any unresolved source-verification issue for later review or escalation.
 
-If repeated external failures prevent reliable discovery, stop further searching within the run, preserve the failure observations, and return any candidates already supported by sufficient evidence. Do not spend additional queries merely to compensate for failures, and do not lower the relevance or evidence standard to fill the five-opportunity limit.
+If repeated external failures prevent reliable discovery, stop further searching within the run, preserve the failure observations, and return any candidates already supported by sufficient evidence. Do not spend additional search calls merely to compensate for failures, and do not lower the relevance or evidence standard to fill the five-opportunity limit.
 
 ## Security considerations
 

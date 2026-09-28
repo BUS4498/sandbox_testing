@@ -6,6 +6,11 @@ import { fileURLToPath } from "node:url";
 
 import { RunAlreadyActiveError } from "../controller/run-now-manager.js";
 import { buildDashboardData } from "./dashboard-data.js";
+import {
+  DASHBOARD_API_VERSION,
+  DASHBOARD_APPLICATION_ID,
+  DASHBOARD_RUNTIME_ID,
+} from "./runtime-metadata.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_STATIC_ROOT = path.resolve(HERE, "..", "..", "frontend", "app");
@@ -15,19 +20,21 @@ const STATIC_FILES = Object.freeze({
   "/styles.css": ["styles.css", "text/css; charset=utf-8"],
   "/app.js": ["app.js", "text/javascript; charset=utf-8"],
 });
-
 export function createDashboardServer({
   runManager,
   spreadsheetTracker,
   memoryStore,
   runtimePaths,
   notificationConfiguration = null,
+  scheduleConfiguration = null,
   studentResponseService = null,
   applicationMaterialStore = null,
   localResetService = null,
+  studentProfileStore = null,
   staticRoot = DEFAULT_STATIC_ROOT,
   clock = () => new Date(),
   requestToken = randomBytes(24).toString("base64url"),
+  logger = console,
 }) {
   if (!runManager || !spreadsheetTracker || !memoryStore || !runtimePaths) {
     throw new TypeError("Dashboard server requires run manager, spreadsheet tracker, memory store, and runtime paths.");
@@ -41,7 +48,15 @@ export function createDashboardServer({
       const url = new URL(request.url, "http://127.0.0.1");
 
       if (request.method === "GET" && url.pathname === "/api/health") {
-        return sendJson(response, 200, { status: "ok", local: true });
+        return sendJson(response, 200, {
+          status: "ok",
+          local: true,
+          applicationId: DASHBOARD_APPLICATION_ID,
+          runtime: DASHBOARD_RUNTIME_ID,
+          apiVersion: DASHBOARD_API_VERSION,
+          processId: process.pid,
+          restartSafe: runManager.snapshot?.()?.active !== true,
+        });
       }
 
       if (request.method === "GET" && url.pathname === "/api/dashboard") {
@@ -51,11 +66,83 @@ export function createDashboardServer({
           runManager,
           runtimePaths,
           notificationConfiguration,
+          scheduleConfiguration,
           applicationMaterialStore,
+          studentProfileStore,
           requestToken,
           clock,
         });
         return sendJson(response, 200, data);
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/runtime/validate") {
+        requireLocalMutation(request, requestToken);
+        if (typeof runManager.validateRuntimeConnection !== "function") throw httpError(503, "API connection validation is unavailable.");
+        const runtime = await runManager.validateRuntimeConnection();
+        return sendJson(response, 200, { runtime });
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/profile/resume") {
+        requireLocalMutation(request, requestToken);
+        if (typeof studentProfileStore?.uploadResume !== "function") throw httpError(503, "Private student-profile storage is unavailable.");
+        const body = await readJsonBody(request, { maxBytes: 7_200_000 });
+        try {
+          const profile = await studentProfileStore.uploadResume({
+            fileName: body.fileName,
+            mediaType: body.mediaType,
+            bytes: decodeBase64File(body.dataBase64),
+          });
+          return sendJson(response, 201, { profile });
+        } catch (error) {
+          if (error instanceof TypeError) throw httpError(400, error.message);
+          throw error;
+        }
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/profile/confirm") {
+        requireLocalMutation(request, requestToken);
+        if (typeof studentProfileStore?.confirmProfile !== "function") throw httpError(503, "Private student-profile storage is unavailable.");
+        const body = await readJsonBody(request, { maxBytes: 100_000 });
+        try {
+          const profile = await studentProfileStore.confirmProfile({
+            profileText: body.profileText,
+            identifyingDetailsRemoved: body.identifyingDetailsRemoved,
+          });
+          return sendJson(response, 200, { profile });
+        } catch (error) {
+          if (error instanceof TypeError) throw httpError(400, error.message);
+          throw error;
+        }
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/profile/deactivate") {
+        requireLocalMutation(request, requestToken);
+        if (typeof studentProfileStore?.deactivate !== "function") throw httpError(503, "Private student-profile storage is unavailable.");
+        return sendJson(response, 200, { profile: await studentProfileStore.deactivate() });
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/profile/context") {
+        requireLocalMutation(request, requestToken);
+        if (typeof studentProfileStore?.savePreferencesAndConstraints !== "function") throw httpError(503, "Private student-context storage is unavailable.");
+        const body = await readJsonBody(request, { maxBytes: 20_000 });
+        try {
+          return sendJson(response, 200, { profile: await studentProfileStore.savePreferencesAndConstraints(body) });
+        } catch (error) {
+          if (error instanceof TypeError) throw httpError(400, error.message);
+          throw error;
+        }
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/profile/demo") {
+        requireLocalMutation(request, requestToken);
+        if (typeof studentProfileStore?.activateDemo !== "function") throw httpError(503, "Student setup mode selection is unavailable.");
+        return sendJson(response, 200, { profile: await studentProfileStore.activateDemo() });
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/profile/real") {
+        requireLocalMutation(request, requestToken);
+        if (typeof studentProfileStore?.activateReal !== "function") throw httpError(503, "Student setup mode selection is unavailable.");
+        return sendJson(response, 200, { profile: await studentProfileStore.activateReal() });
       }
 
       if (request.method === "GET" && url.pathname === "/api/events") {
@@ -73,6 +160,10 @@ export function createDashboardServer({
 
       if (request.method === "POST" && ["/api/collect", "/api/runs"].includes(url.pathname)) {
         requireLocalMutation(request, requestToken);
+        if (typeof runManager.checkStudentSetupReadiness === "function") {
+          const setup = await runManager.checkStudentSetupReadiness();
+          if (!setup.ready) throw httpError(409, setup.detail);
+        }
         const run = typeof runManager.startCollection === "function"
           ? runManager.startCollection()
           : runManager.startRun();
@@ -88,6 +179,22 @@ export function createDashboardServer({
         try {
           const settings = await notificationConfiguration.setRecipient(body.email);
           return sendJson(response, 200, { settings });
+        } catch (error) {
+          if (error instanceof TypeError) throw httpError(400, error.message);
+          throw error;
+        }
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/settings/schedule") {
+        requireLocalMutation(request, requestToken);
+        if (typeof scheduleConfiguration?.configure !== "function") {
+          throw httpError(503, "Local schedule settings are unavailable.");
+        }
+        const body = await readJsonBody(request);
+        try {
+          const schedule = await scheduleConfiguration.configure({ enabled: body.enabled, time: body.time });
+          broadcast({ type: "schedule.updated", schedule, timestamp: clock().toISOString() });
+          return sendJson(response, 200, { schedule });
         } catch (error) {
           if (error instanceof TypeError) throw httpError(400, error.message);
           throw error;
@@ -128,6 +235,10 @@ export function createDashboardServer({
         requireLocalMutation(request, requestToken);
         if (typeof studentResponseService?.submit !== "function" || typeof runManager.startUpdate !== "function") {
           throw httpError(503, "Targeted opportunity updates are unavailable.");
+        }
+        if (typeof runManager.checkStudentSetupReadiness === "function") {
+          const setup = await runManager.checkStudentSetupReadiness();
+          if (!setup.ready) throw httpError(409, setup.detail);
         }
         const opportunityId = decodeURIComponent(updateMatch[1]);
         const body = await readJsonBody(request);
@@ -188,6 +299,12 @@ export function createDashboardServer({
 
       return sendJson(response, 404, { error: "Not found." });
     } catch (error) {
+      logger.error?.("[dashboard] request failed", {
+        method: request.method,
+        path: request.url ? new URL(request.url, "http://127.0.0.1").pathname : "unknown",
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       if (error instanceof RunAlreadyActiveError) {
         return sendJson(response, 409, { error: "Another agent workflow is already active.", runId: error.runId });
       }
@@ -244,12 +361,12 @@ function requireLocalMutation(request, expectedToken) {
   }
 }
 
-async function readJsonBody(request) {
+async function readJsonBody(request, { maxBytes = 16_384 } = {}) {
   const chunks = [];
   let size = 0;
   for await (const chunk of request) {
     size += chunk.length;
-    if (size > 16_384) throw httpError(413, "Request body is too large.");
+    if (size > maxBytes) throw httpError(413, "Request body is too large.");
     chunks.push(chunk);
   }
   if (chunks.length === 0) return {};
@@ -258,6 +375,16 @@ async function readJsonBody(request) {
   } catch {
     throw httpError(400, "Request body must be valid JSON.");
   }
+}
+
+function decodeBase64File(value) {
+  const encoded = String(value ?? "").trim();
+  if (!encoded || !/^[A-Za-z0-9+/]*={0,2}$/.test(encoded) || encoded.length % 4 !== 0) {
+    throw new TypeError("The uploaded resume data is invalid.");
+  }
+  const bytes = Buffer.from(encoded, "base64");
+  if (bytes.length === 0 || bytes.length > 5 * 1024 * 1024) throw new TypeError("The resume file must be 5 MB or smaller.");
+  return bytes;
 }
 
 async function sendStatic(response, filePath, contentType, headOnly) {

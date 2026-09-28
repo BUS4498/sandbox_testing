@@ -33,6 +33,8 @@ For each saved template, return a stable material ID, opportunity ID, template t
 
 Templates should be stored as professionally formatted Microsoft Word `.docx` files in a private local runtime location grouped by opportunity. Each document should use a consistent business-document style, readable headings, real Word lists, a visible draft-review notice, opportunity identification, unresolved placeholders, and a student-review next step. Metadata may be stored in a separate private sidecar file. The dashboard should let the student download the Word draft without exposing unrelated runtime files.
 
+In the owner-only Sites pilot, this capability belongs to a later hosted feature group. Until a protected hosted artifact store and readable `.docx` download are verified, the dashboard must label hosted preparation **Not available in this pilot** and must not return a fabricated file path or success status. The local implementation remains available unchanged.
+
 ## Permissions
 
 The tool may create and update local Word draft-template files and verify that each result is a readable `.docx` package containing the intended draft label and content. It may not alter an authoritative resume, mark a template as final, upload a material, fill or submit an employer form, or send a material to an employer.

@@ -67,6 +67,8 @@ Detailed historical observations, decisions, actions, verification results, and 
 
 The spreadsheet may retain the latest fit assessment for audit and export, but the dashboard should not expose a standalone **Fit** column. It should present the recommendation, concise rationale, verified matches, genuine gaps, and exact missing information in the opportunity details instead.
 
+For the owner-only Sites pilot, the local file tool is not callable against the laptop's `data/local/` path. A separate hosted adapter must persist one current record per opportunity in private durable storage, verify each write by read-back, and produce a current `.xlsx` download as the user-facing collection. The download must identify its generation time and reflect the verified current records; a stale export is not synchronized. Detailed run, notification, and decision history remains in hosted operational memory, not extra spreadsheet rows. This hosted design does not change the local workbook's authority in the local app.
+
 ## Permissions
 
 The tool may read records, add records, update agent-maintained fields, check duplicates, and verify updates. It must not overwrite explicit student-owned application status, notes, overrides, or corrections without a clear rule or student approval.

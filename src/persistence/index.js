@@ -2,6 +2,7 @@ export { MemoryConflictError, OperationalMemoryStore } from "./operational-memor
 export { resolveRuntimePaths } from "./runtime-paths.js";
 export { LocalSettingsStore, maskEmail, normalizeEmail } from "./local-settings-store.js";
 export { LocalApplicationMaterialStore } from "./application-material-store.js";
+export { DEFAULT_ROLE_CHOICES, LocalStudentProfileStore, StudentSetupIncompleteError } from "./student-profile-store.js";
 export { LocalRuntimeResetService } from "./local-runtime-reset-service.js";
 export {
   AmbiguousDuplicateError,

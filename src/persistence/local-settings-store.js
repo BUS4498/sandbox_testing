@@ -40,7 +40,7 @@ export class LocalSettingsStore {
     });
   }
 
-  async publicNotificationSettings({ mode = "DRY_RUN", fallbackEmail = null, outlook = null } = {}) {
+  async publicNotificationSettings({ mode = "DRY_RUN", fallbackEmail = null } = {}) {
     const storedEmail = await this.getNotificationEmail();
     const email = storedEmail || (fallbackEmail ? normalizeEmail(fallbackEmail) : null);
     const normalizedMode = String(mode).toUpperCase();
@@ -48,16 +48,43 @@ export class LocalSettingsStore {
       configured: Boolean(email),
       recipientHint: email ? maskEmail(email) : null,
       mode: normalizedMode,
-      deliveryStatus: normalizedMode === "OUTLOOK" ? outlook?.status ?? "UNKNOWN" : normalizedMode === "LIVE" ? "PROVIDER_CONFIGURED" : "LOCAL_PREVIEW_ONLY",
-      outlook: normalizedMode === "OUTLOOK" ? outlook : null,
-      explanation: normalizedMode === "OUTLOOK"
-        ? outlook?.status === "CONNECTED"
-          ? "Verified material updates are submitted through the connected Codex Outlook Email app."
-          : outlook?.detail || "Connect and enable Outlook Email in Codex before sending notifications."
-        : normalizedMode === "LIVE"
-          ? "Material-update emails are submitted through the configured local provider."
-          : "Material updates create a local email preview; no external email is sent.",
+      deliveryStatus: normalizedMode === "LIVE" ? "PROVIDER_CONFIGURED" : "LOCAL_PREVIEW_ONLY",
+      explanation: normalizedMode === "LIVE"
+        ? "Material-update emails are submitted through the separately approved local provider."
+        : "Material updates create a local email preview; no external email is sent.",
     };
+  }
+
+  async getSchedule() {
+    const settings = await this.#read();
+    return structuredClone(settings.schedule ?? createDefaultSchedule());
+  }
+
+  async setSchedule({ enabled, time }) {
+    const normalizedTime = normalizeDailyTime(time);
+    return this.#enqueue(async () => {
+      const settings = await this.#read();
+      const now = this.clock().toISOString();
+      settings.schedule = {
+        ...(settings.schedule ?? createDefaultSchedule()),
+        enabled: Boolean(enabled),
+        time: normalizedTime,
+        updatedAt: now,
+      };
+      settings.updatedAt = now;
+      await this.#write(settings);
+      return structuredClone(settings.schedule);
+    });
+  }
+
+  async updateScheduleRuntime(patch) {
+    return this.#enqueue(async () => {
+      const settings = await this.#read();
+      settings.schedule = { ...(settings.schedule ?? createDefaultSchedule()), ...structuredClone(patch) };
+      settings.updatedAt = this.clock().toISOString();
+      await this.#write(settings);
+      return structuredClone(settings.schedule);
+    });
   }
 
   async #read() {
@@ -98,10 +125,31 @@ export function maskEmail(email) {
   return `${visible}${"*".repeat(Math.max(1, local.length - visible.length))}@${domain}`;
 }
 
+export function normalizeDailyTime(value) {
+  const time = String(value ?? "").trim();
+  if (!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time)) {
+    throw new TypeError("Choose a valid local daily time.");
+  }
+  return time;
+}
+
+function createDefaultSchedule() {
+  return {
+    enabled: false,
+    time: "09:00",
+    updatedAt: null,
+    lastScheduledFor: null,
+    lastRun: null,
+    lastOutcome: null,
+    missedRun: null,
+  };
+}
+
 function createDefaultSettings(timestamp) {
   return {
     schemaVersion: 1,
     updatedAt: timestamp,
     notification: { email: null, updatedAt: null },
+    schedule: createDefaultSchedule(),
   };
 }

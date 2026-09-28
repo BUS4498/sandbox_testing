@@ -14,7 +14,7 @@ Help the student continuously collect, evaluate, prioritize, and track internshi
 
 ## System Scope
 
-The eventual system should:
+The local-first system should:
 
 - run locally on the student's computer;
 - accept internship opportunities for review;
@@ -22,26 +22,31 @@ The eventual system should:
 - maintain a local spreadsheet containing the current collection;
 - maintain operational memory across runs;
 - provide a browser-based local dashboard;
+- require the student to confirm a complete local setup package before collection or assessment, including resume evidence, preferred roles, availability, and relevant constraints;
 - allow a manual **Collect Opportunities** action for bounded web discovery;
 - allow a targeted **Update Opportunity** action that immediately processes newly supplied student information for one tracked opportunity without performing web discovery;
 - optionally run automatically once per day;
-- send the student informational email notifications through the student's connected Outlook app when tracked opportunities materially change; and
+- create informational student-notification previews after tracked opportunities materially change, with live sending available only through a separately approved provider integration; and
 - prepare local, review-only Microsoft Word application templates when the student requests them; and
-- let the student explicitly archive and reset the current local collection without changing authoritative context, notification settings, authentication, or Codex-managed scheduling.
+- let the student explicitly archive and reset the current local collection without changing authoritative context, notification settings, API configuration, or local scheduling.
 
 The system is an internship-preparation assistant, not an autonomous job applicant. It has no application-submission capability.
+
+An optional **owner-only Codex Sites pilot** is specified in [`runtime/codex-sites-private-pilot.md`](../runtime/codex-sites-private-pilot.md). It is a separate hosted variant, not a replacement for the local application. Its first checkpoint uses synthetic context and manual collection only; real-resume handling and hosted Daily Run remain unavailable until separately implemented and verified.
 
 Collection reset is a confirmed local-controller operation, not an agent workflow stage or model decision.
 
 ## Runtime
 
-This prototype runs on the Codex agent harness.
+This prototype uses a deterministic local workflow controller as the agent harness and the OpenAI Responses API for bounded model-supported reasoning and public-web search.
 
-Codex provides the model-driven agent runtime, tool execution, web interaction, and thread execution.
+The local controller owns workflow transitions, budgets, permissions, local tool execution, verification, persistence, and human approval boundaries. The API does not write operational data or approve consequential actions.
 
 The specifications in this repository define the behavior of the Internship Application Prep Agent.
 
-The local application provides the business-facing dashboard, structured operational memory, spreadsheet, email integration, and interface to the Codex runtime. Detailed runtime responsibilities are defined in [`runtime/codex-runtime.md`](../runtime/codex-runtime.md).
+The local application provides the business-facing dashboard, structured operational memory, spreadsheet, notification previews, local scheduling, and interface to the OpenAI API. Detailed runtime responsibilities are defined in [`runtime/openai-api-runtime.md`](../runtime/openai-api-runtime.md).
+
+The hosted pilot keeps the same controller-governed workflow and authority boundaries but uses private durable hosted records and a current downloadable spreadsheet. It may send student-only informational mail through a separately authorized Microsoft Graph Outlook connection after verified material updates. The OpenAI key and Outlook authorization must be configured server-side for the Site; neither is inherited from the local app or a Codex plugin.
 
 ## Discovery Modes
 
@@ -55,13 +60,17 @@ When a tracked opportunity needs student information, confirmation, or an applic
 
 ### Scheduled discovery
 
-When the student enables the Codex daily automation, a Codex thread automation returns to the approved internship-agent thread once per day at the configured local time and triggers the same production workflow.
+When the student enables local daily collection, the local controller triggers the same production workflow once per day at the configured local time while the application is running.
+
+The first owner-only hosted checkpoint has no Daily Run trigger. Its dashboard must say so explicitly; a later hosted schedule requires its own supported trigger and verification before this mode is enabled there.
 
 Manual and scheduled collection use the same discovery workflow, policies, verified student context, duplicate-prevention rules, decision process, action rules, verification requirements, and operational memory. A targeted opportunity update uses the same core workflow and safeguards but scopes **SENSE** to the new student-supplied information and existing posting evidence rather than invoking web discovery. No trigger expands the agent's authority.
 
+Manual collection, scheduled collection, and targeted assessment require an explicitly confirmed student setup. For real use, the setup contains a confirmed non-identifying resume profile plus locally saved career preferences, availability, and constraints. For classroom demonstration, the student may explicitly activate the labeled synthetic demonstration context. The controller must not silently substitute synthetic defaults when real-student setup is incomplete.
+
 Automatic internship discovery is intentionally bounded. A normal successful discovery run should return the top three to five sufficiently relevant new or materially changed opportunities when at least three qualify, rather than attempting exhaustive internship-market coverage. Returning fewer than three is allowed only when fewer than three opportunities satisfy the relevance, validity, hard-constraint, and duplicate-prevention requirements or when a documented external failure prevents a complete bounded search.
 
-Detailed discovery and scheduling behavior belongs in the [Internship Web Search tool specification](tools/internship-web-search.md), the [SENSE task specification](workflow-task-specs/sense.md), and the [Codex Schedule specification](../runtime/codex-schedule.md), not in this high-level specification.
+Detailed discovery and scheduling behavior belongs in the [Internship Web Search tool specification](tools/internship-web-search.md), the [SENSE task specification](workflow-task-specs/sense.md), and the [Local Schedule specification](../runtime/local-schedule.md), not in this high-level specification.
 
 ## Core Workflow
 
@@ -113,25 +122,29 @@ The agent works with:
 - general public web-search capability for discovering current internship opportunities;
 - student context;
 - the student's resume and approved experience information;
+- an optional student-confirmed, non-identifying private runtime resume profile, with the synthetic repository resume used only as a clearly labeled demonstration fallback;
+- student-confirmed local career preferences, availability, and constraints, with source and confirmation state preserved;
 - the local internship spreadsheet;
 - deadlines and tracked application status;
 - prior decisions and actions;
 - internal operational memory;
 - email notification capability;
-- a Codex-managed daily automation trigger;
+- a local daily scheduling trigger;
 - professional communication drafting capability;
 - review-only application-material preparation capability; and
 - private local storage for prepared application templates.
 
-Informational student email uses the connected Codex **Outlook Email** app when it is installed, enabled, and callable. The student chooses the recipient in the local dashboard. Codex owns Outlook authentication; the repository and dashboard must not collect or store an Outlook password or OAuth token.
+The student chooses the notification recipient in the local dashboard. The current local API implementation creates verified local previews only. The approved hosted-pilot transport uses Microsoft Graph delegated `Mail.Send` for the connected owner's own address; it must keep authorization secrets out of the repository, browser, spreadsheet, and operational memory. Provider acceptance must not be described as confirmed delivery.
 
 The [`application-material-prep`](skills/application-material-prep/SKILL.md) Skill prepares evidence-grounded templates, and the [Local Application Materials tool](tools/local-application-materials.md) stores verified draft artifacts under the Git-ignored `data/local/` runtime folder. These capabilities do not create an application-submission path.
 
 Public web discovery uses the prioritized source portfolio and capability defined in [`agent/tools/internship-web-search.md`](tools/internship-web-search.md). Employer-controlled Greenhouse, Lever, and Ashby postings are preferred for verification; approved secondary sources support bounded discovery. Search results remain external observations for **SENSE** and do not replace the fit assessment and decision responsibilities of **REASON** and **DECIDE**.
 
-[`context/`](../context/) is the authoritative source for relatively stable background information about the student.
+[`context/`](../context/) is the authoritative source for the synthetic demonstration resume, career preferences, and constraints. The synthetic package may be used only after the student explicitly selects demonstration mode. For real local use, a confirmed private non-identifying resume profile is authoritative for resume-derived education, skill, project, and experience claims, and the student's confirmed local setup is authoritative for preferred roles, availability, location boundaries, work arrangements, and other constraints. Operational memory must preserve source references but must not replace this stable context.
 
 The local spreadsheet is the **authoritative user-facing collection of internship opportunities**, but it does not replace the detailed operational memory needed to preserve observations, decisions, actions, verification results, and history across runs.
+
+In the hosted variant, durable current records back a downloadable `.xlsx` snapshot of the user-facing collection. The export must match verified current records and display its generation time; detailed history remains separate. The local workbook stays authoritative for the local variant.
 
 ## Human Authority
 

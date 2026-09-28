@@ -10,23 +10,47 @@ test("dashboard exposes separate Collect and immediate Update experiences", () =
   assert.match(html, /Collect Opportunities/);
   assert.match(html, /Save and Update/);
   assert.match(html, /No Collect run is required/);
-  assert.match(html, /Up to 3 searches · 15 candidates · top 3–5 updates/);
+  assert.match(html, /Up to 6 searches · 15 candidates · top 3–5 updates/);
   assert.match(html, /nothing is submitted for you/);
-  assert.match(html, /Daily automation/);
-  assert.match(html, /Codex owns and manages it/);
-  assert.match(html, /Copy setup prompt/);
+  assert.match(html, /Daily collection/);
+  assert.match(html, /works only while the local app is running/);
+  assert.match(html, /Save schedule/);
   assert.match(html, /Duration/);
   assert.match(html, /Notification email/);
+  assert.match(html, /STUDENT SETUP/i);
+  assert.match(html, /Agent-facing profile preview/);
+  assert.match(html, /Confirm and use profile/);
+  assert.match(html, /AI Business Analyst Intern/);
+  assert.match(html, /AI Systems Analyst Intern/);
+  assert.match(html, /Business Process Automation Analyst Intern/);
+  assert.match(html, /AI Product Analyst Intern/);
+  assert.match(html, /Business Systems Analyst Intern/);
+  assert.match(html, /Data or Business Intelligence Analyst Intern/);
+  assert.match(html, /AI Transformation or Technology Consulting Intern/);
+  assert.match(html, /Available from/);
+  assert.match(html, /Work authorization \/ sponsorship/);
+  assert.match(html, /Unsure or prefer not to state/);
+  assert.match(html, /Use synthetic demonstration setup/);
+  assert.ok(html.indexOf("STUDENT SETUP") < html.indexOf("Collect Opportunities"));
   assert.ok(html.indexOf("Notification email") < html.indexOf("Collect Opportunities"));
   assert.match(html, /Local files/);
   assert.match(javascript, /Update Opportunity/);
   assert.match(javascript, /Prepare materials/);
   assert.match(javascript, /Why this opportunity/);
-  assert.match(html, /Checking Codex/);
-  assert.match(html, /Verifying the local agent harness/);
+  assert.match(html, /Checking OpenAI API configuration/);
+  assert.match(html, /server-side key and model settings/);
+  assert.match(html, /Check connection/);
   assert.match(javascript, /runtimeReady/);
   assert.match(javascript, /api\/settings\/notification/);
+  assert.match(javascript, /api\/settings\/schedule/);
   assert.match(javascript, /api\/opportunities/);
+  assert.match(javascript, /api\/profile\/resume/);
+  assert.match(javascript, /api\/profile\/confirm/);
+  assert.match(javascript, /api\/profile\/context/);
+  assert.match(javascript, /api\/profile\/demo/);
+  assert.match(javascript, /studentSetupReady/);
+  assert.match(javascript, /collectionReady/);
+  assert.match(javascript, /api\/runtime\/validate/);
   assert.match(javascript, /applicationUrl/);
   assert.match(javascript, /postingUrl/);
   assert.match(javascript, /formatDuration/);
@@ -63,6 +87,12 @@ test("dynamic content is inserted as text and never as executable HTML", () => {
 test("frontend does not display reasoning or chain-of-thought fields", () => {
   assert.doesNotMatch(html, /chain[- ]of[- ]thought|private reasoning|scratch work/i);
   assert.doesNotMatch(javascript, /reasoning\/textDelta|reasoning\/summaryTextDelta/);
+});
+
+test("frontend refreshes its local mutation token after a server restart", () => {
+  assert.match(javascript, /if \(response\.status !== 403\) return response/);
+  assert.match(javascript, /const currentToken = currentDashboard\?\.application\?\.requestToken/);
+  assert.match(javascript, /if \(!currentToken \|\| currentToken === priorToken\) return response/);
 });
 
 test("pixel agent has distinct observable animations for approved workflow states", () => {

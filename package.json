@@ -2,7 +2,7 @@
   "name": "internship-application-prep-agent",
   "version": "0.1.0",
   "private": true,
-  "description": "Local-first internship application preparation agent powered by the Codex App Server harness.",
+  "description": "Local-first internship application preparation agent powered by the OpenAI Responses API.",
   "type": "module",
   "engines": {
     "node": ">=22.0.0"
@@ -11,12 +11,16 @@
     "launch": "node scripts/launch-local-app.js",
     "start": "node scripts/start-local-app.js",
     "test": "node --test",
-    "check:codex": "node scripts/check-codex-app-server.js"
-  },
-  "devDependencies": {
-    "@openai/codex": "^0.149.1"
+    "check:api": "node scripts/check-openai-api.js"
   },
   "dependencies": {
-    "docx": "^9.5.1"
+    "docx": "^9.5.1",
+    "exceljs": "^4.4.0",
+    "mammoth": "^1.12.3",
+    "openai": "^6.16.0",
+    "pdfjs-dist": "^6.3.289"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
   }
 }

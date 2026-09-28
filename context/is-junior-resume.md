@@ -108,4 +108,3 @@ The agent must not:
 * Convert coursework or student projects into professional employment experience.
 * Add quantitative results unless they are explicitly documented here.
 * Describe introductory or developing skills as advanced expertise.
-

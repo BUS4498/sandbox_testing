@@ -39,3 +39,20 @@ test("local settings reject malformed notification addresses", async () => {
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test("local settings persist a validated daily collection schedule", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "internship-settings-test-"));
+  try {
+    const store = await new LocalSettingsStore({ filePath: path.join(directory, "settings.json") }).initialize();
+    assert.deepEqual(await store.getSchedule(), {
+      enabled: false, time: "09:00", updatedAt: null, lastScheduledFor: null,
+      lastRun: null, lastOutcome: null, missedRun: null,
+    });
+    const saved = await store.setSchedule({ enabled: true, time: "14:35" });
+    assert.equal(saved.enabled, true);
+    assert.equal(saved.time, "14:35");
+    await assert.rejects(store.setSchedule({ enabled: true, time: "25:00" }), /valid local daily time/);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});

@@ -10,6 +10,8 @@ The interface should be deliberately simple, friendly, and visually distinctive.
 
 A persistent local-status label should make clear that the application and operational data are running locally.
 
+The sections below describe the local dashboard unless a hosted exception is stated. The approved owner-only Sites pilot is a separate interface variant described under **Owner-only hosted pilot** below. It must not show a local-status label or local file path as though the Site were running on the student's computer.
+
 ## Runtime connection
 
 The dashboard is the business-facing interface; it is not the agent harness. Runtime requests should follow this path:
@@ -21,16 +23,16 @@ Frontend
    ↓
 Thin Local Controller
    ↓
-Codex App Server
+OpenAI Responses API
    ↓
-Existing or approved Codex thread
-   ↓
-Internship Application Prep Agent
+Bounded model-supported discovery and assessment
 ```
 
-The controller should start or resume the approved thread, submit the concise workflow instruction, surface approval requests, and translate Codex runtime events into dashboard status. It must not implement a second model-reasoning or tool-selection loop. Detailed runtime behavior belongs in `runtime/codex-runtime.md`.
+The controller should load only the task-relevant specifications and context, submit a bounded API request, validate the structured result, perform permitted local actions, and translate controller/API/tool milestones into dashboard status. The model cannot write local data or approve consequential actions. Detailed runtime behavior belongs in `runtime/openai-api-runtime.md`.
 
-**Reset Collection** is a separate local-controller operation. It must not start or reuse an agent thread because no model reasoning is required to archive and reinitialize local data.
+The hosted variant uses an authenticated Sites dashboard and hosted deterministic controller, with private durable persistence and separately authorized Graph mail. It must not call the laptop's loopback controller or read its files. Detailed hosted behavior belongs in `runtime/codex-sites-private-pilot.md`.
+
+**Reset Collection** is a separate local-controller operation. It must not invoke the API because no model reasoning is required to archive and reinitialize local data.
 
 ## Dashboard summary
 
@@ -83,16 +85,26 @@ Selecting it must open a confirmation dialog that explains exactly what will hap
 - the active opportunity spreadsheet will be reinitialized with zero opportunity rows;
 - opportunity-related operational memory, run history, application-material drafts, and notification previews will leave the active collection;
 - the prior private runtime data will be copied to a dated local reset archive for recovery;
-- saved student context, the notification recipient, Codex and Outlook authentication, and the Codex-managed daily schedule will remain; and
-- email already submitted cannot be recalled.
+- saved student context, the notification recipient, API configuration references, and the local daily schedule will remain; and
+- any notification already submitted through a future live provider cannot be recalled.
 
-Require the student to enter `RESET` before enabling the final **Archive and Reset** action. After success, refresh all collection, run-summary, material, and activity views; show the archive location; and make the next **Collect Opportunities** action start a new Codex thread with an empty current collection.
+Require the student to enter `RESET` before enabling the final **Archive and Reset** action. After success, refresh all collection, run-summary, material, and activity views; show the archive location; and make the next **Collect Opportunities** action use the empty current collection and fresh opportunity-related memory.
 
 ## Collect Opportunities experience
 
 Provide a prominent **Collect Opportunities** button.
 
-Place the **Student notification email** control immediately above the **Collect Opportunities** button. It should show whether Outlook is connected and callable, explain that the address remains local, and make clear that notifications will be sent from the connected Outlook account only after verified material updates. Do not request an Outlook password, token, or provider credential.
+Place a **Student Setup** section before the collection control. It should show whether the active package is a **Confirmed real-student setup**, an explicitly selected **Synthetic demonstration setup**, or **Incomplete**. It must not silently activate synthetic defaults. The section should accept `.docx`, `.pdf`, `.md`, and `.txt` resume files up to 5 MB, upload them only to the loopback local controller, and explain that no external parsing service is used.
+
+After local extraction, show an editable **Agent-facing profile preview**. The student must review it, remove direct identifiers, and explicitly confirm it before it becomes active. Uploading alone must not change the authoritative profile. Provide clear **Confirm and use profile**, **Replace file**, and **Deactivate private profile** controls. Deactivation returns to the synthetic demonstration profile without deleting or exposing private source files. Show extraction or validation failures next to this card and preserve the prior active profile.
+
+Add a structured preference-and-constraint form beside or immediately below the resume controls. Require at least one selected preferred role, availability start and end dates, weekly availability, acceptable work arrangements, geographic boundaries, paid-internship preference, relocation flexibility, and work-authorization or sponsorship status. Provide **Unsure or prefer not to state** for work authorization and an optional additional-constraints field.
+
+The default role choices are **AI Business Analyst Intern**, **AI Systems Analyst Intern**, **Business Process Automation Analyst Intern**, **AI Product Analyst Intern**, **Business Systems Analyst Intern**, **Data or Business Intelligence Analyst Intern**, and **AI Transformation or Technology Consulting Intern**. Present them as selectable choices rather than silently assuming all apply, require at least one intentional selection, and allow a custom role.
+
+Provide a clearly separated **Use synthetic demonstration setup** control for classroom testing. Activating it requires an explicit student action and labels every resulting assessment as synthetic. Switching back to real-student setup must restore the real setup form without deleting confirmed private files.
+
+Place the **Student notification email** control immediately above the **Collect Opportunities** button. It should explain that the address remains local and that the initial API version creates verified local notification previews after material updates. Do not imply that a preview was sent or request an email password, token, or provider credential.
 
 The button's meaning should be explicit:
 
@@ -100,9 +112,11 @@ The button's meaning should be explicit:
 
 Supporting text or an accessible description should make clear that **Collect Opportunities** starts the approved general-public-web-search and opportunity-processing workflow. It does not process pending student responses, submit applications, or contact employers.
 
+Before enabling **Collect Opportunities**, require both a complete, explicitly selected student setup and a successful non-billable provider connection and configured-model access check. Do not label the runtime **ready** merely because a key file exists. Display the exact missing setup items beside the disabled control; do not use only a generic **Needs Attention** label. Display a plain-language, sanitized connection result such as **Connection verified**, **API key rejected**, **Model unavailable**, **Network unavailable**, or **Provider temporarily unavailable**. Provide a **Check connection** control that performs a fresh validation without generating content or searching the web. Keep model-supported actions disabled until both prerequisites are satisfied for the current local process.
+
 When selected:
 
-1. ask the thin local controller to start or resume the approved Codex thread through Codex App Server and begin the production-agent workflow;
+1. ask the local controller to begin the bounded production-agent workflow through the OpenAI Responses API;
 2. retrieve the relevant current student search preferences;
 3. perform bounded public-web discovery and collect a limited candidate pool;
 4. validate, deduplicate, and cheaply filter candidates before detailed reasoning;
@@ -112,7 +126,7 @@ When selected:
 8. prevent an accidental simultaneous duplicate run;
 9. show high-level progress;
 10. refresh the dashboard when the run finishes; and
-11. show whether spreadsheet and email actions succeeded.
+11. show whether spreadsheet and notification-preview actions succeeded.
 
 Disable or replace the button with a clear active state while the run lock is held. If cancellation is eventually supported, explain which completed side effects cannot be undone.
 
@@ -147,7 +161,7 @@ The interface may display concise stage labels, but the primary status should be
 - **Remembering**
 - **Finished**
 
-Examples include “Reading your verified role, location, timing, and work-authorization preferences,” “Searching employer career pages for Summer 2027 analyst internships in California,” “Comparing eight validated candidates against your required qualifications,” “Adding Northstar Foods — Business Systems Intern to the local spreadsheet,” “Creating a Word cover-letter outline for Northstar Foods,” and “Submitting three verified opportunity-update emails to your saved address.” Use a company, role, candidate count, file type, or action count only when it is present in observable runtime data. Do not imply access to hidden reasoning.
+Examples include “Reading your verified role, location, timing, and work-authorization preferences,” “Requesting a bounded public-web search for Summer 2027 analyst internships in California,” “Validating eight structured candidates returned by the API,” “Adding Northstar Foods — Business Systems Intern to the local spreadsheet,” “Creating a Word cover-letter outline for Northstar Foods,” and “Saving three verified notification previews for your configured address.” Use a company, role, candidate count, file type, or action count only when it is present in observable runtime data. Do not imply access to hidden reasoning.
 
 Avoid vague descriptions such as “Carrying out a permitted local action.” When low-level activity cannot be classified more precisely, say what approved resource is being read or what output is being prepared, and explicitly avoid claiming that a write or external action succeeded before verification.
 
@@ -157,19 +171,19 @@ Do not display raw chain-of-thought, hidden reasoning, internal prompt text, or 
 
 ### Runtime event mapping
 
-Dashboard progress and pixel-character behavior must be grounded in observable Codex runtime events or verified business-tool outcomes. The controller may map event classes approximately as follows:
+Dashboard progress and pixel-character behavior must be grounded in observable controller milestones, API events, or verified business-tool outcomes. The controller may map events approximately as follows:
 
-| Observable Codex runtime event or outcome | Dashboard state |
+| Observable controller/API event or outcome | Dashboard state |
 |---|---|
 | Reading approved context or specifications | **Retrieving** |
-| Web-search or browser activity | **Searching** |
+| API web-search request or returned source activity | **Searching** |
 | Structured candidate review, ranking, or fit-assessment activity | **Assessing** |
 | Reading verified context, source rules, or prior state | **Retrieving**, naming the approved resource category being read |
 | Spreadsheet add or update requested by the controller | **Updating Collection**, naming the affected opportunity when available |
 | Word application-template generation | **Preparing Word Draft**, naming the opportunity and requested draft type when available |
-| Informational email submission | **Sending Notifications**, showing the number of messages and saved-recipient wording when available |
+| Notification preview creation or future provider submission | **Preparing Notifications** or **Sending Notifications**, accurately distinguishing preview from submission |
 | Verification activity or an observable outcome check | **Verifying** |
-| Successful turn completion after required run-finalization work | **Finished** |
+| Successful workflow completion after required run-finalization work | **Finished** |
 | Approval request or runtime failure | **Action required**, with the exact requested approval or recoverable action |
 | Missing student information for a tracked opportunity | **Update [company and role]**, with the exact question and an **Update Opportunity** button |
 
@@ -182,7 +196,7 @@ After each run, show a concise discovery summary derived from verified workflow 
 ```text
 Today's Run
 
-Searches performed:        3
+Searches performed:        6
 Candidates discovered:    14
 Duplicates/invalid:        6
 Candidates ranked:         8
@@ -208,26 +222,28 @@ Show the selected opportunities prominently next to or immediately below the run
 
 Do not show filtered or duplicate candidates as though they were selected. The student may inspect aggregate exclusion counts and unresolved candidates without allowing them to compete visually with the selected opportunities.
 
-## Daily automation
+## Daily schedule
 
-The dashboard should report the optional once-per-day Codex thread automation but must not implement or manage the schedule itself in this prototype. Present a compact read-only area such as:
+The dashboard should let the student configure the optional once-per-day local schedule. Present a compact area such as:
 
 ```text
-Daily Automation
-Status:    Configured in Codex
-Schedule:  9:00 AM daily
+Daily Collection
+Status:    Enabled
+Schedule:  9:00 AM daily while this app is running
 Timezone:  America/Los_Angeles
 Last Run:  ...
 Next Run:  ...
 
-[Open Codex to Manage Schedule]
+[Enable/Disable] [Change time]
 ```
 
-Show only values confirmed by Codex or verified run state. If a value is unavailable, display **Unknown** rather than infer it. The management action should open or direct the student to Codex; do not provide duplicate On/Off or time-editing controls in the dashboard.
+Store schedule settings privately under `data/local/`. Show only values confirmed by saved configuration and verified run state. If a value is unavailable, display **Unknown** rather than infer it. Schedule controls must use the protected local mutation boundary and must not include credentials.
 
-The dashboard should continue to provide **Collect Opportunities** independently of the automation. Both triggers use the same search-and-processing workflow, student context, duplicate-prevention rules, permissions, verification requirements, memory, and approval rules. Targeted **Update Opportunity** actions are separate, immediate, single-opportunity workflows and are not delayed until automation runs.
+The dashboard should continue to provide **Collect Opportunities** independently of scheduling. Both triggers use the same search-and-processing workflow, confirmed student setup, duplicate-prevention rules, permissions, verification requirements, memory, and approval rules. Targeted **Update Opportunity** actions are separate, immediate, single-opportunity workflows and are not delayed until the schedule runs. Collection and targeted assessment remain disabled until student setup is complete.
 
-Clearly explain that this is a local-first workflow. If the computer, Codex application, required local runtime, or repository workspace was unavailable at the scheduled time, display **Missed Run** when the application next starts; never imply that the run occurred. Detailed schedule behavior belongs in `runtime/codex-schedule.md`.
+Clearly explain that the initial scheduler runs only while the local application is active. If the computer or application was unavailable at the scheduled time, display **Missed Run** when the application next starts; never imply that the run occurred. Detailed behavior belongs in `runtime/local-schedule.md`.
+
+For the first owner-only hosted checkpoint, replace the schedule controls with **Daily Run: Not available in this pilot**. Do not display invented last or next hosted run times. A later hosted scheduler must have its own verified trigger and status before those controls are enabled there.
 
 ## Pixel-style agent character
 
@@ -283,17 +299,27 @@ Eventually provide an **Open Spreadsheet** action. Keep raw filesystem details h
 
 The primary recipient control belongs above **Collect Opportunities**, not in a secondary settings panel. Saving the address should update private local settings and immediately refresh a masked recipient hint.
 
-Before a run, show Outlook connector state as **Connected**, **Needs connection**, **Disabled**, or **Unknown** based on Codex App Server evidence. A configured address does not imply that Outlook is callable.
+Before a run, show notification mode as **Local preview** for the initial API implementation. A configured address does not imply that a live email provider is connected.
 
 Show:
 
 - latest informational email status;
 - the opportunity that triggered it;
 - the material update summarized;
-- submission or delivery time when known; and
-- whether the notification succeeded, failed, or remains unknown.
+- preview creation time or future provider submission/delivery time when known; and
+- whether the preview or future provider action succeeded, failed, or remains unknown.
 
-Distinguish Outlook submission from confirmed delivery. Do not display sender identity, email credentials, tokens, or secret configuration.
+Distinguish local preview creation, provider submission, and confirmed delivery. Do not display API keys, sender identity, provider credentials, tokens, or secret configuration.
+
+In the owner-only hosted pilot, the recipient is the connected Outlook owner's confirmed address. Show **Outlook disconnected**, **Ready to notify**, **Submitted**, **Failed**, or **Outcome unknown** from verified state; do not equate a saved recipient with authorization. Provide a clear Connect/Disconnect Outlook action when the hosted email group is implemented, never a form asking for an Outlook password. An Outlook `202 Accepted` is **Submitted**, not **Delivered**. When mail is not connected, show why no live notification was sent and preserve the material collection update.
+
+## Owner-only hosted pilot
+
+The hosted dashboard must visibly identify itself as a **Private pilot** and show the actual deployment/data mode. Its first checkpoint supports manually initiated **Collect Opportunities** with the explicitly selected synthetic demonstration profile. Live public-posting results may be shown, but profile matches and draft content must be labeled synthetic. Do not silently activate real setup, copy local records, or show sample opportunities as results of a failed live run.
+
+Show a timestamped **Download current spreadsheet** control only when an `.xlsx` generated from verified hosted current records is available. Do not show **Open local spreadsheet** or a laptop path. Hosted Reset Collection, real-resume upload, prepared Word downloads, and Daily Run must each be labeled **Not available in this pilot** until their own private-storage and verification groups are complete; leave the corresponding local-app controls unchanged.
+
+After the Outlook group is implemented, live email status must distinguish a verified collection update, an attempted send, provider acceptance, unknown outcome, and independently confirmed delivery. The pixel character may show **Sending Notifications** only during an actual send attempt and must not celebrate an unconfirmed outcome. The Site must remain owner-only; a public or student-shared dashboard requires a separate design and approval.
 
 ## Actionable next steps and student responses
 
@@ -402,4 +428,4 @@ The interface should:
 
 ## Future implementation boundary
 
-This specification does not prescribe a frontend framework. During the later build phase, Codex may choose an appropriate local implementation that satisfies these behaviors, accessibility requirements, synchronization rules, and human-authority boundaries. The implementation must connect through the thin local controller to Codex App Server and must not build a custom LLM runtime or dashboard-owned scheduler.
+This specification does not prescribe a frontend framework. The implementation must connect through the local workflow controller to the OpenAI Responses API, keep the API key server-side, use the local schedule specification, and preserve these accessibility, synchronization, and human-authority boundaries.

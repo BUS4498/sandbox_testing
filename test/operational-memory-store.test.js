@@ -90,11 +90,11 @@ test("memory rejects secrets and unnecessary full-page content", async () => {
   });
 });
 
-test("runtime thread metadata is kept in operational state", async () => {
+test("sanitized provider metadata is kept in operational state", async () => {
   await withTemporaryDirectory(async (directory) => {
     const store = await new OperationalMemoryStore({ rootDir: directory }).initialize();
-    await store.updateRuntimeState({ threadId: "thr_synthetic_001" });
+    await store.updateRuntimeState({ providerResponseId: "resp_synthetic_001" });
     const state = await store.getState();
-    assert.equal(state.runtime.threadId, "thr_synthetic_001");
+    assert.equal(state.runtime.providerResponseId, "resp_synthetic_001");
   });
 });

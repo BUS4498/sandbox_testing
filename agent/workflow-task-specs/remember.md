@@ -15,7 +15,7 @@ Run after **VERIFY** at the end of each cycle, including cycles that fail, stop 
 - Action attempts.
 - Verification records.
 - Student approvals, rejections, responses, or newly expressed preferences.
-- Current schedule state reported by Codex and the next-review state.
+- Current local schedule state and next-review state.
 
 ## Instructions
 
@@ -26,10 +26,11 @@ Persist relevant information such as:
 - action attempted;
 - spreadsheet update outcome;
 - notification outcome;
+- for hosted mail, the non-secret Graph attempt state and `SUBMITTED`/`UNKNOWN` distinction, never an OAuth token;
 - observed result and evaluation;
 - unresolved issue;
 - next review date;
-- schedule state reported by Codex;
+- local schedule state, or the hosted pilot's explicit manual-only schedule state;
 - student approval or rejection;
 - explicit student preferences learned from user choices;
 - student confirmations, clarifications, not-interested choices, and preparation requests;
@@ -58,7 +59,7 @@ If a memory write fails, preserve the unsaved records for safe retry, surface th
 
 ## What is passed to the next stage
 
-Pass a concise cycle summary and one control outcome: finish, request a specific student update, wait for approval, retry a failed targeted update, or await the next enabled Codex daily collection automation.
+Pass a concise cycle summary and one control outcome: finish, request a specific student update, wait for approval, retry a failed targeted update, or await the next enabled local daily collection.
 
 ## What should be remembered
 

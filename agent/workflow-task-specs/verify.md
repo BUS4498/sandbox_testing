@@ -12,7 +12,7 @@ Run after **ACT** for every attempted local update, notification, saved draft, o
 
 - Intended outcome from the decision.
 - Action record, receipts, and reported errors.
-- Current spreadsheet and notification state, plus Codex-reported trigger or automation state when relevant.
+- Current spreadsheet, notification-preview, and local-schedule state when relevant.
 
 ## Instructions
 
@@ -41,15 +41,19 @@ For a student response, verify that the intended opportunity received the studen
 
 For an application template, verify that the intended `.docx` file exists in the private local material area, is a readable Word package, belongs to the correct opportunity, carries the student-review label, preserves required placeholders and content, and does not claim submission or final approval.
 
-For Outlook delivery, treat a completed Outlook send tool call as `SUBMITTED` unless the connector provides stronger delivery evidence. A connector failure, missing app, denied approval, or unconfirmed tool outcome must remain visible as failed or unknown.
+For the local API implementation, verify that the preview exists and matches the structured notification; record `PREVIEWED`, never `SUBMITTED` or `DELIVERED`. In the owner-only hosted pilot, a Microsoft Graph `202 Accepted` may establish `SUBMITTED` only. Delivery requires independent confirmation; a timeout or interruption with uncertain outcome is `UNKNOWN` and blocks automatic retry. Verify that the pre-send attempt and the material-update idempotency key were durable and that no prior notification for the same change was submitted.
 
-For scheduled execution, verify that:
+For the hosted collection, verify that the current opportunity record survived a durable write and read-back, that the downloadable spreadsheet reflects the same current records when generated, and that no duplicate opportunity was created. A successful in-memory write or stale workbook download is not success.
+
+For local scheduled execution, verify that:
 
 - the trigger source and actual run timestamp are recorded accurately;
-- last-run and next-run information reported by Codex is preserved when available; and
+- saved last-run and next-run schedule information is preserved when available; and
 - a failure, unavailable value, or missed-run state remains visible rather than being represented as success.
 
 The production agent does not verify that it changed the daily automation because it has no authority to create or modify that automation.
+
+The first hosted checkpoint has no scheduled trigger. Verify that its dashboard states **Daily Run: Not available in this pilot** rather than inventing a last or next run.
 
 Never claim success merely because an action was requested or attempted.
 

@@ -1,8 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { access, copyFile, mkdir, rename, rm } from "node:fs/promises";
 import path from "node:path";
-
-import { loadArtifactTool } from "./artifact-tool-loader.js";
+import ExcelJS from "exceljs";
 
 const SHEET_NAME = "Internships";
 const TABLE_NAME = "InternshipCollection";
@@ -92,12 +91,12 @@ export class SpreadsheetConflictError extends Error {
 export class LocalSpreadsheetTracker {
   #writeQueue = Promise.resolve();
 
-  constructor({ filePath, clock = () => new Date(), artifactToolModulePath, idFactory = randomUUID }) {
+  constructor({ filePath, clock = () => new Date(), idFactory = randomUUID }) {
     if (!filePath) throw new TypeError("LocalSpreadsheetTracker requires filePath.");
     this.filePath = path.resolve(filePath);
     this.clock = clock;
-    this.artifactToolModulePath = artifactToolModulePath;
     this.idFactory = idFactory;
+    this.lastRecovery = null;
   }
 
   async initialize() {
@@ -105,20 +104,25 @@ export class LocalSpreadsheetTracker {
     if (!(await exists(this.filePath))) {
       await this.#writeRecords([]);
     } else {
-      await this.readRecords();
+      try {
+        await this.readRecords();
+      } catch (error) {
+        this.lastRecovery = await this.#recoverUnreadableWorkbook(error);
+      }
     }
     return this;
   }
 
   async readRecords() {
     if (!(await exists(this.filePath))) return [];
-    const { FileBlob, SpreadsheetFile } = await loadArtifactTool({ modulePath: this.artifactToolModulePath });
-    const workbook = await SpreadsheetFile.importXlsx(await FileBlob.load(this.filePath));
-    const sheet = workbook.worksheets.getItem(SHEET_NAME);
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(this.filePath);
+    const sheet = workbook.getWorksheet(SHEET_NAME);
     if (!sheet) throw new Error(`Spreadsheet is missing the required ${SHEET_NAME} worksheet.`);
-    const usedRange = sheet.getUsedRange(true);
-    if (!usedRange) return [];
-    const rows = usedRange.values ?? [];
+    const rows = [];
+    for (let rowNumber = 1; rowNumber <= sheet.actualRowCount; rowNumber += 1) {
+      rows.push(sheet.getRow(rowNumber).values.slice(1));
+    }
     if (rows.length === 0) return [];
     const headerMap = validateAndMapHeaders(rows[0]);
     return rows.slice(1).filter(isRecordRow).map((row) => rowToRecord(row, headerMap));
@@ -272,61 +276,99 @@ export class LocalSpreadsheetTracker {
     return queued;
   }
 
+  async #recoverUnreadableWorkbook(error) {
+    const recoveryDirectory = path.join(path.dirname(this.filePath), "recovery-archives");
+    await mkdir(recoveryDirectory, { recursive: true });
+    const timestamp = this.clock().toISOString().replace(/[:.]/g, "-");
+    const archivePath = path.join(
+      recoveryDirectory,
+      `${path.basename(this.filePath, path.extname(this.filePath))}-unreadable-${timestamp}-${this.idFactory()}.xlsx`,
+    );
+    await rename(this.filePath, archivePath);
+    try {
+      await this.#writeRecords([]);
+    } catch (recoveryError) {
+      await rename(archivePath, this.filePath);
+      throw new AggregateError(
+        [error, recoveryError],
+        "The internship spreadsheet was unreadable and a replacement workbook could not be created.",
+      );
+    }
+    return {
+      recoveredAt: this.clock().toISOString(),
+      archivePath,
+      reason: "The prior spreadsheet was unreadable or incompatible with the current local runtime.",
+    };
+  }
+
   async #writeRecords(records) {
-    const { SpreadsheetFile, Workbook } = await loadArtifactTool({ modulePath: this.artifactToolModulePath });
-    const workbook = Workbook.create();
-    const sheet = workbook.worksheets.add(SHEET_NAME);
-    sheet.showGridLines = false;
-    sheet.freezePanes.freezeRows(1);
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = "Internship Application Prep Agent";
+    workbook.created = this.clock();
+    const sheet = workbook.addWorksheet(SHEET_NAME, {
+      views: [{ state: "frozen", ySplit: 1, showGridLines: false }],
+    });
 
     const headers = SPREADSHEET_COLUMNS.map((column) => column.header);
     const matrix = [headers, ...records.map(recordToRow)];
     const lastColumn = columnLetter(SPREADSHEET_COLUMNS.length);
-    const range = sheet.getRange(`A1:${lastColumn}${matrix.length}`);
-    range.values = matrix;
-    range.format.wrapText = true;
-    range.format.verticalAlignment = "top";
-    range.format.borders = { preset: "inside", style: "thin", color: "#D9E2E8" };
-
-    const headerRange = sheet.getRange(`A1:${lastColumn}1`);
-    headerRange.format.fill = "#153B4E";
-    headerRange.format.font = { bold: true, color: "#FFFFFF" };
-    headerRange.format.rowHeight = 30;
-    headerRange.format.verticalAlignment = "center";
+    matrix.forEach((row) => sheet.addRow(row));
+    sheet.eachRow((row, rowNumber) => {
+      row.height = rowNumber === 1 ? 30 : 36;
+      row.eachCell((cell) => {
+        cell.alignment = { wrapText: true, vertical: "top" };
+        cell.border = {
+          top: { style: "thin", color: { argb: "FFD9E2E8" } },
+          left: { style: "thin", color: { argb: "FFD9E2E8" } },
+          bottom: { style: "thin", color: { argb: "FFD9E2E8" } },
+          right: { style: "thin", color: { argb: "FFD9E2E8" } },
+        };
+      });
+    });
+    const headerRow = sheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    headerRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF153B4E" } };
+    headerRow.alignment = { wrapText: true, vertical: "middle" };
 
     SPREADSHEET_COLUMNS.forEach((column, index) => {
-      const columnRange = sheet.getRange(`${columnLetter(index + 1)}1:${columnLetter(index + 1)}${Math.max(matrix.length, 2)}`);
-      columnRange.format.columnWidth = column.width;
-      if (column.date) columnRange.setNumberFormat("yyyy-mm-dd");
+      sheet.getColumn(index + 1).width = column.width;
+      if (column.date) sheet.getColumn(index + 1).numFmt = "yyyy-mm-dd";
     });
 
     const postingStatusColumn = columnLetter(columnIndex("postingStatus"));
-    sheet.getRange(`${postingStatusColumn}2:${postingStatusColumn}1000`).dataValidation = {
-      rule: { type: "list", values: POSTING_STATUSES },
-    };
+    sheet.dataValidations.add(`${postingStatusColumn}2:${postingStatusColumn}1000`, {
+      type: "list", allowBlank: true, formulae: [`"${POSTING_STATUSES.join(",")}"`],
+    });
     const applicationStatusColumn = columnLetter(columnIndex("applicationStatus"));
-    sheet.getRange(`${applicationStatusColumn}2:${applicationStatusColumn}1000`).dataValidation = {
-      rule: { type: "list", values: APPLICATION_STATUSES },
-    };
+    sheet.dataValidations.add(`${applicationStatusColumn}2:${applicationStatusColumn}1000`, {
+      type: "list", allowBlank: true, formulae: [`"${APPLICATION_STATUSES.join(",")}"`],
+    });
 
     if (records.length > 0) {
-      const table = sheet.tables.add(`A1:${lastColumn}${records.length + 1}`, true, TABLE_NAME);
-      table.style = "TableStyleMedium2";
-      table.showFilterButton = true;
-      table.showBandedRows = true;
+      sheet.addTable({
+        name: TABLE_NAME,
+        ref: "A1",
+        headerRow: true,
+        totalsRow: false,
+        style: { theme: "TableStyleMedium2", showRowStripes: true },
+        columns: SPREADSHEET_COLUMNS.map((column) => ({ name: column.header, filterButton: true })),
+        rows: records.map(recordToRow),
+      });
+      for (let rowNumber = 2; rowNumber <= records.length + 1; rowNumber += 1) {
+        const rowValues = recordToRow(records[rowNumber - 2]);
+        rowValues.forEach((value, index) => { sheet.getCell(rowNumber, index + 1).value = value; });
+      }
     }
 
-    const xlsx = await SpreadsheetFile.exportXlsx(workbook);
     const temporaryPath = path.join(
       path.dirname(this.filePath),
       `.${path.basename(this.filePath)}.${this.idFactory()}.tmp.xlsx`,
     );
     try {
-      await xlsx.save(temporaryPath);
+      await workbook.xlsx.writeFile(temporaryPath);
       await replaceFileRecoverably(temporaryPath, this.filePath, this.idFactory());
     } finally {
       await rm(temporaryPath, { force: true });
-      await rm(`${temporaryPath}.inspect.ndjson`, { force: true });
     }
   }
 }

@@ -10,9 +10,13 @@ Keep student information, credentials, local runtime data, and external access a
 - Do not place passwords, tokens, or API keys in specification files.
 - Keep secrets outside GitHub in a local secret store or ignored local configuration.
 - Keep the student recipient setting local.
-- Keep Outlook authentication inside Codex-managed connector storage; do not copy Outlook credentials or OAuth tokens into this repository, local settings, memory, spreadsheet data, or the frontend.
+- Load `OPENAI_API_KEY` only in the local server process from an operating-system environment variable or ignored local configuration.
+- Never expose an API key in browser code, prompts, API responses, logs, memory, spreadsheet data, or the frontend.
+- Keep any future email-provider credentials in an approved local secret store; do not copy passwords or OAuth tokens into repository files or user-facing runtime data.
 - Do not expose secrets through the frontend, logs, errors, spreadsheet cells, or operational memory.
 - Redact sensitive values before displaying diagnostics.
+
+For the owner-only Sites pilot, configure `OPENAI_API_KEY` separately as a server-side Sites secret; do not read or copy the protected local key file into a deployment. Microsoft Graph authorization must use the owner's interactive delegated flow and keep OAuth material in approved protected server-side storage. Never place either credential in Sites source assets, environment examples with values, browser storage, spreadsheet exports, logs, or operational memory. Verify owner-only access before enabling hosted secrets or private persistence.
 
 ## Student and test data
 
@@ -25,15 +29,30 @@ Keep student information, credentials, local runtime data, and external access a
 ## Local runtime data
 
 - Keep profile details, memory, drafts, and operational records local by default.
+- Store student-uploaded resumes and extracted profile previews only under Git-ignored local runtime storage. Never copy a personal resume into the tracked synthetic `context/` files.
+- Store student-entered preferred roles, availability, geographic boundaries, work-arrangement choices, and constraints under the same Git-ignored local student-context area. Treat them as stable context, not operational memory or spreadsheet content.
+- Extract supported resume files locally. Do not send an original resume to an external parsing service.
+- Require the student to review and confirm an editable, non-identifying agent-facing profile before it is used as authoritative resume evidence.
+- Never include the original resume file, direct contact details, or unconfirmed profile text in model requests. Send only the minimum confirmed evidence needed for the active task.
+- Never send work-authorization details, free-form private constraints, or resume evidence in public-web search queries. Use only the minimum non-identifying role, timing, broad location, and work-arrangement criteria needed for discovery.
+- Allow an **Unsure or prefer not to state** work-authorization value. Preserve the resulting uncertainty and request clarification only when a specific opportunity makes the fact consequential.
 - Do not commit the local runtime spreadsheet when it may contain personal or evolving application data.
 - Store the spreadsheet and runtime state under the repository's `data/local/` folder, which must remain excluded from Git.
 - Provide local controls for export, retention, backup, and deletion. A collection reset must explain its scope, require explicit confirmation, archive the prior private runtime data locally for recovery, and leave the archive excluded from Git.
+
+## Owner-only hosted pilot data
+
+The hosted pilot is an **additional deployment**, not a migration of `data/local/`. Its first checkpoint uses synthetic student context only, does not accept a real resume, and does not copy existing local opportunities or settings. Label live postings assessed against the synthetic profile as synthetic assessments. Real-student upload and profile storage require a later explicit consent, retention, deletion, and isolation design before activation.
+
+Use durable private hosted storage for current opportunity records, operational memory, settings, and notification attempts. Keep current records separate from detailed history and make the user-facing spreadsheet a verified current export. A hosted reset must remain unavailable until a recoverable private archive/export and read-back are implemented. Do not use ephemeral deployment files as durable records or include private runtime data in a source archive.
+
+The Site must remain owner-only. A student-accessible or public version requires a separate access and per-student isolation review. The owner's OpenAI key must not be exposed to visitors or silently shared with a class.
 
 ## External services
 
 Use only student-approved services and transfer the minimum necessary information. Apply least-privilege access, validate destinations, and record material external transfers. Never bypass service access controls.
 
-Routine student notifications should use minimum non-identifying disclosure: opportunity facts, decision, deadline, and next action may be included, but resume evidence, student responses, legal-eligibility information, and unrelated context should not be sent. Application templates remain local unless the student separately authorizes a specific external action.
+Routine student notifications should use minimum non-identifying disclosure: opportunity facts, decision, deadline, and next action may be included, but resume evidence, student responses, legal-eligibility information, and unrelated context should not be sent. The owner-only hosted pilot may send those messages through separately authorized Microsoft Graph delegated `Mail.Send` only to the connected owner's confirmed address, after a verified material update. A provider `202 Accepted` is submission, not delivery. Application templates remain local in the local app; hosted review-only downloads require their own verified private-storage implementation and must never be sent to an employer.
 
 ## Security failures
 

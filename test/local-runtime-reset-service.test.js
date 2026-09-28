@@ -10,24 +10,11 @@ import { OperationalMemoryStore } from "../src/persistence/operational-memory-st
 import { resolveRuntimePaths } from "../src/persistence/runtime-paths.js";
 import { LocalSpreadsheetTracker } from "../src/persistence/spreadsheet-tracker.js";
 
-const ARTIFACT_TOOL_MODULE = path.join(
-  os.homedir(),
-  ".cache",
-  "codex-runtimes",
-  "codex-primary-runtime",
-  "dependencies",
-  "node",
-  "node_modules",
-  "@oai",
-  "artifact-tool",
-);
-
 test("archives active collection data and initializes a fresh collection while preserving settings and schedule", async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), "internship-reset-test-"));
   const runtimePaths = resolveRuntimePaths({ rootDir: directory });
   const spreadsheetTracker = await new LocalSpreadsheetTracker({
     filePath: runtimePaths.spreadsheet,
-    artifactToolModulePath: ARTIFACT_TOOL_MODULE,
     clock: () => new Date("2026-08-25T12:00:00.000Z"),
     idFactory: () => "reset-sheet-id",
   }).initialize();
@@ -57,7 +44,7 @@ test("archives active collection data and initializes a fresh collection while p
     });
     await memoryStore.appendObservation({ runId: "run-reset-001", opportunityId: "opp-reset-001", observationType: "OPPORTUNITY_DISCOVERED" });
     await memoryStore.updateRuntimeState({
-      threadId: "thread-before-reset",
+      providerResponseId: "response-before-reset",
       schedule: { status: "CONFIGURED", schedule: "9:00 AM daily" },
     });
     await applicationMaterialStore.saveTemplate({
@@ -89,7 +76,7 @@ test("archives active collection data and initializes a fresh collection while p
     assert.equal(runManager.resetCalls, 1);
     const state = await memoryStore.getState();
     assert.deepEqual(state.opportunities, {});
-    assert.equal(state.runtime.threadId, undefined);
+    assert.equal(state.runtime.providerResponseId, undefined);
     assert.equal(state.runtime.schedule.status, "CONFIGURED");
     assert.match(await readFile(runtimePaths.settings, "utf8"), /student@example\.edu/);
     await access(path.join(result.archivePath, "internship_pipeline.xlsx"));

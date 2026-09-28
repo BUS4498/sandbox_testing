@@ -12,8 +12,9 @@ Define when the agent must ask the student rather than improvise, assume authori
 - duplicate status is uncertain;
 - the spreadsheet cannot be read, written, or verified;
 - an informational email fails or has an unknown outcome;
-- the Outlook Email app is missing, disabled, inaccessible, non-callable, denied, or requires unresolved reconnection;
-- the Codex automation is unavailable, a scheduled run is missed, or a scheduled run fails;
+- a notification preview fails, or a separately approved live provider has a failed or unknown outcome;
+- the local scheduler is unavailable, a scheduled run is missed, or a scheduled run fails;
+- the OpenAI API key, configured API model, network connection, or Responses API is unavailable;
 - a consequential external action is proposed;
 - required approval is missing, expired, or no longer matches the action;
 - a decision falls outside the agent's defined authority;
@@ -43,7 +44,7 @@ Do not fabricate a value, repeat a possibly successful external action, or conti
 
 - **Critical:** suspected secret exposure, unauthorized disclosure, or imminent irreversible action; stop the affected workflow.
 - **Time-sensitive:** deadline, interview, or opportunity status requires prompt student input.
-- **Blocking:** essential evidence, approval, spreadsheet access, email, or the required Codex automation trigger is unavailable.
+- **Blocking:** essential evidence, approval, spreadsheet access, API runtime, notification persistence, or the required local schedule trigger is unavailable.
 - **Review:** ambiguity can safely wait while other scoped work continues.
 
 ## Carry forward

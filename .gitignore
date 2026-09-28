@@ -4,6 +4,8 @@
 !.env.example
 /credentials/
 /secrets/
+/api_key/
+/credentials.txt
 *.pem
 *.key
 *.p12

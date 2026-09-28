@@ -66,7 +66,7 @@ test("routine email content is deterministic and excludes profile details", () =
 test("dry-run creates a local preview and records verified memory without sending", async () => {
   await withNotifier(async ({ notifier, memoryStore, directory }) => {
     const result = await notifier.notifyMaterialUpdate(eligibleUpdate());
-    assert.equal(result.status, "DRY_RUN");
+    assert.equal(result.status, "PREVIEWED");
     assert.match(result.recipientHint, /^st\*+@example\.edu$/);
 
     const files = await readdir(path.join(directory, "outbox"));
@@ -75,7 +75,7 @@ test("dry-run creates a local preview and records verified memory without sendin
     assert.equal(preview.to, "student@example.edu");
 
     const [action] = await memoryStore.list("action");
-    assert.equal(action.outcome, "DRY_RUN");
+    assert.equal(action.outcome, "PREVIEWED");
     assert.equal(action.recipientHint, result.recipientHint);
     assert.equal("to" in action, false);
     assert.equal((await memoryStore.list("evaluation"))[0].outcome, "SUCCESS");
@@ -109,7 +109,7 @@ test("idempotency prevents repeated previews or sends for the same update", asyn
   await withNotifier(async ({ notifier, directory }) => {
     const first = await notifier.notifyMaterialUpdate(eligibleUpdate());
     const second = await notifier.notifyMaterialUpdate(eligibleUpdate());
-    assert.equal(first.status, "DRY_RUN");
+    assert.equal(first.status, "PREVIEWED");
     assert.equal(second.status, "SKIPPED_DUPLICATE");
     assert.equal((await readdir(path.join(directory, "outbox"))).length, 1);
   });
@@ -125,7 +125,7 @@ test("enforces the maximum of five opportunity notifications per run", async () 
           idempotencyKey: `email:run-001:update-00${index}`,
         }),
       );
-      assert.equal(result.status, "DRY_RUN");
+      assert.equal(result.status, "PREVIEWED");
     }
     const sixth = await notifier.notifyMaterialUpdate(
       eligibleUpdate({
@@ -155,31 +155,6 @@ test("live mode works only through an explicitly injected approved transport", a
       assert.equal((await memoryStore.list("action"))[0].outcome, "SUBMITTED");
     },
     { mode: "LIVE", transport },
-  );
-});
-
-test("Outlook mode submits one bounded batch without asking a model to compose routine messages", async () => {
-  const batches = [];
-  const transport = {
-    async sendBatch(messages) {
-      batches.push(messages);
-      return messages.map((_, index) => ({ status: "SUBMITTED", providerReceipt: `outlook-${index + 1}` }));
-    },
-  };
-  await withNotifier(
-    async ({ notifier, memoryStore }) => {
-      const results = await notifier.notifyMaterialUpdates([
-        eligibleUpdate(),
-        eligibleUpdate({ opportunityId: "opp-002", materialUpdateId: "update-002", idempotencyKey: "email:run-001:update-002", company: "Contoso Analytics" }),
-      ]);
-      assert.deepEqual(results.map((item) => item.status), ["SUBMITTED", "SUBMITTED"]);
-      assert.equal(batches.length, 1);
-      assert.equal(batches[0].length, 2);
-      assert.equal(batches[0][0].to, "student@example.edu");
-      assert.match(batches[0][0].text, /No application or employer communication was sent/);
-      assert.equal((await memoryStore.list("action")).every((entry) => entry.transport === "CODEX_OUTLOOK_APP"), true);
-    },
-    { mode: "OUTLOOK", transport },
   );
 });
 

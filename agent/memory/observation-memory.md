@@ -12,7 +12,7 @@ Observation memory records relevant facts produced by approved inputs, actions, 
 - source could not be verified;
 - spreadsheet update confirmed;
 - email service reported submission, delivery, failure, or unknown status;
-- Outlook app was callable, unavailable, denied, or required reconnection;
+- notification preview was created or failed, or a future approved provider was unavailable or returned an uncertain result;
 - student supplied a confirmation, clarification, not-interested choice, or preparation request;
 - Word application template was saved, unavailable, unreadable, or failed verification;
 - deadline changed;

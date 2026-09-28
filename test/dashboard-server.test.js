@@ -16,6 +16,7 @@ class FakeRunManager extends EventEmitter {
     this.started = 0;
     this.updates = [];
     this.approvalResponses = [];
+    this.setupReady = true;
   }
 
   snapshot() {
@@ -25,12 +26,22 @@ class FakeRunManager extends EventEmitter {
   async checkRuntimeReadiness() {
     return {
       status: "READY",
-      label: "Codex ready",
-      detail: "The local Codex harness is available for Collect and targeted opportunity updates.",
-      authentication: "ChatGPT managed sign-in",
+      label: "OpenAI API ready",
+      detail: "The server-side API configuration is available for Collect and targeted opportunity updates.",
+      authentication: "API key configured",
       checkedAt: "2026-08-25T12:00:00.000Z",
       diagnosticCode: null,
     };
+  }
+
+  async validateRuntimeConnection() {
+    return this.checkRuntimeReadiness();
+  }
+
+  async checkStudentSetupReadiness() {
+    return this.setupReady
+      ? { ready: true, status: "READY", missingItems: [], detail: "Student setup is ready." }
+      : { ready: false, status: "STUDENT_SETUP_INCOMPLETE", missingItems: ["Upload and confirm a resume"], detail: "Complete student setup before collection or assessment: Upload and confirm a resume." };
   }
 
   startRun() {
@@ -132,6 +143,17 @@ async function withDashboard(run) {
       return this.snapshot();
     },
   };
+  const scheduleConfiguration = {
+    current: { enabled: false, time: "09:00" },
+    async snapshot() {
+      return { ...this.current, status: this.current.enabled ? "ENABLED" : "DISABLED", schedule: this.current.enabled ? `${this.current.time} daily while this app is running` : "Disabled", timezone: "America/Los_Angeles", lastRun: null, nextRun: null, managedBy: "Local controller" };
+    },
+    async configure({ enabled, time }) {
+      if (!/^\d{2}:\d{2}$/.test(String(time))) throw new TypeError("Choose a valid local daily time.");
+      this.current = { enabled: Boolean(enabled), time };
+      return this.snapshot();
+    },
+  };
   const studentResponseService = {
     submissions: [],
     started: [],
@@ -174,21 +196,56 @@ async function withDashboard(run) {
       };
     },
   };
+  const studentProfileStore = {
+    uploads: [],
+    confirmations: [],
+    contextSaves: [],
+    active: false,
+    mode: "DEMO",
+    context: null,
+    pending: null,
+    async snapshot() {
+      return {
+        status: this.mode === "DEMO" ? "SYNTHETIC_DEMONSTRATION_ACTIVE" : this.active && this.context ? "REAL_STUDENT_READY" : this.pending ? "AWAITING_CONFIRMATION" : "SETUP_INCOMPLETE",
+        mode: this.mode,
+        readyForCollection: this.mode === "DEMO" || Boolean(this.active && this.context),
+        missingItems: this.mode === "DEMO" || (this.active && this.context) ? [] : [this.active ? "Save preferred roles, availability, and constraints" : "Upload and confirm a resume"],
+        activeSource: this.mode === "DEMO" ? "SYNTHETIC_DEMONSTRATION" : this.active && this.context ? "PRIVATE_CONFIRMED" : "SETUP_INCOMPLETE",
+        activeLabel: this.mode === "DEMO" ? "Synthetic demonstration setup" : this.active && this.context ? "Confirmed real-student setup" : "Student setup incomplete",
+        pending: this.pending,
+        confirmed: this.active ? { fileName: "resume.txt", confirmedAt: "2026-08-25T12:00:00.000Z" } : null,
+        previewText: this.pending ? "EDUCATION\nBSBA Information Systems\nSKILLS\nSQL and Excel" : null,
+        requiresConfirmation: Boolean(this.pending),
+        preferencesSource: this.mode === "DEMO" ? "Synthetic career-preferences.md" : this.context ? "Confirmed local student preferences" : "Not confirmed",
+        constraintsSource: this.mode === "DEMO" ? "Synthetic availability-and-constraints.md" : this.context ? "Confirmed local availability and constraints" : "Not confirmed",
+        preferencesAndConstraints: this.context,
+        defaultRoleChoices: ["AI Business Analyst Intern", "AI Systems Analyst Intern"],
+      };
+    },
+    async uploadResume(payload) { this.uploads.push(payload); this.pending = { fileName: payload.fileName }; return this.snapshot(); },
+    async confirmProfile(payload) { this.confirmations.push(payload); if (!payload.identifyingDetailsRemoved) throw new TypeError("Confirm identifiers were removed."); this.pending = null; this.active = true; this.mode = "REAL"; return this.snapshot(); },
+    async savePreferencesAndConstraints(payload) { this.contextSaves.push(payload); this.context = { ...payload, confirmedAt: "2026-08-25T12:00:00.000Z" }; this.mode = "REAL"; return this.snapshot(); },
+    async activateDemo() { this.mode = "DEMO"; return this.snapshot(); },
+    async activateReal() { this.mode = "REAL"; return this.snapshot(); },
+    async deactivate() { this.active = false; this.mode = null; return this.snapshot(); },
+  };
   const dashboard = createDashboardServer({
     runManager,
     spreadsheetTracker,
     memoryStore,
     runtimePaths,
     notificationConfiguration,
+    scheduleConfiguration,
     studentResponseService,
     applicationMaterialStore,
     localResetService,
+    studentProfileStore,
     requestToken: "synthetic-local-token",
     clock: () => new Date("2026-08-25T12:00:00.000Z"),
   });
   const address = await dashboard.listen({ port: 0 });
   try {
-    await run({ dashboard, address, runManager, memoryStore, notificationConfiguration, studentResponseService, runtimePaths, localResetService });
+    await run({ dashboard, address, runManager, memoryStore, notificationConfiguration, scheduleConfiguration, studentResponseService, runtimePaths, localResetService, studentProfileStore });
   } finally {
     await dashboard.close();
     await rm(directory, { recursive: true, force: true });
@@ -242,9 +299,121 @@ test("serves the meaningful dashboard, local storage location, and evidence-back
     assert.equal(body.notificationSettings.deliveryStatus, "LOCAL_PREVIEW_ONLY");
     assert.equal(body.application.requestToken, "synthetic-local-token");
     assert.equal(body.runtime.status, "READY");
-    assert.equal(body.runtime.authentication, "ChatGPT managed sign-in");
+    assert.equal(body.runtime.authentication, "API key configured");
+    assert.equal(body.studentProfile.activeSource, "SYNTHETIC_DEMONSTRATION");
     assert.doesNotMatch(JSON.stringify(body.runtime), /email|planType/i);
     assert.equal("root" in body, false);
+  });
+});
+
+test("runtime connection validation uses the protected local endpoint", async () => {
+  await withDashboard(async ({ address }) => {
+    const denied = await fetch(`${address.url}/api/runtime/validate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    });
+    assert.equal(denied.status, 403);
+    const accepted = await fetch(`${address.url}/api/runtime/validate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Local-Request-Token": "synthetic-local-token" },
+      body: "{}",
+    });
+    assert.equal(accepted.status, 200);
+    assert.equal((await accepted.json()).runtime.status, "READY");
+  });
+});
+
+test("resume upload and confirmation stay behind the local mutation boundary", async () => {
+  await withDashboard(async ({ address, studentProfileStore }) => {
+    const payload = {
+      fileName: "resume.txt",
+      mediaType: "text/plain",
+      dataBase64: Buffer.from("EDUCATION\nBSBA Information Systems\nSKILLS\nSQL and Excel").toString("base64"),
+    };
+    const denied = await fetch(`${address.url}/api/profile/resume`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    assert.equal(denied.status, 403);
+
+    const uploaded = await fetch(`${address.url}/api/profile/resume`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Local-Request-Token": "synthetic-local-token" },
+      body: JSON.stringify(payload),
+    });
+    assert.equal(uploaded.status, 201);
+    assert.equal((await uploaded.json()).profile.requiresConfirmation, true);
+    assert.equal(studentProfileStore.uploads.length, 1);
+
+    const confirmed = await fetch(`${address.url}/api/profile/confirm`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Local-Request-Token": "synthetic-local-token" },
+      body: JSON.stringify({ profileText: "EDUCATION\nBSBA Information Systems\nSKILLS\nSQL and Excel", identifyingDetailsRemoved: true }),
+    });
+    assert.equal(confirmed.status, 200);
+    const confirmedProfile = (await confirmed.json()).profile;
+    assert.equal(confirmedProfile.activeSource, "SETUP_INCOMPLETE");
+    assert.deepEqual(confirmedProfile.missingItems, ["Save preferred roles, availability, and constraints"]);
+    assert.equal(studentProfileStore.confirmations.length, 1);
+  });
+});
+
+test("student preferences and constraints use protected local endpoints and explicit setup modes", async () => {
+  await withDashboard(async ({ address, studentProfileStore }) => {
+    const context = {
+      preferredRoles: ["AI Business Analyst Intern"],
+      customRole: "",
+      availabilityStart: "2027-05-15",
+      availabilityEnd: "2027-08-31",
+      hoursPerWeek: 40,
+      workArrangements: ["HYBRID", "REMOTE"],
+      geographicLimits: "California or remote from California",
+      paidRequirement: "REQUIRED",
+      relocation: "NO",
+      workAuthorization: "UNSURE_OR_PREFER_NOT_TO_STATE",
+      additionalConstraints: "",
+      confirmed: true,
+    };
+    const denied = await fetch(`${address.url}/api/profile/context`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(context),
+    });
+    assert.equal(denied.status, 403);
+
+    const saved = await fetch(`${address.url}/api/profile/context`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Local-Request-Token": "synthetic-local-token" },
+      body: JSON.stringify(context),
+    });
+    assert.equal(saved.status, 200);
+    assert.equal(studentProfileStore.contextSaves.length, 1);
+    assert.equal((await saved.json()).profile.mode, "REAL");
+
+    const demo = await fetch(`${address.url}/api/profile/demo`, {
+      method: "POST", headers: { "Content-Type": "application/json", "X-Local-Request-Token": "synthetic-local-token" }, body: "{}",
+    });
+    assert.equal(demo.status, 200);
+    assert.equal((await demo.json()).profile.readyForCollection, true);
+  });
+});
+
+test("collection and assessment are rejected before student setup is complete", async () => {
+  await withDashboard(async ({ address, runManager, studentResponseService }) => {
+    runManager.setupReady = false;
+    const headers = { "Content-Type": "application/json", "X-Local-Request-Token": "synthetic-local-token" };
+    const collect = await fetch(`${address.url}/api/collect`, { method: "POST", headers, body: "{}" });
+    assert.equal(collect.status, 409);
+    assert.match((await collect.json()).error, /Upload and confirm a resume/);
+    assert.equal(runManager.started, 0);
+
+    const update = await fetch(`${address.url}/api/opportunities/opp-dashboard-001/update`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ type: "PROVIDE_INFORMATION", text: "I can work Tuesdays.", templateTypes: [] }),
+    });
+    assert.equal(update.status, 409);
+    assert.equal(studentResponseService.submissions.length, 0);
   });
 });
 
@@ -332,6 +501,25 @@ test("student notification email can be configured through the protected local e
   });
 });
 
+test("daily collection can be configured through the protected local endpoint", async () => {
+  await withDashboard(async ({ address }) => {
+    const denied = await fetch(`${address.url}/api/settings/schedule`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enabled: true, time: "09:30" }),
+    });
+    assert.equal(denied.status, 403);
+    const accepted = await fetch(`${address.url}/api/settings/schedule`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Local-Request-Token": "synthetic-local-token" },
+      body: JSON.stringify({ enabled: true, time: "09:30" }),
+    });
+    assert.equal(accepted.status, 200);
+    const body = await accepted.json();
+    assert.equal(body.schedule.enabled, true);
+    assert.equal(body.schedule.time, "09:30");
+  });
+});
+
 test("Reset Collection requires the local token and exact confirmation", async () => {
   await withDashboard(async ({ address, localResetService }) => {
     const rejected = await fetch(`${address.url}/api/reset`, {
@@ -369,19 +557,18 @@ test("application materials download as Word documents", async () => {
   });
 });
 
-test("an Outlook readiness failure does not prevent the dashboard from loading", async () => {
+test("a notification-settings failure does not prevent the dashboard from loading", async () => {
   await withDashboard(async ({ address, notificationConfiguration }) => {
     notificationConfiguration.snapshot = async () => {
-      throw new Error("synthetic Outlook probe failure");
+      throw new Error("synthetic settings failure");
     };
 
     const response = await fetch(`${address.url}/api/dashboard`);
     assert.equal(response.status, 200);
     const body = await response.json();
     assert.equal(body.metrics.totalTracked, 1);
-    assert.equal(body.notificationSettings.deliveryStatus, "UNKNOWN");
-    assert.equal(body.notificationSettings.outlook.label, "Outlook check failed");
-    assert.match(body.notificationSettings.explanation, /No email was sent/);
+    assert.equal(body.notificationSettings.deliveryStatus, "LOCAL_PREVIEW_ONLY");
+    assert.match(body.notificationSettings.explanation, /No external email was sent/);
   });
 });
 

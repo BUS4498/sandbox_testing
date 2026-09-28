@@ -20,7 +20,8 @@ For web discovery and related collection updates, evaluation memory should prese
 - the opportunity was successfully validated against sufficient source evidence;
 - the spreadsheet was correctly updated when an update was intended;
 - the informational notification succeeded when one was warranted;
-- the Outlook connector outcome supported `SUBMITTED`, `DELIVERED`, `FAILED`, or `UNKNOWN` without overstating delivery;
+- the notification outcome supported `PREVIEWED`, `SUBMITTED`, `DELIVERED`, `FAILED`, or `UNKNOWN` without overstating external delivery;
+- a hosted Graph `202 Accepted` was recorded as `SUBMITTED` only, and uncertain outcomes were not automatically retried;
 - a student response was recorded and queued for the promised review;
 - requested application templates were saved locally, verified, and still labeled for student review; and
 - an unresolved source-verification issue remains.

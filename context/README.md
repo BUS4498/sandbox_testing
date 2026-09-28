@@ -6,11 +6,17 @@ The `context/` folder contains relatively stable background information supplied
 
 ## Authoritative sources
 
-- [`is-junior-resume.md`](is-junior-resume.md) is the authoritative source for claims about education, coursework, skills, projects, and experience.
-- [`career-preferences.md`](career-preferences.md) is the authoritative source for preferred roles, industries, locations, work arrangements, professional interests, and role characteristics.
-- [`availability-and-constraints.md`](availability-and-constraints.md) is the authoritative source for timing, geographic flexibility, scheduling constraints, and non-negotiable operating boundaries.
+- [`is-junior-resume.md`](is-junior-resume.md) is the synthetic demonstration source for claims about education, coursework, skills, projects, and experience when no student-confirmed private runtime profile is active.
+- [`career-preferences.md`](career-preferences.md) is the authoritative demonstration source for preferred roles, industries, locations, work arrangements, professional interests, and role characteristics.
+- [`availability-and-constraints.md`](availability-and-constraints.md) is the authoritative demonstration source for timing, geographic flexibility, scheduling constraints, and non-negotiable operating boundaries.
 
 If these files conflict, the agent must surface the conflict rather than select the more favorable claim.
+
+## Private runtime profile precedence
+
+For real local use, the student uploads and confirms a resume and separately confirms preferred roles, availability, geographic and work-arrangement boundaries, and relevant constraints through the dashboard. These records remain under Git-ignored `data/local/student-profile/`. The confirmed private resume profile becomes authoritative for resume-based education, coursework, skills, projects, and experience claims. The confirmed local preference-and-constraint record becomes authoritative for those corresponding fields. An uploaded resume, partially completed form, or unsaved change is never authoritative.
+
+The tracked synthetic files are used only when the student explicitly selects demonstration mode. The application must never silently fill gaps in an incomplete real-student setup with synthetic defaults. Source labels remain visible so the student can distinguish resume facts from separately supplied preferences and constraints. Private student context must never be copied into this tracked folder.
 
 ## Synthetic sandbox information
 
