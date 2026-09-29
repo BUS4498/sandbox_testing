@@ -74,6 +74,8 @@ Do not expose a standalone **Fit** column. Fit assessment remains structured age
 
 In the owner-only hosted pilot, an optional **Preliminary fit** indicator may appear on an opportunity card beside—not instead of—the recommendation and evidence bullets. Show the rounded 0–100 score, TypeSafe/Jev attribution, and a short explanation that it reflects evidence alignment, not a hiring probability. Show **Score unavailable** when source or profile evidence is insufficient and **Needs reassessment** when the saved score belongs to an older evidence version or student setup. Never imply that a higher score authorizes an application or changes the student's decision. A score-only refresh does not generate a material-update email.
 
+In that pilot, display current, valid preliminary scores from high to low by default. Put unscored, stale, failed, or other-profile records after scored records and label their status; never treat an unavailable score as zero. Offer a **Recently reviewed** alternative. Sorting changes only the dashboard view, not recommendations, spreadsheet rows, or operational history. Use a stable secondary order for equal scores.
+
 The student should be able to search, filter, sort, and open an opportunity without losing the current dashboard context.
 
 Do not show a separate dashboard-wide **Information needed to continue** box that repeats the selected-opportunity or opportunity-card content. Put each exact question, missing fact, response status, and **Update Opportunity** control directly on the affected opportunity. The selected-opportunities area may summarize the same opportunity immediately after a run, but it should link the student to that single actionable record rather than create a second response surface.
@@ -145,6 +147,8 @@ The final form action should be **Save and Update**, which must:
 5. update permitted spreadsheet fields, prepare requested review-only materials, or request narrower clarification as applicable;
 6. verify the outcome and update memory; and
 7. refresh the opportunity card with the resolved issue, new recommendation, new next action, or explicit remaining question.
+
+For a substantive information or confirmation response, show whether the preliminary score was refreshed, reused because scored evidence did not change, or remains unavailable. A fresh TypeSafe request is permitted only when the verified scoring evidence changed; a student response alone does not require another paid call. **Not interested** and **Unsure** choices need no rescoring. Keep the score subordinate to the updated explanation and recommendation.
 
 If the runtime is unavailable or another workflow holds the run lock, retain the saved response, mark it **Update ready to retry**, and display an **Update Opportunity** retry button. Do not require the student to use **Collect Opportunities** or wait for a daily collection run.
 
@@ -431,4 +435,3 @@ The interface should:
 ## Future implementation boundary
 
 This specification does not prescribe a frontend framework. The implementation must connect through the local workflow controller to the OpenAI Responses API, keep the API key server-side, use the local schedule specification, and preserve these accessibility, synchronization, and human-authority boundaries.
-

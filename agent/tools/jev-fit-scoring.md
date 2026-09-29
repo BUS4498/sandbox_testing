@@ -8,6 +8,8 @@
 
 After **REASON** has produced a structured fit assessment for a verified, selected opportunity, the owner-only hosted pilot may request a score from TypeSafe AI System One/Jev. A targeted **Update Opportunity** may refresh a score after the relevant evidence changes. A one-time backfill may score at most five existing eligible records. Unchanged evidence must not cause another paid call.
 
+After a substantive student update, mark an existing score stale during reassessment, then compare the verified scoring-evidence version. Restore the existing score without a provider call if that evidence is unchanged; otherwise request one new score when the source and profile remain eligible. Show the resulting scored, unavailable, or failed state beside the updated explanation. A deterministic **Not interested** or **Unsure** response does not trigger scoring.
+
 ## Required inputs and privacy boundary
 
 Use only a compact, non-identifying projection of already-structured evidence: required and preferred matches, gaps and unknowns, role preferences, broad location/work-arrangement and timing fit, and evidence completeness. Never send an original resume, name, email address, contact details, raw student response, application materials, full posting, or free-form private constraints. Do not place student evidence in public-web search queries. If a safe projection cannot be formed, leave the score unavailable.
@@ -28,4 +30,3 @@ Return `SCORED`, `UNAVAILABLE`, `STALE`, or `FAILED` with a rounded preliminary 
 ## Permissions, failures, and verification
 
 Only the server may read the credential and call TypeSafe. Validate the provider response and its numeric bounds, persist the score on the same current opportunity, then read it back before reporting success. Record scoring attempts and outcomes in operational memory. Do not automatically retry an ambiguous timeout, repeat a completed backfill, or score a record assessed against a different student setup. Display a sanitized failure and retain the narrative assessment when scoring is unavailable.
-
