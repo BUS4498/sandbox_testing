@@ -4,7 +4,7 @@
 
 This is a **design for an owner-only hosted pilot**, not a claim that the existing local app has been deployed. The local-first application and its `data/local/` files remain intact. The hosted pilot must not silently copy local runtime data, secrets, resumes, or prior opportunities to Sites.
 
-The first hosted checkpoint uses the explicitly selected **synthetic demonstration context** and a manual **Collect Opportunities** trigger. It may search live public postings, but every student-profile-based assessment must be labeled synthetic. Real-resume handling and automatic Daily Run are later hosted feature groups; until independently implemented and verified, their controls must say **Not available in this pilot** rather than imply they worked.
+The first hosted checkpoint used explicitly selected **synthetic demonstration context** and a manual **Collect Opportunities** trigger. The current private Site also supports confirmed real-student setup, but no automatic Daily Run. Synthetic-profile assessments must remain labeled synthetic. The removed cloud schedule is a deferred design, not a current control or trigger.
 
 ## Runtime boundary
 
@@ -17,13 +17,13 @@ Hosted deterministic workflow controller
        └── Microsoft Graph: approved student-only informational email
 ```
 
-The hosted controller retains the same `RETRIEVE → SENSE → REASON → DECIDE → ACT → VERIFY → REMEMBER → REPEAT OR STOP` workflow, six-search/fifteen-candidate/five-update limits, task-scoped specification loading, duplicate checks, approval rules, and verification requirements as the local controller. The model may propose structured results but cannot write the collection, send mail, approve actions, or expand its own tool access. Hosted implementation must use only storage and server-side facilities actually supported by Sites; a local Node process or laptop filesystem is not an implicit dependency.
+The hosted controller retains the same `RETRIEVE → SENSE → REASON → DECIDE → ACT → VERIFY → REMEMBER → REPEAT OR STOP` workflow, ten-search/fifteen-candidate/five-update limits, task-scoped specification loading, duplicate checks, approval rules, and verification requirements as the local controller. The model may propose structured results but cannot write the collection, send mail, approve actions, or expand its own tool access. Hosted implementation must use only storage and server-side facilities actually supported by Sites; a local Node process or laptop filesystem is not an implicit dependency.
 
 ## Access and student data
 
 - The Site must be owner-only before any private data or API secret is configured. Do not widen access to a class, group, or the public without a separate approved design and per-student isolation.
 - The first checkpoint uses only the repository's synthetic student context. Do not upload, migrate, or process a real resume or an existing `data/local/` record in the hosted pilot.
-- A later real-student group must define explicit consent, non-identifying profile confirmation, retention, deletion, and storage isolation before enabling real uploads. An original resume must not be sent to the OpenAI API or placed in Git/Sites source assets.
+- Real-student setup requires explicit consent, non-identifying model-facing profile confirmation, owner-scoped original-file retention when the student opts in, and verified deletion. An original resume must not be sent to OpenAI or TypeSafe or placed in Git/Sites source assets. It may be used only for that owner's review-only draft.
 - Search queries must use only the minimum non-identifying role, broad location, timing, and work-arrangement criteria. Routine email must use minimum non-identifying disclosure.
 
 ## Durable collection and downloads
@@ -32,13 +32,17 @@ The hosted runtime must use durable private storage for current opportunity reco
 
 In the hosted variant, the durable current records are the operational source of truth. Generate a current `.xlsx` download from those records as the **user-facing spreadsheet collection**; identify its generation time and record count. Do not present a stale export as synchronized. The local variant continues to maintain its authoritative `data/local/internship_pipeline.xlsx` file. Review-only `.docx` templates, when their hosted group is implemented, must be downloadable, tied to the correct opportunity, and verified before the dashboard reports success.
 
-Do not enable hosted **Reset Collection** until a recoverable private snapshot/export and read-back verification are implemented. A failed write or export remains visible. No private runtime content belongs in source control or a deployment archive.
+An on-demand **Practice Interview** group may use the hosted API's general public-web capability only after an owner click on one tracked opportunity. It has its own three-search and ten-inspected-result limits, private saved result and Word download, and source-supported labels that distinguish publicly reported questions from generated practice questions. It does not run during hosted collection, change the opportunity or preliminary fit score, or trigger mail. Existing hosted ownership and profile-mode safeguards apply; a later student-shared Site still requires a separate isolation review.
+
+Hosted **Reset Collection** is an owner-initiated controller operation, never a model decision or a collection run. Before clearing any active data, create an owner-scoped downloadable archive of current opportunities, opportunity-related run/event history, student responses, Word-draft metadata and bytes; verify the archive by private storage read-back and checksum. Require a typed `RESET` confirmation, reject the request while another workflow is active, and clear the active collection only after archive verification. Preserve the student setup and server-side credentials. Show the archive's creation time, contents, and download control. Retain each private archive until the owner explicitly deletes it; a reset must not silently delete earlier archives. A failed archive or clear operation must remain visible without claiming success. No private runtime content belongs in source control or a deployment archive. An archived file is a recovery/export artifact, not an automatic restore operation.
 
 ## OpenAI configuration and cost
 
 The owner may use the same authorized OpenAI API key as the local app, but must configure it separately as a **Sites server-side secret** named `OPENAI_API_KEY`. Never read or bundle the protected local key file for deployment. Keep `OPENAI_MODEL=gpt-5.6-luna` and `OPENAI_REASONING_EFFORT=medium` unless the user approves a change and the hosted connection confirms access. Do not expose any secret in browser assets, responses, logs, prompts, or Git.
 
 The hosted owner bears API usage charges. Preserve the bounded discovery limits and add a visible run lock, sanitized provider failures, and a safe cost/spend-limit recommendation. A configured secret is not proof of connectivity; verify the model and web-search path through bounded tests before labeling them ready.
+
+An optional secondary fit indicator uses TypeSafe AI System One/Jev through `https://api.typesafe.ai/v1/systemone` and a separate server-side `JEV_API_KEY`. Compact non-identifying structured evidence may leave the Site; a separately consented targeted update may also send the screened answer and its specific open issue to TypeSafe for relevance review and rescoring. The original resume, name, email, application materials, unrelated response history, and full posting must not. The controller keeps the qualitative assessment and decision as the authority. It stores one current score or unavailable/stale status per opportunity with model, rubric, time, and evidence-version provenance; detailed attempts remain in operational memory. Score-only changes never create opportunity-update emails. A one-time backfill is limited to five eligible existing records and five provider calls; no record is scored merely to reach that count.
 
 ## Outlook notification transport
 
@@ -50,8 +54,9 @@ The first live mail test requires an explicitly approved self-addressed message 
 
 ## Manual trigger and future schedule
 
-For the first hosted checkpoint, **Collect Opportunities** is manual only. The local app's daily process timer is not a hosted scheduler and must not be represented as one. Show **Daily Run: Not available in this pilot** with no invented last or next run. A later hosted trigger requires an approved supported scheduler, authenticated invocation, deduplication, missed-run semantics, and tests proving that it uses the same collection entry point and policies. Until then, the local app's existing schedule remains local-only.
+**Collect Opportunities** is manual in the current hosted Site. The owner removed its cloud Daily Run for now: no GitHub workflow, hosted trigger endpoint, or hosted schedule controls should be active. [`github-cloud-schedule.md`](github-cloud-schedule.md) preserves a deferred design only; do not restore it without a new owner decision and verification. The local app's existing schedule remains local-only and is unchanged.
 
 ## Verification and release gate
 
 Before reporting a hosted pilot as working, verify owner-only access, denial of unauthorized access, clean source/assets, secret non-disclosure, persistent record survival after reload and redeploy, valid spreadsheet download, actual bounded search and assessment on synthetic context, duplicate and error paths, and honest email states. Test Graph separately with the one approved self-addressed message. Site publication and original GitHub publication are separate outcomes; verify each destination independently.
+

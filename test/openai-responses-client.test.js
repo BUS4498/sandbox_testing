@@ -87,7 +87,7 @@ test("discovery uses the Responses web-search tool and returns sanitized metadat
   assert.equal(request.text.format.schema.properties.selectedOpportunities.items.additionalProperties, false);
   assert.equal(request.tools[0].type, "web_search");
   assert.equal(request.tools[0].search_context_size, "low");
-  assert.equal(request.max_tool_calls, 6);
+  assert.equal(request.max_tool_calls, 10);
   assert.ok(request.tools[0].filters.allowed_domains.includes("simplify.jobs"));
   assert.equal(result.searchesPerformed, 1);
   assert.deepEqual(result.sources, [{ url: "https://example.com/job", title: "Job" }]);
@@ -130,12 +130,12 @@ test("counts hosted search calls once without counting query variants or posting
   assert.equal(collectSources(output).length, 1);
 });
 
-test("counts separate hosted search actions toward the six-call budget", () => {
-  const output = Array.from({ length: 6 }, (_, index) => ({
+test("counts separate hosted search actions toward the ten-call budget", () => {
+  const output = Array.from({ length: 10 }, (_, index) => ({
     type: "web_search_call",
     action: { type: "search", queries: [`query-${index}-a`, `query-${index}-b`] },
   }));
-  assert.equal(countWebSearchCalls(output), 6);
+  assert.equal(countWebSearchCalls(output), 10);
 });
 
 test("counts a legacy search action without query metadata as one search", () => {

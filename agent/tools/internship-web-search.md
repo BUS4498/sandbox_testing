@@ -44,7 +44,7 @@ All student facts must come from verified `context/` sources. Missing preference
 
 For the initial system, every discovery run, whether initiated through **Collect Opportunities** or the local daily schedule, must apply these maximum limits:
 
-- hosted web-search tool calls: **6**;
+- hosted web-search tool calls: **10**;
 - candidate opportunities collected for screening: **15**;
 - opportunities selected for detailed processing: **3–5 when at least three qualify, with an absolute maximum of 5**; and
 - material opportunity updates surfaced during the run: **5**.
@@ -55,7 +55,7 @@ The detailed-processing limit applies to the combined set of genuinely new and m
 
 ## Search strategy
 
-Construct no more than six targeted searches from the student's current verified context. Search themes may include categories such as:
+Construct no more than ten targeted searches from the student's current verified context. Search themes may include categories such as:
 
 - Information Systems internships;
 - Business Analyst internships;
@@ -83,7 +83,7 @@ Discovery searches should focus on the following sources in priority order. This
 | 8 | [Indeed](https://www.indeed.com/) | Partial | Broad discovery only when public access is reliable for the current result |
 | 9 | [Wellfound](https://wellfound.com/jobs) | Partial | Startup and technology discovery when a listing is public |
 
-Within the six-call budget, select up to six source-focused searches using the highest-priority sources that are relevant to the student's current roles, internship period, California location, and work-arrangement preferences. A search call may cover a related source group, such as the three approved employer-hosted applicant-tracking systems, when the general web-search capability supports it.
+Within the ten-call budget, select up to ten source-focused searches using the highest-priority sources that are relevant to the student's current roles, internship period, California location, and work-arrangement preferences. A search call may cover a related source group, such as the three approved employer-hosted applicant-tracking systems, when the general web-search capability supports it.
 
 Do not attempt to visit all nine sources merely because they appear in this portfolio. Use prior search observations to vary source coverage across later runs when doing so is useful, but do not repeatedly search a lower-priority source after the current run already has enough strong candidates.
 
@@ -161,7 +161,7 @@ Selection for detailed processing is a relevance-focused discovery decision, not
 
 Stop the discovery portion of a run when any of these conditions is met:
 
-- 6 hosted web-search calls have been processed;
+- 10 hosted web-search calls have been processed;
 - 15 candidate opportunities have been collected;
 - enough strong candidates exist to select the top five;
 - additional searches are producing no meaningful new candidates; or
@@ -171,7 +171,7 @@ Do not continue searching after the approved stop conditions merely to force thr
 
 ## Permissions
 
-The tool may make up to six hosted web-search calls, search publicly available web content, screen up to 15 candidates, inspect accessible postings, and return up to five selected structured observations to **SENSE**. It may use only the scoped student context and relevant existing state supplied for the current search.
+The tool may make up to ten hosted web-search calls, search publicly available web content, screen up to 15 candidates, inspect accessible postings, and return up to five selected structured observations to **SENSE**. It may use only the scoped student context and relevant existing state supplied for the current search.
 
 The tool may not make a final fit assessment, select a final agent decision, write to the spreadsheet, send email, contact an employer, or submit an application. Those activities remain governed by their respective workflow stages, tools, policies, and approval requirements.
 

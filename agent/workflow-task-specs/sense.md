@@ -8,13 +8,16 @@ Gather and structure new or current information about internship opportunities f
 
 Run after **RETRIEVE** for a newly supplied internship input, a manual **Collect Opportunities** cycle, a scheduled daily collection cycle, a requested source recheck, or a targeted **Update Opportunity** cycle.
 
+For a student-clicked **Practice Interview** request, use a separate, scoped sense path: the [Interview Question Search tool](../tools/interview-question-search.md) searches public accounts for this employer and role under its own three-search/ten-inspected-result budget. Preserve the underlying source, date, role match, and access outcome for each candidate report. The ordinary internship-discovery funnel and its ten-search budget do not run. Search snippets, generic advice, and inaccessible video content must not become verified reported questions.
+
 ## Inputs
 
 - Scoped retrieval package containing only the student context relevant to the current input or search.
-- Input mode: `USER-SUPPLIED`, `AGENT-DISCOVERED`, or `STUDENT-UPDATE`.
+- Input mode: `USER-SUPPLIED`, `AGENT-DISCOVERED`, `STUDENT-UPDATE`, or `INTERVIEW-PRACTICE`.
 - For a user-supplied opportunity: a job-posting URL, pasted posting text, or another approved input.
 - For agent discovery: an approved manual or scheduled run trigger and access to the [`internship-web-search`](../tools/internship-web-search.md) tool.
 - Relevant prior opportunity state, identifiers, discovery observations, and source history.
+- For `INTERVIEW-PRACTICE`: the selected tracked opportunity, its current version, and an explicit student click; no private resume content is needed in a public search query.
 
 ## Mode A — User-Supplied Opportunity
 
@@ -46,7 +49,7 @@ The funnel should reduce the candidate pool before expensive model reasoning. It
 1. Use the relevant verified student search preferences supplied by **RETRIEVE**. If essential preferences are missing, request a scoped retrieval rather than infer them.
 2. Invoke the [`internship-web-search`](../tools/internship-web-search.md) tool.
 3. Select source-focused searches from the approved priority portfolio in the tool specification, using the highest-priority sources relevant to the current student context and recent source coverage.
-4. Perform no more than six targeted general public web-search tool calls. Count each hosted search action once even when it reports multiple related query variants. The six-call budget does not require searching every approved source in one run.
+4. Perform no more than ten targeted general public web-search tool calls. Count each hosted search action once even when it reports multiple related query variants. The ten-call budget does not require searching every approved source in one run.
 
 ### Step 2 — Collect candidate pool
 
@@ -153,6 +156,10 @@ A targeted **Update Opportunity** action processes one newly saved student respo
 
 This mode performs no internship-market web search, candidate collection, ranking funnel, or top-three-to-five selection. It must not wait for the next **Collect Opportunities** action or daily collection run.
 
+## Mode D — Interview Practice for a Tracked Opportunity
+
+This mode runs only after the student clicks **Practice Interview** for one saved opportunity. Use the separate [Interview Question Search tool](../tools/interview-question-search.md) for two distinct targeted searches—reported questions and interview process—when search is available, with one optional gap-filling search under the three-search ceiling. Inspect public reports and label source-supported candidate questions, source-supported process descriptions, inaccessible or unsupported leads, likely practice questions, and generic process guidance separately. This is not a new-opportunity or material-change classification and does not enter the collection funnel.
+
 ## Instructions for both modes
 
 1. Extract observable information such as organization, role, location, work arrangement, internship period, responsibilities, required qualifications, preferred qualifications, eligibility, application deadline, source, posting URL, posting status, date discovered, and date last verified when available.
@@ -169,7 +176,7 @@ For every processed result, return a structured opportunity observation or stude
 
 For an agent-discovery cycle, also return:
 
-- searches performed, up to six;
+- searches performed, up to ten;
 - candidates collected, up to 15;
 - candidates validated;
 - duplicates consolidated or removed;
@@ -185,11 +192,13 @@ Counts should make movement through the funnel auditable without storing unneces
 
 For a targeted student update, return the response identifier, selected opportunity identifier, the prior gap or action addressed, facts supplied by the student, any remaining uncertainty, and confirmation that discovery-search counts are zero.
 
+For interview practice, return the selected opportunity ID and version, search themes and inspected-page counts under its separate budget, reported-question and process evidence with source and role-match labels, generated-question themes, labeled general process guidance, and source limitations. Do not relabel generic advice or inaccessible video content as a reported question or an employer-specific process.
+
 ## Failure and exception handling
 
 If content is inaccessible, incomplete, ambiguous, or contradictory, preserve what was actually observed and classify or label the limitation appropriately. Do not treat a failed search, inaccessible page, missing result, or failed recheck as evidence that a posting closed.
 
-An `UNCERTAIN` or `INVALID / INCOMPLETE` result must not be silently converted into a valid new opportunity. Preserve any source-verification issue for later review or escalation. A failed search call does not expand the six-call budget or justify lowering validation and relevance standards.
+An `UNCERTAIN` or `INVALID / INCOMPLETE` result must not be silently converted into a valid new opportunity. Preserve any source-verification issue for later review or escalation. A failed search call does not expand the ten-call budget or justify lowering validation and relevance standards.
 
 ## What is passed to the next stage
 
@@ -198,6 +207,8 @@ For agent discovery, pass the selected top three to five `NEW` and `EXISTING —
 For a user-supplied opportunity, pass a supported `NEW` or `EXISTING — MATERIALLY CHANGED` result forward according to the normal single-opportunity path; the automatic-discovery candidate limits do not prevent the student from asking the agent to review a specific posting.
 
 For a targeted student update, pass exactly one existing opportunity, its scoped student response, current decision evidence, and remaining gaps to **REASON**. Do not invoke or report the discovery funnel.
+
+For interview practice, pass only the selected opportunity's source-supported question and process evidence, role-related themes, and source limitations to scoped preparation reasoning. Do not ask **REASON** to reassess fit or rank internships.
 
 ## What should be remembered
 

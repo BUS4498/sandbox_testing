@@ -2,7 +2,7 @@
 
 > **Current status:** The local prototype uses a deterministic workflow controller with the OpenAI Responses API for bounded reasoning and general public web discovery. It provides a local dashboard, spreadsheet and memory operations, actionable student-response controls, review-only application-template preparation, local scheduling, and verified notification previews after material updates. Application submission and employer communication are not capabilities of this system.
 
-> **Hosted pilot status:** An owner-only Codex Sites variant is specified but not yet implemented or deployed. Its first checkpoint will use synthetic student context and manual collection only. Hosted Daily Run, real-resume upload, and live Outlook notification are not current capabilities; each requires its own implementation and verification.
+> **Hosted pilot status:** The owner-only Codex Site supports manual collection and confirmed student setup. Its cloud Daily Run has been removed for now; live Outlook notification remains disabled. The hosted Site is separate from the local application and its local-only scheduler.
 
 ## What this project is
 
@@ -10,7 +10,7 @@ The Internship Application Prep Agent is a local-first prototype for an undergra
 
 The application runs on the student's computer and provides a local browser-based dashboard. A local spreadsheet at `data/local/internship_pipeline.xlsx` serves as the student's user-facing collection of current internship opportunities. The surrounding `data/local/` folder also holds operational memory, local settings, notification previews, schedule state, and prepared templates and is excluded from Git. After a material collection update succeeds, the initial API version creates a deterministic local notification preview for the recipient chosen in the dashboard. It does not claim that a preview was sent.
 
-The agent can also prepare formatted Microsoft Word `.docx` draft templates such as a resume-tailoring checklist, cover-letter outline, or application-question worksheet. These artifacts require student review and cannot submit an application.
+The agent can also prepare formatted Microsoft Word `.docx` drafts: a role-tailored resume with proposed changes highlighted, a complete Cal Poly-inspired cover letter, or an application-question worksheet. A separate, student-clicked **Practice Interview** action researches publicly reported interview questions and process information for one saved opportunity and labels generated preparation guidance separately. These artifacts require student review and cannot submit an application.
 
 Before collection or assessment, the dashboard requires one explicitly selected, complete student setup. For real local use, the student confirms a resume in `.docx`, `.pdf`, `.md`, or `.txt` format plus preferred roles, internship dates, weekly availability, work arrangements, geographic boundaries, paid-role preference, relocation flexibility, and work-authorization or sponsorship status. Extraction occurs locally, and the student must review a non-identifying agent-facing preview. Private resume and setup data remain under Git-ignored `data/local/student-profile/`; they are never committed to the repository or sent to an external parsing service. A labeled synthetic demonstration setup is available only after the student explicitly selects it.
 
@@ -57,7 +57,9 @@ Detailed responsibilities for each stage are defined in the workflow task specif
 - [Workflow task specifications](agent/workflow-task-specs/)
 - [Tool specifications](agent/tools/)
 - [Internship Web Search tool specification](agent/tools/internship-web-search.md)
+- [On-demand Interview Question Search tool specification](agent/tools/interview-question-search.md)
 - [Student Email Notification tool specification](agent/tools/email-notification.md)
+- [Optional Jev fit-scoring tool specification](agent/tools/jev-fit-scoring.md)
 - [Local Application Materials tool specification](agent/tools/local-application-materials.md)
 - [Policies and rules](agent/policy-and-rules/)
 - [Memory specifications](agent/memory/)
@@ -88,7 +90,7 @@ The dashboard requires both complete student setup and a non-billable provider c
 
 No billable live API discovery run is part of the automated test suite. Run one bounded live validation only after the exact API model has been approved and local configuration passes `npm run check:api`.
 
-The test suite exercises structured local memory and spreadsheet operations in temporary directories. It verifies the 6-search/15-candidate/5-update limits, structured-result validation, duplicate prevention, optimistic record versions, read-back confirmation, student-owned field protection, notification idempotency, failure recording, and formula-injection-safe spreadsheet text. These tests do not create a persistent internship collection.
+The test suite exercises structured local memory and spreadsheet operations in temporary directories. It verifies the 10-search/15-candidate/5-update limits, structured-result validation, duplicate prevention, optimistic record versions, read-back confirmation, student-owned field protection, notification idempotency, failure recording, and formula-injection-safe spreadsheet text. These tests do not create a persistent internship collection.
 
 Student update notifications use exact deterministic plain-text messages. The initial API runtime writes private local previews and records them as `PREVIEWED`, not sent or delivered. Live email requires a separately approved provider integration.
 
@@ -99,3 +101,4 @@ The dashboard receives observable controller, API, and local-tool milestones and
 The frontend uses a compact operational-workspace layout that prioritizes the current collection, verified run results, next actions, and attention states. Its supplemental pixel agent uses distinct observable animations for retrieval, web search, candidate review, ranking, fit assessment, local actions, collection updates, notifications, verification, memory, completion, and attention states. Reduced-motion settings replace those animations with static state poses.
 
 The API key remains server-side and is read only from the environment or ignored `.env`. Each student must use an independently authorized API key; an instructor key must never be distributed with the repository.
+

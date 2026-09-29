@@ -1,2 +1,2 @@
-export const MAX_DISCOVERY_SEARCHES = 6;
+export const MAX_DISCOVERY_SEARCHES = 10;
 
