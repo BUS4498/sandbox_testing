@@ -52,7 +52,7 @@ Use durable private hosted storage for current opportunity records, operational 
 
 The Site must remain owner-only. A student-accessible or public version requires a separate access and per-student isolation review. The owner's OpenAI key must not be exposed to visitors or silently shared with a class.
 
-For the optional GitHub Actions cloud Daily Run, keep the private-Site access token and separate schedule-trigger token only in GitHub Actions secrets. Store only a hash of the schedule-trigger token in the Site's private persistence. The GitHub workflow must not receive student context, opportunity records, application drafts, or the OpenAI key, and must not print either token or private response data to logs. A committed workflow is not proof that its secrets or scheduled execution are working.
+The owner has removed the optional GitHub Actions cloud Daily Run from the current hosted Site. Do not reactivate its workflow or trigger using retained credentials. The deferred design in `runtime/github-cloud-schedule.md` would require separate secrets, minimum data transfer, and fresh approval and verification before any future use. Historical private schedule metadata may be retained for compatibility, but it is not an active control or authorization.
 
 ## External services
 
