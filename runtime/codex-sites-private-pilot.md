@@ -4,7 +4,7 @@
 
 This is a **design for an owner-only hosted pilot**, not a claim that the existing local app has been deployed. The local-first application and its `data/local/` files remain intact. The hosted pilot must not silently copy local runtime data, secrets, resumes, or prior opportunities to Sites.
 
-The first hosted checkpoint uses the explicitly selected **synthetic demonstration context** and a manual **Collect Opportunities** trigger. It may search live public postings, but every student-profile-based assessment must be labeled synthetic. Real-resume handling and automatic Daily Run are later hosted feature groups; until independently implemented and verified, their controls must say **Not available in this pilot** rather than imply they worked.
+The first hosted checkpoint used explicitly selected **synthetic demonstration context** and a manual **Collect Opportunities** trigger. The current private Site also supports confirmed real-student setup, but no automatic Daily Run. Synthetic-profile assessments must remain labeled synthetic. The removed cloud schedule is a deferred design, not a current control or trigger.
 
 ## Runtime boundary
 
@@ -54,7 +54,7 @@ The first live mail test requires an explicitly approved self-addressed message 
 
 ## Manual trigger and future schedule
 
-For the first hosted checkpoint, **Collect Opportunities** was manual only. The local app's daily process timer is not a hosted scheduler. The separately approved GitHub Actions cloud trigger is specified in [`github-cloud-schedule.md`](github-cloud-schedule.md): it requires authenticated owner-scoped invocation, one attempt per local day, missed-run reporting, and tests proving that it uses the same collection entry point and policies. Keep hosted Daily Run disabled until its GitHub secrets and check-only invocation are verified. The local app's existing schedule remains local-only.
+**Collect Opportunities** is manual in the current hosted Site. The owner removed its cloud Daily Run for now: no GitHub workflow, hosted trigger endpoint, or hosted schedule controls should be active. [`github-cloud-schedule.md`](github-cloud-schedule.md) preserves a deferred design only; do not restore it without a new owner decision and verification. The local app's existing schedule remains local-only and is unchanged.
 
 ## Verification and release gate
 
