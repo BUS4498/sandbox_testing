@@ -40,6 +40,8 @@ The owner may use the same authorized OpenAI API key as the local app, but must 
 
 The hosted owner bears API usage charges. Preserve the bounded discovery limits and add a visible run lock, sanitized provider failures, and a safe cost/spend-limit recommendation. A configured secret is not proof of connectivity; verify the model and web-search path through bounded tests before labeling them ready.
 
+An optional secondary fit indicator uses TypeSafe AI System One/Jev through `https://api.typesafe.ai/v1/systemone` and a separate server-side `JEV_API_KEY`. Only compact non-identifying structured evidence may leave the Site for this purpose; the original resume, name, email, application materials, raw response, and full posting must not. The controller keeps the qualitative assessment and decision as the authority. It stores one current score or unavailable/stale status per opportunity with model, rubric, time, and evidence-version provenance; detailed attempts remain in operational memory. Score-only changes never create opportunity-update emails. A one-time backfill is limited to five eligible existing records and five provider calls; no record is scored merely to reach that count.
+
 ## Outlook notification transport
 
 The hosted pilot uses Microsoft Graph with the owner's separately authorized Outlook account, not a Codex-installed Outlook plugin or the OpenAI API. Use an interactive delegated authorization flow with the minimum `Mail.Send` permission needed for `POST /me/sendMail`. The app must verify the connected account and permit pilot notifications only to that same confirmed address; it cannot become a general-purpose mail-sending endpoint. The owner may disconnect or disable notifications in the dashboard. OAuth credentials and tokens must stay in approved server-side secret or protected durable storage, never in Git, browser storage, spreadsheet, model input, or operational memory. If secure token storage or authorization cannot be established, keep live mail disabled and show the reason.
@@ -55,3 +57,4 @@ For the first hosted checkpoint, **Collect Opportunities** is manual only. The l
 ## Verification and release gate
 
 Before reporting a hosted pilot as working, verify owner-only access, denial of unauthorized access, clean source/assets, secret non-disclosure, persistent record survival after reload and redeploy, valid spreadsheet download, actual bounded search and assessment on synthetic context, duplicate and error paths, and honest email states. Test Graph separately with the one approved self-addressed message. Site publication and original GitHub publication are separate outcomes; verify each destination independently.
+

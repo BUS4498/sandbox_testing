@@ -58,6 +58,7 @@ Detailed responsibilities for each stage are defined in the workflow task specif
 - [Tool specifications](agent/tools/)
 - [Internship Web Search tool specification](agent/tools/internship-web-search.md)
 - [Student Email Notification tool specification](agent/tools/email-notification.md)
+- [Optional Jev fit-scoring tool specification](agent/tools/jev-fit-scoring.md)
 - [Local Application Materials tool specification](agent/tools/local-application-materials.md)
 - [Policies and rules](agent/policy-and-rules/)
 - [Memory specifications](agent/memory/)
@@ -99,3 +100,4 @@ The dashboard receives observable controller, API, and local-tool milestones and
 The frontend uses a compact operational-workspace layout that prioritizes the current collection, verified run results, next actions, and attention states. Its supplemental pixel agent uses distinct observable animations for retrieval, web search, candidate review, ranking, fit assessment, local actions, collection updates, notifications, verification, memory, completion, and attention states. Reduced-motion settings replace those animations with static state poses.
 
 The API key remains server-side and is read only from the environment or ignored `.env`. Each student must use an independently authorized API key; an instructor key must never be distributed with the repository.
+

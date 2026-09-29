@@ -25,6 +25,7 @@ For web discovery and related collection updates, evaluation memory should prese
 - a student response was recorded and queued for the promised review;
 - requested application templates were saved locally, verified, and still labeled for student review; and
 - an unresolved source-verification issue remains.
+- an optional Jev score was supported by the current evidence, accepted by response validation, persisted and read back for the correct opportunity and student-setup mode; otherwise the score remains unavailable or stale without changing the qualitative decision.
 
 ## Why it is needed
 
@@ -41,3 +42,4 @@ Retrieve relevant evaluations during **RETRIEVE**, before **REASON** reassesses 
 ## How it influences future cycles
 
 Evaluation memory informs **RETRIEVE** about failures, unresolved source-verification issues, and pending follow-up, and informs **REASON** about whether prior actions or recommendations produced the intended result. It drives corrective actions, retry safety, escalation, and the next review without erasing prior evaluations.
+

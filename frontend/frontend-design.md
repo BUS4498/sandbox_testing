@@ -72,6 +72,8 @@ Use the visible link text **Source** regardless of the provider's or career site
 
 Do not expose a standalone **Fit** column. Fit assessment remains structured agent evidence, but the dashboard should present what a student can act on: the recommendation, why the role aligns, verified matches, genuine gaps, and exact clarification needed. Translate internal `INSUFFICIENT INFORMATION` into **Needs clarification** and show the missing facts.
 
+In the owner-only hosted pilot, an optional **Preliminary fit** indicator may appear on an opportunity card beside—not instead of—the recommendation and evidence bullets. Show the rounded 0–100 score, TypeSafe/Jev attribution, and a short explanation that it reflects evidence alignment, not a hiring probability. Show **Score unavailable** when source or profile evidence is insufficient and **Needs reassessment** when the saved score belongs to an older evidence version or student setup. Never imply that a higher score authorizes an application or changes the student's decision. A score-only refresh does not generate a material-update email.
+
 The student should be able to search, filter, sort, and open an opportunity without losing the current dashboard context.
 
 Do not show a separate dashboard-wide **Information needed to continue** box that repeats the selected-opportunity or opportunity-card content. Put each exact question, missing fact, response status, and **Update Opportunity** control directly on the affected opportunity. The selected-opportunities area may summarize the same opportunity immediately after a run, but it should link the student to that single actionable record rather than create a second response surface.
@@ -429,3 +431,4 @@ The interface should:
 ## Future implementation boundary
 
 This specification does not prescribe a frontend framework. The implementation must connect through the local workflow controller to the OpenAI Responses API, keep the API key server-side, use the local schedule specification, and preserve these accessibility, synchronization, and human-authority boundaries.
+

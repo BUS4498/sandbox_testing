@@ -18,6 +18,8 @@ Keep student information, credentials, local runtime data, and external access a
 
 For the owner-only Sites pilot, configure `OPENAI_API_KEY` separately as a server-side Sites secret; do not read or copy the protected local key file into a deployment. Microsoft Graph authorization must use the owner's interactive delegated flow and keep OAuth material in approved protected server-side storage. Never place either credential in Sites source assets, environment examples with values, browser storage, spreadsheet exports, logs, or operational memory. Verify owner-only access before enabling hosted secrets or private persistence.
 
+Optional hosted Jev scoring uses a separate server-side Sites secret, `JEV_API_KEY`, solely for TypeSafe AI at `api.typesafe.ai`. Transfer only a compact, non-identifying summary of verified matches, gaps, preferences, constraints, and evidence completeness. Do not transfer the original resume, name, email, contact details, application materials, raw student response, full posting, or free-form private constraints. Keep the key, request body, and raw provider response out of browser assets, logs, spreadsheet exports, and operational memory. A scoring failure must not block the opportunity's qualitative assessment.
+
 ## Student and test data
 
 - Avoid collecting or displaying unnecessary personal information.
@@ -57,3 +59,4 @@ Routine student notifications should use minimum non-identifying disclosure: opp
 ## Security failures
 
 If a credential may be exposed, data may have been sent without authority, or local data integrity is uncertain, stop the affected action, preserve non-secret diagnostic evidence, inform the student, and require remediation before resuming.
+
