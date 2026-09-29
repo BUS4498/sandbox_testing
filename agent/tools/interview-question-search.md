@@ -6,7 +6,7 @@
 
 ## Purpose
 
-Support a student-requested **Practice Interview** action for one tracked opportunity. Search the public web for questions people report encountering in interviews at the employer, while keeping those reports distinct from questions the agent proposes for practice. This is preparation, not a prediction of what an interviewer will ask.
+Support a student-requested **Practice Interview** action for one tracked opportunity. Search the public web for questions people report encountering and for evidence about the interview process, while keeping those reports distinct from generated preparation guidance. This is preparation, not a prediction of what an interviewer will ask or a statement of current employer policy.
 
 This is a separate, on-demand use of general public web search. It is not internship discovery, does not use a specialized interview or job-search API, and must never run automatically during **Collect Opportunities**, a daily run, or ordinary material preparation.
 
@@ -19,13 +19,14 @@ Only after the student clicks **Practice Interview** for a specific saved opport
 - Opportunity ID, company, role title, current posting/source reference, and record version.
 - Explicit student request and request ID.
 - Relevant public role requirements or responsibilities when available.
-- Up to three targeted search themes, such as employer-and-role interview accounts, accessible YouTube content, and other public candidate or employer sources.
+- Two distinct search themes: employer-and-role questions and employer-and-role interview process. A third, narrower theme may be used when it could resolve a useful gap.
 
 Do not place the student's name, email, resume, legal eligibility, private constraints, application status, or free-form responses in public search queries. Verified student context is not needed to find publicly reported questions.
 
 ## Search and evidence limits
 
-- At most **3** public `web_search` calls per click, including failed attempts and retries.
+- Conduct **two distinct targeted searches** for questions and process when the search service works; the first search finding useful questions does not remove the process search. A third targeted search is optional when it could add meaningful evidence.
+- At most **3** public `web_search` calls per click, including failed attempts and retries. If a technical failure prevents the second theme, report incomplete research rather than claiming both themes were searched.
 - Inspect at most **10** potentially useful underlying public pages or accessible video descriptions/transcripts.
 - Stop early when additional results add no useful evidence. These are ceilings, not targets.
 - Keep this budget independent of the six-search **Collect Opportunities** budget. Neither action may borrow unused calls from the other.
@@ -34,14 +35,16 @@ Search results and snippets are leads, not proof that a question was asked. Insp
 
 ## Evidence categories and expected output
 
-Return a structured result with opportunity ID and version, search time, searches performed, pages inspected, source limitations, and two separate lists:
+Return a structured result with opportunity ID and version, search time, searches performed by theme, pages inspected, source limitations, and four clearly separated groups:
 
 1. **Publicly reported questions.** Include a concise question or careful paraphrase only when accessible source content explicitly supports that someone reports being asked it. Retain the source URL, source type, publication date when available, observed wording or supporting excerpt reference, employer match, exact-role or related-role match, and a label such as `Candidate report — not employer-verified`. An employer's own published interview guidance may be labeled as employer guidance, not as a candidate report or a guarantee of a future question.
-2. **Likely practice questions.** Derive these from the verified posting's responsibilities and requirements, or from the clearly identified role when posting details are sparse. Explain the role-related theme each question practices. Label every item `Agent-generated practice question — not reported by the employer or a candidate`.
+2. **Reported interview process.** Include only source-supported descriptions of stages, format, assessments, timing, or participant roles. Keep the source URL, date when available, exact-role or related-role match, short supporting excerpt, and whether the source is an employer-controlled guide or a candidate report. A candidate's account is not current employer policy or a guarantee that this role follows the same process. Do not infer omitted steps or numbers of rounds.
+3. **Likely practice questions.** Derive these from the verified posting's responsibilities and requirements, or from the clearly identified role when posting details are sparse. Explain the role-related theme each question practices. Label every item `Agent-generated practice question — not reported by the employer or a candidate`.
+4. **General process preparation.** When the employer-specific process cannot be verified, give a short, explicitly generic description of possible internship-interview activities and what the student can prepare. Never present it as this employer's actual procedure.
 
-Advice, interview-format descriptions, requests asking others what was asked, search snippets, and generic preparation lists are not publicly reported questions. An account for a different role or year must be identified as such. Do not convert a likely practice question into a reported question merely because it appears in a search result.
+Advice, interview-format descriptions, requests asking others what was asked, search snippets, and generic preparation lists are not publicly reported questions. Interview-format descriptions may enter **Reported interview process** only when the accessible source directly supports them; otherwise they remain generic preparation guidance or are omitted. An account for a different role or year must be identified as such. Do not convert likely preparation content into a reported fact merely because it appears in a search result.
 
-When no credible reported question can be validated, explicitly return **No publicly reported questions verified** and still provide useful likely practice questions when the verified role evidence supports them. If even the role evidence is inadequate, ask for a current posting or role description instead of inventing specificity.
+When no credible reported question can be validated, explicitly return **No publicly reported questions verified** and still provide useful likely practice questions when the verified role evidence supports them. When no employer-specific process can be validated, say so and show only labeled general preparation guidance. If even the role evidence is inadequate, ask for a current posting or role description instead of inventing specificity.
 
 ## Responsibility boundary
 
@@ -53,4 +56,4 @@ Use only accessible public sources and the bounded model/web capability already 
 
 ## Security and retention
 
-Store the minimal question text or paraphrase, URLs, source type, dates, match labels, and verification outcome. Do not store full pages, video transcripts, social-media handles, private comments, credentials, or unnecessary personal details. Keep saved practice results and Word drafts in the app's private runtime storage. Mark a result stale when the underlying opportunity version changes, and do not present older reports as current employer policy.
+Store the minimal question or process description, URLs, source type, dates, match labels, and verification outcome. Do not store full pages, video transcripts, social-media handles, private comments, credentials, or unnecessary personal details. Keep saved practice results and Word drafts in the app's private runtime storage. Mark a result stale when the underlying opportunity version changes, and do not present older reports as current employer policy.

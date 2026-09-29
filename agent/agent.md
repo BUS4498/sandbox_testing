@@ -28,7 +28,7 @@ The local-first system should:
 - optionally run automatically once per day;
 - create informational student-notification previews after tracked opportunities materially change, with live sending available only through a separately approved provider integration;
 - prepare local, review-only Microsoft Word application templates when the student requests them;
-- offer a separate, student-clicked **Practice Interview** action that checks public reports of interview questions and clearly labels agent-generated alternatives; and
+- offer a separate, student-clicked **Practice Interview** action that checks public reports of interview questions and process, clearly labeling generated preparation guidance; and
 - let the student explicitly archive and reset the current local collection without changing authoritative context, notification settings, API configuration, or local scheduling.
 
 The system is an internship-preparation assistant, not an autonomous job applicant. It has no application-submission capability.
@@ -135,7 +135,7 @@ The agent works with:
 - a local daily scheduling trigger;
 - professional communication drafting capability;
 - review-only application-material preparation capability;
-- on-demand public interview-question research and labeled practice-question drafting capability; and
+- on-demand public interview-question and process research with labeled preparation drafting capability; and
 - private local storage for prepared application templates.
 
 The student chooses the notification recipient in the local dashboard. The current local API implementation creates verified local previews only. The approved hosted-pilot transport uses Microsoft Graph delegated `Mail.Send` for the connected owner's own address; it must keep authorization secrets out of the repository, browser, spreadsheet, and operational memory. Provider acceptance must not be described as confirmed delivery.

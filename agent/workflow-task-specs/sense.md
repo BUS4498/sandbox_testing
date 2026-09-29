@@ -158,7 +158,7 @@ This mode performs no internship-market web search, candidate collection, rankin
 
 ## Mode D — Interview Practice for a Tracked Opportunity
 
-This mode runs only after the student clicks **Practice Interview** for one saved opportunity. Use the separate [Interview Question Search tool](../tools/interview-question-search.md) to inspect public reports and label source-supported candidate questions, inaccessible or unsupported leads, and likely practice questions separately. This is not a new-opportunity or material-change classification and does not enter the collection funnel.
+This mode runs only after the student clicks **Practice Interview** for one saved opportunity. Use the separate [Interview Question Search tool](../tools/interview-question-search.md) for two distinct targeted searches—reported questions and interview process—when search is available, with one optional gap-filling search under the three-search ceiling. Inspect public reports and label source-supported candidate questions, source-supported process descriptions, inaccessible or unsupported leads, likely practice questions, and generic process guidance separately. This is not a new-opportunity or material-change classification and does not enter the collection funnel.
 
 ## Instructions for both modes
 
@@ -192,7 +192,7 @@ Counts should make movement through the funnel auditable without storing unneces
 
 For a targeted student update, return the response identifier, selected opportunity identifier, the prior gap or action addressed, facts supplied by the student, any remaining uncertainty, and confirmation that discovery-search counts are zero.
 
-For interview practice, return the selected opportunity ID and version, search and inspected-page counts under its separate budget, reported-question evidence with source and role-match labels, generated-question themes, and source limitations. Do not relabel generic advice or inaccessible video content as a reported question.
+For interview practice, return the selected opportunity ID and version, search themes and inspected-page counts under its separate budget, reported-question and process evidence with source and role-match labels, generated-question themes, labeled general process guidance, and source limitations. Do not relabel generic advice or inaccessible video content as a reported question or an employer-specific process.
 
 ## Failure and exception handling
 
@@ -208,7 +208,7 @@ For a user-supplied opportunity, pass a supported `NEW` or `EXISTING — MATERIA
 
 For a targeted student update, pass exactly one existing opportunity, its scoped student response, current decision evidence, and remaining gaps to **REASON**. Do not invoke or report the discovery funnel.
 
-For interview practice, pass only the selected opportunity's source-supported question evidence and role-related themes to scoped preparation reasoning. Do not ask **REASON** to reassess fit or rank internships.
+For interview practice, pass only the selected opportunity's source-supported question and process evidence, role-related themes, and source limitations to scoped preparation reasoning. Do not ask **REASON** to reassess fit or rank internships.
 
 ## What should be remembered
 

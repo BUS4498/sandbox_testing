@@ -24,7 +24,7 @@ For web discovery and related collection updates, evaluation memory should prese
 - a hosted Graph `202 Accepted` was recorded as `SUBMITTED` only, and uncertain outcomes were not automatically retried;
 - a student response was recorded and queued for the promised review;
 - requested application templates were saved locally, verified, and still labeled for student review; and
-- an on-demand interview-practice result kept reported and generated questions separate, preserved source support, and saved a readable draft for the correct opportunity version without changing collection or notification state; and
+- an on-demand interview-practice result searched distinct question and process themes when available, kept reported facts separate from generated guidance, preserved source support, and saved a readable draft for the correct opportunity version without changing collection or notification state; and
 - an unresolved source-verification issue remains.
 - an optional Jev score was supported by the current evidence, accepted by response validation, persisted and read back for the correct opportunity and student-setup mode; otherwise the score remains unavailable or stale without changing the qualitative decision.
 

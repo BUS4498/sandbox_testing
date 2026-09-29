@@ -27,7 +27,7 @@ Supported initial template types may include:
 - `COVER_LETTER_OUTLINE`; and
 - `APPLICATION_QUESTION_WORKSHEET`.
 
-An independently requested interview-practice document may use this private Word storage and download capability, but it is **not** an automatic application-template choice. Its source labels, URLs, search date, opportunity version, and generated-versus-reported distinction must survive save and read-back verification. The separate **Practice Interview** control and tool specification govern when it can be prepared.
+An independently requested interview-practice document may use this private Word storage and download capability, but it is **not** an automatic application-template choice. Its question and process sections, source labels, URLs, search date, opportunity version, and generated-versus-reported distinction must survive save and read-back verification. The separate **Practice Interview** control and tool specification govern when it can be prepared.
 
 ## Expected output
 

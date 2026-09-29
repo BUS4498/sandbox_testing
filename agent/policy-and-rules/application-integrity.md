@@ -35,4 +35,4 @@ Drafts may reorganize or clarify verified information, but they must not add uns
 
 Application-preparation templates must remain labeled as drafts, keep unresolved placeholders visible, and cite the verified student evidence used. A template is not a final material and must never be treated as an application-submission capability.
 
-Interview practice must distinguish an accessible candidate's report of a question from employer guidance, generic online advice, and an agent-generated likely question. A question reported for another role or year is not evidence that the current interviewer will ask it. Never present unverified social content or generated practice as an official employer question.
+Interview practice must distinguish an accessible candidate's report of a question or process from employer guidance, generic online advice, and generated preparation. A question or process reported for another role or year is not evidence that the current interviewer will ask it or use the same stages. Never present unverified social content or generated practice as official employer information.
