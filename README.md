@@ -2,7 +2,7 @@
 
 > **Current status:** The local prototype uses a deterministic workflow controller with the OpenAI Responses API for bounded reasoning and general public web discovery. It provides a local dashboard, spreadsheet and memory operations, actionable student-response controls, review-only application-template preparation, local scheduling, and verified notification previews after material updates. Application submission and employer communication are not capabilities of this system.
 
-> **Hosted pilot status:** An owner-only Codex Sites variant is specified but not yet implemented or deployed. Its first checkpoint will use synthetic student context and manual collection only. Hosted Daily Run, real-resume upload, and live Outlook notification are not current capabilities; each requires its own implementation and verification.
+> **Hosted pilot status:** The owner-only Codex Site supports manual collection and confirmed student setup. Its cloud Daily Run has been removed for now; live Outlook notification remains disabled. The hosted Site is separate from the local application and its local-only scheduler.
 
 ## What this project is
 
@@ -101,4 +101,5 @@ The dashboard receives observable controller, API, and local-tool milestones and
 The frontend uses a compact operational-workspace layout that prioritizes the current collection, verified run results, next actions, and attention states. Its supplemental pixel agent uses distinct observable animations for retrieval, web search, candidate review, ranking, fit assessment, local actions, collection updates, notifications, verification, memory, completion, and attention states. Reduced-motion settings replace those animations with static state poses.
 
 The API key remains server-side and is read only from the environment or ignored `.env`. Each student must use an independently authorized API key; an instructor key must never be distributed with the repository.
+
 
