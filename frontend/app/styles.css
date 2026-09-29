@@ -16,13 +16,13 @@ button, a { -webkit-tap-highlight-color: transparent; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid rgba(14,113,108,.32); outline-offset: 3px; }
 .skip-link { position: fixed; left: 1rem; top: -5rem; z-index: 200; padding: .65rem 1rem; background: var(--ink); color: white; border-radius: 8px; }
 .skip-link:focus { top: 1rem; }
-.site-header { width: min(100% - 2rem, 1320px); min-height: 74px; margin: auto; display: flex; align-items: center; justify-content: space-between; }
+.site-header { width: min(100% - 2rem, 1640px); min-height: 74px; margin: auto; display: flex; align-items: center; justify-content: space-between; }
 .brand { display: inline-flex; align-items: center; gap: .8rem; color: inherit; text-decoration: none; }
 .brand-mark { width: 40px; height: 40px; display: grid; place-items: center; color: white; background: var(--teal); border: 3px solid var(--ink); border-radius: 11px; box-shadow: 4px 4px 0 var(--ink); font: 900 .78rem ui-monospace, monospace; }
 .brand strong, .brand small { display: block; } .brand strong { font-size: .93rem; } .brand small { margin-top: .16rem; color: var(--muted); font-size: .68rem; }
 .local-badge { display: inline-flex; align-items: center; gap: .45rem; padding: .48rem .7rem; border: 1px solid #cad7d1; border-radius: 99px; background: rgba(255,255,255,.6); font-size: .72rem; font-weight: 800; }
 .local-badge i { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 4px #dceee7; }
-.page-shell { width: min(100% - 2rem, 1320px); margin: 0 auto 4rem; }
+.page-shell { width: min(100% - 2rem, 1640px); margin: 0 auto 4rem; }
 .eyebrow { margin: 0 0 .35rem; color: var(--coral); font: 900 .68rem/1.3 ui-monospace, monospace; letter-spacing: .13em; text-transform: uppercase; }
 h1, h2, h3, p { overflow-wrap: anywhere; }
 h1 { margin: .2rem 0 .85rem; font-size: clamp(2.15rem, 4.4vw, 4.5rem); line-height: .98; letter-spacing: -.055em; }
@@ -154,6 +154,12 @@ h3 { margin: 0; font-size: 1.05rem; }
 .interview-practice-results p { color: var(--muted); font-size: .68rem; line-height: 1.45; }
 .interview-practice-results .interview-warning { color: var(--danger); font-weight: 700; }
 .interview-practice-results a { color: var(--teal-dark); text-decoration: underline; font-size: .68rem; }
+.primary-button { border-radius: 5px; }
+.opportunity-actions .primary-link { border-radius: 4px 16px 4px 16px; }
+.opportunity-actions .action-respond { border-radius: 3px 14px 3px 14px; border: 2px solid var(--teal-dark); }
+.opportunity-actions .action-prepare { border-radius: 14px; border: 2px solid #8aaea3; background: #eef8f4; }
+.opportunity-actions .action-interview { border-radius: 999px; border: 2px solid #a54d34; background: #fff7f1; color: #7c3827; }
+.opportunity-actions .action-interview:hover { border-color: #873b29; background: #ffe9db; color: #6d2e20; }
 .opportunity-actions { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .85rem; padding-top: .75rem; border-top: 1px solid #e8ebe7; }.button-link { min-height: 35px; padding: .45rem .65rem; font-size: .69rem; }.primary-link { color: white; border: 1px solid var(--teal); background: var(--teal); }.source-link { max-width: 270px; color: var(--teal); border: 1px solid #bfd0ca; background: white; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .empty-state { display: grid; place-items: center; padding: 2.2rem; text-align: center; color: var(--muted); }.empty-state span { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 12px; background: var(--teal-soft); color: var(--teal); font-size: 1.5rem; }.empty-state strong { margin-top: .55rem; color: var(--ink); }.empty-state p { margin: .25rem 0; font-size: .72rem; }
 .sync-strip { display: flex; align-items: center; gap: .5rem; min-height: 42px; padding: .6rem 1rem; border-top: 1px solid #e6e9e4; color: var(--muted); font-size: .66rem; }.sync-strip #sync-count { margin-left: auto; color: var(--ink); font-weight: 800; }.sync-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--gold); }.sync-dot.available { background: var(--success); }

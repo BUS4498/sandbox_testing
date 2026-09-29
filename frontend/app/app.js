@@ -376,8 +376,8 @@ function materialList(materials = []) {
 function interviewPracticeDisclosure(result) {
   const details = make("details", "interview-practice-results");
   if (!result) { details.hidden = true; return details; }
-  details.append(makeText("summary", "Interview practice questions"));
-  if (result.stale) details.append(makeText("p", "This opportunity changed since these questions were prepared. Refresh before relying on them.", "interview-warning"));
+  details.append(makeText("summary", "Interview questions and process"));
+  if (result.stale) details.append(makeText("p", "This opportunity changed since this research was prepared. Refresh before relying on it.", "interview-warning"));
   details.append(makeText("h4", "Publicly reported questions"));
   const reported = make("ul");
   if (!result.reportedQuestions?.length) reported.append(makeText("li", "No question was verified in an accessible public candidate account."));
@@ -385,11 +385,21 @@ function interviewPracticeDisclosure(result) {
     const row = make("li"); row.append(makeText("span", item.question), makeText("small", `${item.roleMatch === "EXACT_ROLE" ? "Same role" : "Related role"} · ${item.sourceDate}`));
     appendLink(row, item.sourceUrl, `${item.sourceName} source`, "interview-source", "Open the public candidate report"); reported.append(row);
   }
-  details.append(reported, makeText("h4", "Likely questions to practice"), makeText("p", "Generated preparation prompts; not questions confirmed to have been asked by this employer."));
+  details.append(reported, makeText("h4", "Publicly reported interview process"));
+  const process = make("ul");
+  if (!result.reportedProcess?.length) process.append(makeText("li", "No role-specific interview procedure was verified. The actual stages, format, and timing remain unknown."));
+  for (const item of result.reportedProcess || []) {
+    const row = make("li"); row.append(makeText("span", item.description), makeText("small", `${item.sourceKind === "EMPLOYER_GUIDANCE" ? "Employer guidance" : "Candidate account"} · ${item.roleMatch === "EXACT_ROLE" ? "Same role" : "Related role"} · ${item.sourceDate}`));
+    appendLink(row, item.sourceUrl, `${item.sourceName} source`, "interview-source", "Open the public process source"); process.append(row);
+  }
+  details.append(process, makeText("h4", "Likely questions to practice"), makeText("p", "Generated preparation prompts; not questions confirmed to have been asked by this employer."));
   const likely = make("ul"); for (const question of result.likelyQuestions || []) likely.append(makeText("li", question));
-  details.append(likely);
+  details.append(likely, makeText("h4", "General process preparation"), makeText("p", "Possible preparations, not this employer's confirmed procedure."));
+  const guidance = make("ul"); for (const item of result.generalProcessGuidance || []) guidance.append(makeText("li", item));
+  if (!guidance.children.length) guidance.append(makeText("li", "Ask the recruiter to confirm the actual process."));
+  details.append(guidance);
   if (result.searchNotes) details.append(makeText("p", result.searchNotes));
-  const download = makeText("a", "Download Word practice set", "material-link"); download.href = `/api/materials/${encodeURIComponent(result.materialId)}`; details.append(download);
+  const download = makeText("a", "Download Word practice guide", "material-link"); download.href = `/api/materials/${encodeURIComponent(result.materialId)}`; details.append(download);
   return details;
 }
 
@@ -406,7 +416,7 @@ function renderRun(run) {
   const firstRun = run?.active && run?.firstRun ? " The first run can take longer while the API performs the initial bounded search." : "";
   const shortfall = summary.selectionShortfallReason ? ` Fewer than three were selected: ${summary.selectionShortfallReason}` : "";
   const workflowContext = run?.workflowType === "INTERVIEW"
-    ? `On-demand public interview-question research for ${run.targetLabel || "one opportunity"}. No collection, fit score, email, or application action is performed.`
+    ? `On-demand public research into interview questions and procedure for ${run.targetLabel || "one opportunity"}. No collection, fit score, email, or application action is performed.`
     : run?.workflowType === "UPDATE"
     ? `Targeted update for ${run.targetLabel || "one opportunity"}. No web search is performed.`
     : `Discovery counts appear as the bounded collection workflow runs.${firstRun}`;
@@ -609,7 +619,7 @@ function updateAgent(stage, label, detail, progressPercent = 0) {
 
 function updateRunDuration() { const duration = displayedRun?.active && displayedRun?.startedAt ? Date.now() - new Date(displayedRun.startedAt).valueOf() : displayedRun?.durationMs; const formatted = formatDuration(duration); setText("#summary-duration", formatted); setText("#run-elapsed", `Elapsed time: ${formatted}`); }
 function setRunButton(disabled, label) { elements.runButton.disabled = disabled; elements.runButton.querySelector("span:last-child").textContent = label; }
-function actionButton(label, action) { const button = makeText("button", label, "secondary-button small"); button.type = "button"; button.dataset.action = action; return button; }
+function actionButton(label, action) { const button = makeText("button", label, `secondary-button small action-${action}`); button.type = "button"; button.dataset.action = action; return button; }
 function appendLink(parent, value, label, className, title = "") { const safe = safeHttpUrl(value); if (!safe) return; const link = makeText("a", label, className); link.href = safe; link.target = "_blank"; link.rel = "noreferrer"; if (title) { link.title = title; link.setAttribute("aria-label", title); } parent.append(link); }
 function make(tag, className) { const node = document.createElement(tag); if (className) node.className = className; return node; }
 function makeText(tag, text, className) { const node = make(tag, className); node.textContent = display(text); return node; }

@@ -355,20 +355,20 @@ export class RunNowManager extends EventEmitter {
   async #executeInterview(run) {
     if (!this.applicationMaterialStore?.saveTemplate || !this.client?.runInterviewResearch) throw new Error("Interview-practice research or Word storage is unavailable.");
     const record = run.targetOpportunity;
-    this.#setBusinessStage(run, "SEARCHING_WEB", `Searching public candidate accounts for reported interview questions about ${run.targetLabel}. No student details are used in search queries.`);
+    this.#setBusinessStage(run, "SEARCHING_WEB", `Searching separately for reported interview questions and interview-process details about ${run.targetLabel}. No student details are used in search queries.`);
     const result = await this.client.runInterviewResearch({ company: record.company, roleTitle: record.roleTitle, location: record.location, postingUrl: record.postingUrl });
     run.searchesPerformed = result.searchesPerformed;
     run.providerResponseId = result.responseId;
-    this.#setBusinessStage(run, "REVIEWING_CANDIDATES", `Separating ${result.reportedQuestions.length} source-checked reported questions from ${result.likelyQuestions.length} likely practice questions.`);
+    this.#setBusinessStage(run, "REVIEWING_CANDIDATES", `Checking ${result.reportedQuestions.length} reported questions and ${result.reportedProcess.length} process details against their public sources; labeling general guidance separately.`);
     const current = await this.spreadsheetTracker.getOpportunity(run.targetOpportunityId);
     if (!current || String(current.lastUpdated ?? "") !== String(record.lastUpdated ?? "")) throw new Error("The opportunity changed during interview research. Refresh it before trying again.");
     const markdown = interviewPracticeMarkdown(record, result);
     this.#setBusinessStage(run, "PREPARING_WORD_DRAFT", `Saving a private Word interview-practice set for ${run.targetLabel}; no application is submitted.`);
     const material = await this.applicationMaterialStore.saveTemplate({
       opportunityId: run.targetOpportunityId, company: record.company, roleTitle: record.roleTitle,
-      type: "INTERVIEW_PRACTICE", title: "Interview Practice Questions", markdown,
+      type: "INTERVIEW_PRACTICE", title: "Interview Questions and Process Practice", markdown,
       placeholders: ["Prepare your own truthful answers from verified experience."], runId: run.runId,
-      practiceResult: { reportedQuestions: result.reportedQuestions, likelyQuestions: result.likelyQuestions, searchNotes: result.searchNotes, searchesPerformed: result.searchesPerformed, sourcesInspected: result.sourcesInspected },
+      practiceResult: { reportedQuestions: result.reportedQuestions, reportedProcess: result.reportedProcess, likelyQuestions: result.likelyQuestions, generalProcessGuidance: result.generalProcessGuidance, searchNotes: result.searchNotes, searchesPerformed: result.searchesPerformed, sourcesInspected: result.sourcesInspected },
       opportunityLastUpdated: record.lastUpdated,
     });
     this.#setBusinessStage(run, "VERIFYING", `Reading the saved Word file back for ${run.targetLabel}.`);
@@ -376,14 +376,15 @@ export class RunNowManager extends EventEmitter {
     if (!material.verified || !checked?.verified) throw new Error("The Word practice set did not pass read-back verification.");
     this.#setBusinessStage(run, "REMEMBERING", `Recording the interview-practice outcome and public source references for ${run.targetLabel}.`);
     await this.memoryStore.appendAction({ runId: run.runId, opportunityId: run.targetOpportunityId, actionType: "INTERVIEW_PRACTICE_SAVED", outcome: "SUCCESS", materialId: material.materialId, searchesPerformed: result.searchesPerformed });
-    await this.memoryStore.appendObservation({ runId: run.runId, opportunityId: run.targetOpportunityId, observationType: "INTERVIEW_SOURCE_CHECK", reportedCount: result.reportedQuestions.length, likelyCount: result.likelyQuestions.length, sourceUrls: result.reportedQuestions.map((item) => item.sourceUrl) });
-    await this.memoryStore.appendEvaluation({ runId: run.runId, opportunityId: run.targetOpportunityId, expectedOutcome: "Private readable Word practice set with clearly labeled question types", observedOutcome: "Saved file passed read-back and question evidence was categorized", outcome: "SUCCESS" });
+    await this.memoryStore.appendObservation({ runId: run.runId, opportunityId: run.targetOpportunityId, observationType: "INTERVIEW_SOURCE_CHECK", reportedCount: result.reportedQuestions.length, processCount: result.reportedProcess.length, likelyCount: result.likelyQuestions.length, sourceUrls: [...result.reportedQuestions, ...result.reportedProcess].map((item) => item.sourceUrl) });
+    await this.memoryStore.appendEvaluation({ runId: run.runId, opportunityId: run.targetOpportunityId, expectedOutcome: "Private readable Word practice set with verified questions/process and clearly labeled guidance", observedOutcome: "Saved file passed read-back; sources and general guidance were categorized", outcome: "SUCCESS" });
     run.interviewReported = result.reportedQuestions.length;
+    run.interviewProcess = result.reportedProcess.length;
     run.interviewLikely = result.likelyQuestions.length;
     run.materialId = material.materialId;
     run.outcome = "SUCCESS"; run.active = false; run.finishedAt = this.clock().toISOString();
     run.stage = "FINISHED"; run.label = "Finished"; run.progressPercent = 100;
-    run.statusDetail = `${run.interviewReported} public questions verified and ${run.interviewLikely} likely practice questions saved for ${run.targetLabel}. Nothing was submitted or sent.`;
+    run.statusDetail = `${run.interviewReported} reported questions, ${run.interviewProcess} verified process details, and ${run.interviewLikely} likely practice questions saved for ${run.targetLabel}. Nothing was submitted or sent.`;
     await this.#finishRun(run);
   }
 
@@ -543,5 +544,11 @@ function interviewPracticeMarkdown(record, result) {
   const likely = result.likelyQuestions.length
     ? result.likelyQuestions.map((question) => `- ${question} (generated practice question; not reported by a candidate)`).join("\n")
     : "- No additional likely questions were prepared.";
-  return `# Publicly reported questions\n${reported}\n\n# Likely questions to practice\n${likely}\n\n# How to use this set\n- Questions from related roles may not be asked in this interview.\n- Practice honest examples from your verified experience; do not fabricate skills or accomplishments.\n- Posting: ${record.postingUrl || "Unknown"}\n- ${result.searchNotes || "No further source note."}\n- Nothing was submitted or sent.`;
+  const process = result.reportedProcess.length
+    ? result.reportedProcess.map((item) => `- ${item.description} (${item.sourceKind === "EMPLOYER_GUIDANCE" ? "employer guidance" : "candidate account"}; ${item.roleMatch === "EXACT_ROLE" ? "same role" : "related role"}; ${item.sourceName}; ${item.sourceDate}; ${item.sourceUrl})`).join("\n")
+    : "- No role-specific interview procedure could be verified from an accessible public source. The actual stages, format, and timing remain unknown.";
+  const guidance = result.generalProcessGuidance.length
+    ? result.generalProcessGuidance.map((item) => `- ${item} (general preparation guidance; not this employer's confirmed procedure)`).join("\n")
+    : "- Ask the recruiter to confirm the actual stages, format, and timing.";
+  return `# Publicly reported questions\n${reported}\n\n# Publicly reported interview process\n${process}\n\n# Likely questions to practice\n${likely}\n\n# General process preparation\n${guidance}\n\n# How to use this set\n- Questions and process reports from related roles may not apply here.\n- Practice honest examples from your verified experience; do not fabricate skills or accomplishments.\n- Posting: ${record.postingUrl || "Unknown"}\n- ${result.searchNotes || "No further source note."}\n- Nothing was submitted or sent.`;
 }

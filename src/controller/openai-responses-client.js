@@ -172,21 +172,34 @@ export class OpenAIResponsesClient {
     if (!company || !roleTitle) throw new TypeError("A company and role are required for interview practice.");
     const client = await this.#client();
     const publicPosting = { company, roleTitle, location: location || "Unknown", postingUrl: postingUrl || "Unknown" };
-    const input = `Search public candidate accounts, YouTube descriptions/transcripts, and credible interview-report sites for questions actually asked for the public role below. Use one to three targeted web searches and inspect no more than ten underlying public pages. Do not search with any student name, resume, profile, email, or other private information. A video title or generic advice is not proof that a question was actually asked. Include a reported question only with a specific public URL and a short exact quote from that page. Mark exact versus related roles. If no real questions can be verified, return likely role-specific practice questions, clearly separate from reported questions. Never invent a reported question. Return the requested JSON only.\n${JSON.stringify(publicPosting)}`;
-    let response;
-    try {
-      response = await client.responses.create({ model: this.model, input, reasoning: { effort: this.reasoningEffort },
-        text: { format: { type: "json_schema", name: "interview_practice_result", strict: true, schema: INTERVIEW_PRACTICE_SCHEMA } },
-        tools: [{ type: "web_search", search_context_size: "low" }], tool_choice: "required", max_tool_calls: 13, include: ["web_search_call.action.sources"],
-      });
-    } catch (cause) { throw normalizeProviderError(cause); }
-    if (response?.status !== "completed") throw new OpenAIResponsesRuntimeError("Interview research did not complete.", "INTERVIEW_INCOMPLETE");
-    const searchesPerformed = countWebSearchCalls(response?.output);
-    const sourcesInspected = (response?.output || []).filter((item) => item?.type === "web_search_call" && item?.action?.type === "open_page").length;
-    if (searchesPerformed < 1 || searchesPerformed > 3 || sourcesInspected > 10) throw new OpenAIResponsesRuntimeError("Interview research exceeded its three-search or ten-page limit.", "INTERVIEW_BUDGET_EXCEEDED");
+    const searchTheme = async (theme) => {
+      const focus = theme === "QUESTIONS"
+        ? "Search ONCE for candidate-reported questions actually asked for this employer and role. Fill reportedQuestions and likelyQuestions; leave process arrays empty."
+        : "Search ONCE for candidate-reported interview stages, format, assessments, or employer-published process guidance for this employer and role. Fill reportedProcess and generalProcessGuidance; leave question arrays empty. Candidate accounts are not employer policy.";
+      const input = `${focus} Use one focused web-search query and cite accessible public candidate accounts, YouTube descriptions or transcripts, or employer-authorized pages. A snippet or inaccessible video is not proof. For each reported item, include an exact source quote of at most 180 characters. Mark exact versus related roles. Do not invent rounds, timing, or questions. Search with no student name, resume, profile, email, or private information. Return JSON only.\n${JSON.stringify(publicPosting)}`;
+      let response;
+      try {
+        response = await client.responses.create({ model: this.model, input, reasoning: { effort: this.reasoningEffort },
+          text: { format: { type: "json_schema", name: "interview_practice_result", strict: true, schema: INTERVIEW_PRACTICE_SCHEMA } },
+          tools: [{ type: "web_search", search_context_size: "low" }], tool_choice: "required", max_tool_calls: 1, include: ["web_search_call.action.sources"],
+        });
+      } catch (cause) { throw normalizeProviderError(cause); }
+      if (response?.status !== "completed") throw new OpenAIResponsesRuntimeError(`${theme} interview research did not complete. No new practice set was saved.`, "INTERVIEW_INCOMPLETE");
+      const count = countWebSearchCalls(response?.output);
+      if (count < 1 || count > 2) throw new OpenAIResponsesRuntimeError(`${theme} interview research did not stay within its search budget.`, "INTERVIEW_BUDGET_EXCEEDED");
+      return { text: response.output_text, urls: collectSources(response.output).map((item) => item.url), count, responseId: safeIdentifier(response?.id) };
+    };
+    const questions = await searchTheme("QUESTIONS");
+    const process = await searchTheme("PROCESS");
+    const searchesPerformed = questions.count + process.count;
+    if (searchesPerformed > 3) throw new OpenAIResponsesRuntimeError("Interview research exceeded its three-search limit.", "INTERVIEW_BUDGET_EXCEEDED");
     let result;
     try {
-      result = validateInterviewResult(response.output_text, collectSources(response.output).map((item) => item.url));
+      const questionResult = validateInterviewResult(questions.text, questions.urls);
+      const processResult = validateInterviewResult(process.text, process.urls);
+      result = { reportedQuestions: questionResult.reportedQuestions, reportedProcess: processResult.reportedProcess,
+        likelyQuestions: questionResult.likelyQuestions, generalProcessGuidance: processResult.generalProcessGuidance,
+        searchNotes: [questionResult.searchNotes, processResult.searchNotes].filter(Boolean).join(" ") };
       result = await verifyInterviewReports(result, { company, roleTitle });
     } catch { throw new OpenAIResponsesRuntimeError("Interview research did not pass source and structure checks.", "INTERVIEW_VALIDATION_FAILED"); }
     if (!result.reportedQuestions.length && !result.likelyQuestions.length) result.likelyQuestions = [
@@ -196,7 +209,12 @@ export class OpenAIResponsesClient {
       "How would you check whether a process or system improvement is working?",
       "What would you do if you lacked a skill needed for an internship assignment?",
     ];
-    return { ...result, searchesPerformed, sourcesInspected, responseId: safeIdentifier(response?.id) };
+    // Do not repackage unverified source claims as generic process guidance.
+    result.generalProcessGuidance = [
+      "An introductory conversation, a discussion of role-related work, and time for your questions are possibilities—not this employer's confirmed stages.",
+      "Ask the recruiter to confirm the actual format, stages, assessments, and timing.",
+    ];
+    return { ...result, searchesPerformed, sourcesInspected: result.sourcesInspected, responseId: [questions.responseId, process.responseId].filter(Boolean).join(",") };
   }
 
   async close() {}

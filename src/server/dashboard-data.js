@@ -193,6 +193,7 @@ function publicRun(currentRun, latestRun, now, firstRun) {
       unresolvedIssues: numberOrNull(currentRun.unresolvedIssues ?? recorded?.unresolvedIssues),
       selectionShortfallReason: currentRun.selectionShortfallReason ?? recorded?.selectionShortfallReason ?? null,
       interviewReported: numberOrNull(currentRun.interviewReported ?? recorded?.interviewReported),
+      interviewProcess: numberOrNull(currentRun.interviewProcess ?? recorded?.interviewProcess),
       interviewLikely: numberOrNull(currentRun.interviewLikely ?? recorded?.interviewLikely),
     },
   };
