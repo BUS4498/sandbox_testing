@@ -35,7 +35,7 @@ A scheduled run must use the same controller entry point, specifications, contex
 
 Before starting, the controller must verify that a complete real-student setup or an explicitly selected synthetic demonstration setup is active. If setup is incomplete, the scheduled attempt is skipped before any API request, recorded as **Needs Student Setup**, and surfaced with the exact missing fields and a next action. It must not silently use synthetic defaults or claim that collection occurred.
 
-The objective is to process the top three to five sufficiently relevant new or materially changed opportunities when at least three qualify, within the hard maximums of six searches, fifteen candidates, and five selected updates. Fewer than three are allowed with a visible shortfall reason.
+The objective is to process the top three to five sufficiently relevant new or materially changed opportunities when at least three qualify, within the hard maximums of ten searches, fifteen candidates, and five selected updates. Fewer than three are allowed with a visible shortfall reason.
 
 ## Local Availability and Missed Runs
 

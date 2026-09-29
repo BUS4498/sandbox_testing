@@ -90,7 +90,7 @@ The dashboard requires both complete student setup and a non-billable provider c
 
 No billable live API discovery run is part of the automated test suite. Run one bounded live validation only after the exact API model has been approved and local configuration passes `npm run check:api`.
 
-The test suite exercises structured local memory and spreadsheet operations in temporary directories. It verifies the 6-search/15-candidate/5-update limits, structured-result validation, duplicate prevention, optimistic record versions, read-back confirmation, student-owned field protection, notification idempotency, failure recording, and formula-injection-safe spreadsheet text. These tests do not create a persistent internship collection.
+The test suite exercises structured local memory and spreadsheet operations in temporary directories. It verifies the 10-search/15-candidate/5-update limits, structured-result validation, duplicate prevention, optimistic record versions, read-back confirmation, student-owned field protection, notification idempotency, failure recording, and formula-injection-safe spreadsheet text. These tests do not create a persistent internship collection.
 
 Student update notifications use exact deterministic plain-text messages. The initial API runtime writes private local previews and records them as `PREVIEWED`, not sent or delivered. Live email requires a separately approved provider integration.
 

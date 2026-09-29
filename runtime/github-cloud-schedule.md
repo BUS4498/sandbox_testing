@@ -10,7 +10,7 @@ If reapproved later, the hosted Daily Run could use a GitHub Actions schedule as
 
 The GitHub job carries no student profile, opportunity data, OpenAI key, or application material. It uses two GitHub Actions secrets: a private Site access token that allows an identity-less request through the Site's sign-in gate, and a separate, revocable Daily Run trigger token. The Site stores only a hash of the latter. Neither secret belongs in repository files, logs, prompts, or browser storage. The Site accepts the trigger only for the owner who explicitly enabled Daily Run in the authenticated dashboard; disabling or rotating the token revokes future scheduled processing.
 
-The trigger invokes the same bounded collection entry point as **Collect Opportunities**: at most six web searches, fifteen candidates, and five new or materially changed opportunities. The usual profile, policies, duplicate checks, approval rules, verified writes, and memory apply. Live email remains disabled until its separate authorization group is complete. A manual check-only GitHub invocation validates connectivity without a model call or collection write.
+The trigger invokes the same bounded collection entry point as **Collect Opportunities**: at most ten web searches, fifteen candidates, and five new or materially changed opportunities. The usual profile, policies, duplicate checks, approval rules, verified writes, and memory apply. Live email remains disabled until its separate authorization group is complete. A manual check-only GitHub invocation validates connectivity without a model call or collection write.
 
 ## One run per day and visible failures
 

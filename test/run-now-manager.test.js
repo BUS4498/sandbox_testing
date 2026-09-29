@@ -49,7 +49,7 @@ test("Collect uses a task-scoped bounded API request and records completion", as
     assert.equal(completed.searchesPerformed, 6);
     assert.equal(completed.progressPercent, 100);
     assert.equal(client.calls[0].allowWebSearch, true);
-    assert.match(client.calls[0].input, /no more than 6 targeted public-web searches/i);
+    assert.match(client.calls[0].input, /no more than 10 targeted public-web searches/i);
     assert.match(client.calls[0].input, /agent\/skills\/job-fit-assessment\/SKILL\.md/);
     assert.match(client.calls[0].input, /Explicitly selected synthetic demonstration setup/);
     assert.doesNotMatch(client.calls[0].input, /sk-[A-Za-z0-9_-]{12,}/);

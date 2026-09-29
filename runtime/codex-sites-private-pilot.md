@@ -17,13 +17,13 @@ Hosted deterministic workflow controller
        └── Microsoft Graph: approved student-only informational email
 ```
 
-The hosted controller retains the same `RETRIEVE → SENSE → REASON → DECIDE → ACT → VERIFY → REMEMBER → REPEAT OR STOP` workflow, six-search/fifteen-candidate/five-update limits, task-scoped specification loading, duplicate checks, approval rules, and verification requirements as the local controller. The model may propose structured results but cannot write the collection, send mail, approve actions, or expand its own tool access. Hosted implementation must use only storage and server-side facilities actually supported by Sites; a local Node process or laptop filesystem is not an implicit dependency.
+The hosted controller retains the same `RETRIEVE → SENSE → REASON → DECIDE → ACT → VERIFY → REMEMBER → REPEAT OR STOP` workflow, ten-search/fifteen-candidate/five-update limits, task-scoped specification loading, duplicate checks, approval rules, and verification requirements as the local controller. The model may propose structured results but cannot write the collection, send mail, approve actions, or expand its own tool access. Hosted implementation must use only storage and server-side facilities actually supported by Sites; a local Node process or laptop filesystem is not an implicit dependency.
 
 ## Access and student data
 
 - The Site must be owner-only before any private data or API secret is configured. Do not widen access to a class, group, or the public without a separate approved design and per-student isolation.
 - The first checkpoint uses only the repository's synthetic student context. Do not upload, migrate, or process a real resume or an existing `data/local/` record in the hosted pilot.
-- A later real-student group must define explicit consent, non-identifying profile confirmation, retention, deletion, and storage isolation before enabling real uploads. An original resume must not be sent to the OpenAI API or placed in Git/Sites source assets.
+- Real-student setup requires explicit consent, non-identifying model-facing profile confirmation, owner-scoped original-file retention when the student opts in, and verified deletion. An original resume must not be sent to OpenAI or TypeSafe or placed in Git/Sites source assets. It may be used only for that owner's review-only draft.
 - Search queries must use only the minimum non-identifying role, broad location, timing, and work-arrangement criteria. Routine email must use minimum non-identifying disclosure.
 
 ## Durable collection and downloads
@@ -42,7 +42,7 @@ The owner may use the same authorized OpenAI API key as the local app, but must 
 
 The hosted owner bears API usage charges. Preserve the bounded discovery limits and add a visible run lock, sanitized provider failures, and a safe cost/spend-limit recommendation. A configured secret is not proof of connectivity; verify the model and web-search path through bounded tests before labeling them ready.
 
-An optional secondary fit indicator uses TypeSafe AI System One/Jev through `https://api.typesafe.ai/v1/systemone` and a separate server-side `JEV_API_KEY`. Only compact non-identifying structured evidence may leave the Site for this purpose; the original resume, name, email, application materials, raw response, and full posting must not. The controller keeps the qualitative assessment and decision as the authority. It stores one current score or unavailable/stale status per opportunity with model, rubric, time, and evidence-version provenance; detailed attempts remain in operational memory. Score-only changes never create opportunity-update emails. A one-time backfill is limited to five eligible existing records and five provider calls; no record is scored merely to reach that count.
+An optional secondary fit indicator uses TypeSafe AI System One/Jev through `https://api.typesafe.ai/v1/systemone` and a separate server-side `JEV_API_KEY`. Compact non-identifying structured evidence may leave the Site; a separately consented targeted update may also send the screened answer and its specific open issue to TypeSafe for relevance review and rescoring. The original resume, name, email, application materials, unrelated response history, and full posting must not. The controller keeps the qualitative assessment and decision as the authority. It stores one current score or unavailable/stale status per opportunity with model, rubric, time, and evidence-version provenance; detailed attempts remain in operational memory. Score-only changes never create opportunity-update emails. A one-time backfill is limited to five eligible existing records and five provider calls; no record is scored merely to reach that count.
 
 ## Outlook notification transport
 

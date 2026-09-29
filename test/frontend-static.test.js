@@ -10,7 +10,7 @@ test("dashboard exposes separate Collect and immediate Update experiences", () =
   assert.match(html, /Collect Opportunities/);
   assert.match(html, /Save and Update/);
   assert.match(html, /No Collect run is required/);
-  assert.match(html, /Up to 6 searches · 15 candidates · top 3–5 updates/);
+  assert.match(html, /Up to 10 searches · 15 candidates · top 3–5 updates/);
   assert.match(html, /nothing is submitted for you/);
   assert.match(html, /Daily collection/);
   assert.match(html, /works only while the local app is running/);

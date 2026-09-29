@@ -18,7 +18,7 @@ Only after the student clicks **Practice Interview** for a specific saved opport
 
 - Opportunity ID, company, role title, current posting/source reference, and record version.
 - Explicit student request and request ID.
-- Relevant public role requirements or responsibilities when available.
+- Source-backed public role responsibilities and required/preferred qualifications retained with the posting. Older records lacking these details need a posting refresh or a visible evidence-gap warning; do not silently substitute generic duties.
 - Two distinct search themes: employer-and-role questions and employer-and-role interview process. A third, narrower theme may be used when it could resolve a useful gap.
 
 Do not place the student's name, email, resume, legal eligibility, private constraints, application status, or free-form responses in public search queries. Verified student context is not needed to find publicly reported questions.
@@ -29,7 +29,7 @@ Do not place the student's name, email, resume, legal eligibility, private const
 - At most **3** public `web_search` calls per click, including failed attempts and retries. If a technical failure prevents the second theme, report incomplete research rather than claiming both themes were searched.
 - Inspect at most **10** potentially useful underlying public pages or accessible video descriptions/transcripts.
 - Stop early when additional results add no useful evidence. These are ceilings, not targets.
-- Keep this budget independent of the six-search **Collect Opportunities** budget. Neither action may borrow unused calls from the other.
+- Keep this budget independent of the ten-search **Collect Opportunities** budget. Neither action may borrow unused calls from the other.
 
 Search results and snippets are leads, not proof that a question was asked. Inspect the accessible underlying post, video description or transcript, candidate account, or employer page. Do not bypass authentication, paywalls, access controls, or unavailable transcripts. A video title alone cannot establish the wording of an interview question.
 

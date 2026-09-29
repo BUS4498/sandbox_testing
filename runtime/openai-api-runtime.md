@@ -20,7 +20,7 @@ Local Workflow Controller
 
 **Collect Opportunities** invokes bounded discovery. **Update Opportunity** processes one saved student response without market discovery. The optional local daily schedule invokes the same collection entry point as the manual control.
 
-**Practice Interview** starts a separate, student-clicked, one-opportunity preparation workflow. Its web-search budget is at most three calls and ten inspected public results; it never borrows from or changes the six-call collection budget. It uses a task-scoped interview-question evidence contract, not the opportunity-discovery result schema. The controller validates source support and labels candidate reports separately from generated practice questions before saving a review-only Word document. It does not update collection records, fit scores, or email notifications.
+**Practice Interview** starts a separate, student-clicked, one-opportunity preparation workflow. Its web-search budget is at most three calls and ten inspected public results; it never borrows from or changes the ten-call collection budget. It uses a task-scoped interview-question evidence contract, not the opportunity-discovery result schema. The controller validates source support and labels candidate reports separately from generated practice questions before saving a review-only Word document. It does not update collection records, fit scores, or email notifications.
 
 ## OpenAI API Responsibilities
 
@@ -42,7 +42,7 @@ The local controller must:
 - read only the specifications, context, memory, and opportunity data needed for the active workflow;
 - enforce a deterministic setup-completeness gate before any discovery or assessment request;
 - construct a task-scoped API instruction rather than one permanent prompt containing every specification;
-- enforce the six-search, fifteen-candidate, and five-selected-update maximums;
+- enforce the ten-search, fifteen-candidate, and five-selected-update maximums;
 - validate the returned structured result before acting;
 - reject private sources, unsupported claims, excessive search activity, malformed outputs, and cross-opportunity leakage;
 - perform duplicate detection and hard-constraint filtering deterministically whenever practical;
@@ -70,7 +70,7 @@ The controller must not merge every repository file into every request. Confirme
 
 ## Bounded Discovery and Cost Control
 
-A discovery run may make no more than six hosted public-web-search tool calls, screen no more than fifteen candidates, and select no more than five new or materially changed opportunities. Fewer results are valid. The controller must set the Responses API `max_tool_calls` request limit before execution, count each returned hosted search action once even when it contains multiple related query variants, and reject a result that exceeds the approved limit.
+A discovery run may make no more than ten hosted public-web-search tool calls, screen no more than fifteen candidates, and select no more than five new or materially changed opportunities. Fewer results are valid. The controller must set the Responses API `max_tool_calls` request limit before execution, count each returned hosted search action once even when it contains multiple related query variants, and reject a result that exceeds the approved limit.
 
 Use model reasoning selectively. Prefer deterministic filtering, duplicate detection, local file operations, and notification formatting. When practical, batch candidate ranking and combine REASON and DECIDE while preserving their distinct structured fields.
 

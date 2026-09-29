@@ -11,7 +11,8 @@ Prepare substantive, editable application drafts from the selected posting and v
 
 ## Required inputs
 
-- A tracked opportunity and current posting evidence.
+- A tracked opportunity with source-backed responsibilities and required/preferred qualifications when available. If an older record lacks them, refresh the public posting or label the gap; do not infer duties from the role title.
+- The student's confirmed resume text as the complete drafting baseline and, when separately approved for private retention, the original resume file as an owner-downloadable comparison reference. The current hosted renderer need not duplicate a PDF's visual layout.
 - The student's explicit preparation request.
 - Only the relevant verified education, skills, coursework, projects, and experience from `context/`.
 - Current decision, next action, deadline, and known qualification gaps.
@@ -22,15 +23,15 @@ If essential information is missing, create a visible placeholder or return a pr
 ## Instructions
 
 1. Identify the employer's observable application requirements without opening, completing, or submitting an application form.
-2. Select only verified student evidence relevant to the role.
+2. Preserve the full confirmed resume content as the baseline. Select verified role-relevant evidence for emphasis, not as a reason to discard other original education, experience, project, or skill content.
 3. Preserve the difference between a posting requirement, a verified student fact, a suggested emphasis, and a student-supplied response.
 4. Prepare only the requested template types:
-   - a tailored resume draft in the one-page, sectioned style of the supplied resume reference, selecting and reordering only verified education, experience, projects, and skills; highlight changed or newly emphasized text for student review;
+   - a tailored resume draft that retains the original resume's substantive content and section structure, integrates only verified role-relevant edits in place, and highlights each proposed change for student review; do not replace the resume with a short excerpt list;
    - a complete, role-specific cover-letter draft in a restrained Cal Poly-inspired style, with substantive opening, evidence-backed body, and closing; or
    - an application-question worksheet that lists known questions, verified evidence, and fields the student must answer.
-   The supplied resume PDF is a visual reference only. Do not copy its person's name, contact information, or claims into another student's draft. Keep name and contact placeholders because the confirmed agent-facing profile is non-identifying. Do not present the cover letter as official Cal Poly correspondence.
+   A privately retained original resume belongs only to the student who uploaded it. Use it solely for that student's draft; never copy its identity or claims into another student's materials, and never send the original file to a model. If a PDF cannot preserve editable Word formatting, retain all readable confirmed content in a new Word layout and disclose that limitation. Do not present the cover letter as official Cal Poly correspondence.
 5. Use concise, student-editable language and label every artifact `DRAFT TEMPLATE — STUDENT REVIEW REQUIRED`.
-6. Trace every proposed resume claim and cover-letter example to verified student evidence. Reorder or clarify verified resume wording without inventing facts, metrics, titles, or dates. If evidence is insufficient for a substantive draft, return a precise gap instead of a generic outline labeled as a finished draft.
+6. Trace every proposed resume change and cover-letter example to verified student evidence and a specific posting responsibility or qualification when one is available. Preserve unchanged resume text, including less role-relevant items. Clarify verified wording without inventing facts, metrics, titles, or dates. If evidence is insufficient for a substantive draft, return a precise gap instead of a generic outline labeled as a finished draft.
 7. Identify genuine gaps and unresolved questions transparently.
 8. End with the exact student review step required before any material could become final.
 9. Organize content into Word-ready structured sections, paragraphs, evidence references, changed-text markers, and visible placeholders. The resume and cover letter must read as actual editable drafts; keep review instructions separate from the application-facing body. Do not depend on raw Markdown formatting as the delivered student experience.
@@ -48,4 +49,4 @@ Return:
 
 ## Boundaries
 
-Do not fabricate qualifications, overwrite the authoritative resume, represent a draft as final, answer legal or eligibility questions without verified information, visit or complete an application form, upload a file, send a material, contact an employer, or submit an application. Send only relevant confirmed, non-identifying profile excerpts to the configured OpenAI API when model drafting is used; never send the original resume file or contact details.
+Do not fabricate qualifications, overwrite the authoritative resume, represent a draft as final, answer legal or eligibility questions without verified information, visit or complete an application form, upload a file to an employer, send a material, contact an employer, or submit an application. Send only relevant confirmed, non-identifying profile excerpts and public posting facts to the configured OpenAI API when model drafting is used; never send the original resume file or contact details. Keep any retained original resume private, owner-scoped, and deletable.
