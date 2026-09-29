@@ -1,6 +1,8 @@
 # Owner-only cloud Daily Run
 
-The hosted pilot's Daily Run uses a GitHub Actions schedule as an external wake-up call. It is separate from the local app's in-process daily timer and works while the student's computer is off. The workflow file must be on the GitHub repository's default `main` branch. Target time: **9:00 AM America/Los_Angeles**. GitHub may delay or omit a scheduled job, so the dashboard reports actual runs and missed days instead of treating the calendar trigger as proof that work occurred.
+**Status: deferred.** The owner removed cloud Daily Run from the current private Site. The GitHub Actions workflow, hosted trigger endpoint, and hosted schedule controls are not active. This file preserves a possible future design, not instructions to run or configure a schedule now. Reintroduction requires a separate owner decision, fresh credential setup, and verification. The local app's existing scheduler is a different, local-only capability and is unchanged.
+
+If reapproved later, the hosted Daily Run could use a GitHub Actions schedule as an external wake-up call. The workflow file would need to be on the repository's default `main` branch. The previously selected target was **9:00 AM America/Los_Angeles**. GitHub could delay or omit a scheduled job, so the dashboard would report actual runs and missed days instead of treating the calendar trigger as proof that work occurred.
 
 ## Trigger and authority
 
@@ -18,5 +20,5 @@ The dashboard shows **Enabled/Disabled**, the 9:00 AM Pacific target, last sched
 
 ## Activation boundary
 
-Do not call the GitHub workflow active merely because its file is committed or the Site can receive a trigger. Activation requires both secrets to be configured in GitHub Actions, a successful non-billable check-only invocation through the private Site, an explicitly enabled Site setting, and a verified first scheduled outcome. If any step is unavailable, show **Setup required** or **Not connected** and keep Daily Run disabled.
+Do not call this deferred design active. If it is reapproved, activation would require both secrets in GitHub Actions, a successful non-billable check-only invocation through the private Site, an explicitly enabled Site setting, and a verified first scheduled outcome. Until then, the Site offers manual **Collect Opportunities** only.
 
