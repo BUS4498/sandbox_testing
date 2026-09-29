@@ -62,7 +62,7 @@ export const RUN_NOW_INSTRUCTION = COLLECT_INSTRUCTION;
 export function buildUpdateInstruction({ opportunityId, opportunity }) {
   return `Run the Internship Application Prep Agent in Update Opportunity mode.
 
-Process only existing opportunity ${opportunityId} and only the newly saved student response supplied in this request. Do not search the web, discover candidates, rank other opportunities, or revisit the collection. Reassess only as needed to resolve the response, advance the next action, or prepare requested review-only Word templates.
+Process only existing opportunity ${opportunityId} and only the newly saved student response supplied in this request. Do not search the web, discover candidates, rank other opportunities, or revisit the collection. Reassess only as needed to resolve the response, advance the next action, or prepare requested review-only Word drafts. For a TAILORED_RESUME, return usable resume sections and at least three verified accomplishment bullets; do not return a tailoring checklist. For a COVER_LETTER_DRAFT, return three or four complete paragraphs separated by blank lines, not an outline. Use only confirmed, non-identifying student evidence; keep name and contact placeholders. The Word renderer highlights proposed resume emphasis and applies the approved visual styles.
 
 Existing opportunity snapshot:
 ${JSON.stringify(publicTargetOpportunity(opportunity))}

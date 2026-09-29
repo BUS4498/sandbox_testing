@@ -52,3 +52,28 @@ test("rejects unsupported template types and empty content", async () => {
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test("saves role-specific resume and complete cover-letter Word drafts without overwriting old materials", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "internship-material-test-"));
+  let next = 0;
+  const store = await new LocalApplicationMaterialStore({ rootDir: directory, idFactory: () => `draft-${++next}` }).initialize();
+  try {
+    const resume = await store.saveTemplate({
+      opportunityId: "opp-002", company: "Example Analytics", roleTitle: "AI Business Analyst Intern",
+      type: "TAILORED_RESUME", title: "Tailored Resume Draft",
+      markdown: "## EDUCATION\nB.S. Business Administration, Information Systems.\n## WORK EXPERIENCE\n- Improved an Excel tracker in a campus role.\n- Documented process requirements for a student team.\n## PROJECTS\n- Built a Power BI dashboard for a course project.",
+    });
+    const letter = await store.saveTemplate({
+      opportunityId: "opp-002", company: "Example Analytics", roleTitle: "AI Business Analyst Intern",
+      type: "COVER_LETTER_DRAFT", title: "Cover Letter Draft",
+      markdown: "Dear Hiring Team,\n\nI am interested in the AI Business Analyst internship because it combines the systems-analysis and process-improvement work I have been practicing in coursework. My Information Systems studies have emphasized translating business needs into useful information.\n\nIn a campus role, I improved an Excel tracker and documented process requirements for a student team. In an academic project, I built a Power BI dashboard to present findings clearly. These experiences would help me contribute to analysis and documentation tasks while learning from your team.\n\nThank you for considering my application. I would welcome the opportunity to discuss my verified project and campus experience.\n\nSincerely,\n[Your name]",
+    });
+    assert.equal(resume.verified, true);
+    assert.equal(letter.verified, true);
+    assert.match(resume.fileName, /tailored-resume/);
+    assert.match(letter.fileName, /cover-letter-draft/);
+    assert.equal((await store.listMaterials({ opportunityId: "opp-002" })).length, 2);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
