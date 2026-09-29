@@ -249,7 +249,7 @@ The dashboard should continue to provide **Collect Opportunities** independently
 
 Clearly explain that the initial scheduler runs only while the local application is active. If the computer or application was unavailable at the scheduled time, display **Missed Run** when the application next starts; never imply that the run occurred. Detailed behavior belongs in `runtime/local-schedule.md`.
 
-For the first owner-only hosted checkpoint, show **Daily Run: Not available in this pilot**. The later GitHub Actions cloud trigger is specified in `runtime/github-cloud-schedule.md`. Once its authenticated check-only path and owner setting are verified, show the 9:00 AM Pacific target, Enabled/Disabled state, last actual scheduled attempt and outcome, next expected day, and missed-run status. Distinguish manual Collect from a scheduled run. Never display an invented successful run or claim that GitHub's intended time guarantees an exact start.
+The current owner-only hosted Site has no Daily Run control. Collection starts only from **Collect Opportunities**. The removed GitHub Actions design is retained in `runtime/github-cloud-schedule.md` for possible future review, not as a current UI requirement. Never display an invented scheduled run. This does not change the local application's separate schedule controls.
 
 ## Pixel-style agent character
 
@@ -323,7 +323,7 @@ In the owner-only hosted pilot, the recipient is the connected Outlook owner's c
 
 The hosted dashboard must visibly identify itself as a **Private pilot** and show the actual deployment/data mode. Its first checkpoint supports manually initiated **Collect Opportunities** with the explicitly selected synthetic demonstration profile. Live public-posting results may be shown, but profile matches and draft content must be labeled synthetic. Do not silently activate real setup, copy local records, or show sample opportunities as results of a failed live run.
 
-Show a timestamped **Download current spreadsheet** control only when an `.xlsx` generated from verified hosted current records is available. Do not show **Open local spreadsheet** or a laptop path. Each hosted capability—Reset Collection, real-student setup, prepared Word downloads, and Daily Run—must be labeled unavailable until its own private-storage and verification group is complete; leave the corresponding local-app controls unchanged.
+Show a timestamped **Download current spreadsheet** control only when an `.xlsx` generated from verified hosted current records is available. Do not show **Open local spreadsheet** or a laptop path. Label hosted capabilities according to their verified state. Do not show a Daily Run setup or status panel while cloud scheduling is removed; leave the corresponding local-app controls unchanged.
 
 Once hosted Reset Collection is verified, place its secondary control beside the hosted collection download. Explain that it archives the owner's current opportunities, related history, responses, and Word drafts before clearing the active collection; it keeps student setup, secrets, and earlier reset archives. Require the owner to type `RESET` and prevent reset during another workflow. After success, refresh the current collection and run/activity views and show an owner-only archive download with its creation time. Retain archives until the owner explicitly deletes them. An archive download supports recovery, but the dashboard must not imply that one-click restore is available.
 
