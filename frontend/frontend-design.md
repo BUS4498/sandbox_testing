@@ -167,7 +167,7 @@ The interface may display concise stage labels, but the primary status should be
 - **Remembering**
 - **Finished**
 
-Examples include “Reading your verified role, location, timing, and work-authorization preferences,” “Requesting a bounded public-web search for Summer 2027 analyst internships in California,” “Validating eight structured candidates returned by the API,” “Adding Northstar Foods — Business Systems Intern to the local spreadsheet,” “Creating a Word cover-letter outline for Northstar Foods,” and “Saving three verified notification previews for your configured address.” Use a company, role, candidate count, file type, or action count only when it is present in observable runtime data. Do not imply access to hidden reasoning.
+Examples include “Reading your verified role, location, timing, and work-authorization preferences,” “Requesting a bounded public-web search for Summer 2027 analyst internships in California,” “Validating eight structured candidates returned by the API,” “Adding Northstar Foods — Business Systems Intern to the local spreadsheet,” “Creating a Word cover-letter draft for Northstar Foods,” and “Saving three verified notification previews for your configured address.” Use a company, role, candidate count, file type, or action count only when it is present in observable runtime data. Do not imply access to hidden reasoning.
 
 Avoid vague descriptions such as “Carrying out a permitted local action.” When low-level activity cannot be classified more precisely, say what approved resource is being read or what output is being prepared, and explicitly avoid claiming that a write or external action succeeded before verification.
 
@@ -345,11 +345,11 @@ Student responses must not be inserted into internship-discovery web queries. Th
 
 Provide a **Prepare materials** action for tracked opportunities. The student may request one or more review-only templates:
 
-- resume-tailoring checklist;
-- cover-letter outline; and
+- tailored resume draft using the supplied PDF as a visual layout reference, with proposed changes highlighted;
+- complete, role-specific Cal Poly-inspired cover-letter draft; and
 - application-question worksheet.
 
-Prepared artifacts should be saved as professionally formatted Microsoft Word `.docx` files and appear in the opportunity details with type, creation time, unresolved placeholders, and a **Download Word draft** action. Every document and dashboard record must say **Draft template — student review required**. Raw Markdown must not be the student-facing saved artifact. The dashboard must never offer **Submit application**, automatic form completion, employer upload, or a control that makes a template appear final.
+Prepared artifacts should be saved as professionally formatted Microsoft Word `.docx` files and appear in the opportunity details with type, creation time, unresolved placeholders, and a **Download Word draft** action. The resume must contain usable resume sections and role-relevant verified content, not a tailoring checklist. Highlight proposed edits or emphasis against the confirmed resume profile. The cover letter must contain complete draft paragraphs rather than an outline. Use editable placeholders for name/contact details absent from the non-identifying profile; never copy identity or claims from the visual reference PDF. Every document and dashboard record must say **Draft template — student review required**. Raw Markdown must not be the student-facing saved artifact. The dashboard must never offer **Submit application**, automatic form completion, employer upload, or a control that makes a template appear final.
 
 ## On-demand interview practice
 
@@ -357,7 +357,7 @@ Show **Practice Interview** as a separate button on each tracked opportunity, no
 
 Display four clearly separated groups: **Publicly reported questions** with clickable source links, publication date when available, and exact-role or related-role labels; **Reported interview process** with the same provenance and candidate-report versus employer-guidance labels; **Likely practice questions** explicitly marked as agent-generated; and **General process preparation** explicitly marked as non-employer-specific. When no candidate report or employer-specific process is verified, say so instead of inventing details. Do not make a source link or video title look like proof of an exact question or interview stage when the underlying content was unavailable. Include these distinctions in the position-specific **Download interview practice Word draft**, show when it was researched, and warn when the opportunity or student setup has changed since preparation.
 
-Use shape as well as color and wording to distinguish action families: a prominent solid rectangular **Collect Opportunities** control, a clearly outlined **Update Opportunity** control, a softer rounded **Prepare materials** control, a distinct pill-shaped **Practice Interview** control, and an unmistakable external **Apply** link. Keep hover, keyboard-focus, disabled, and narrow-screen states readable; do not rely on shape or color alone to convey authority. On wider desktop screens, let the dashboard grow beyond its current narrow maximum width while preserving comfortable text line lengths and the existing responsive mobile layout.
+Use shape as well as color and wording to distinguish action families: a prominent solid rectangular **Collect Opportunities** control, a clearly outlined **Update Opportunity** control, a softer rounded **Prepare materials** control, a distinct pill-shaped **Practice Interview** control, and an unmistakable external **Apply** link. Keep hover, keyboard-focus, disabled, and narrow-screen states readable; do not rely on shape or color alone to convey authority. On wider desktop screens, let the dashboard grow beyond its current narrow maximum width while preserving comfortable text line lengths and the existing responsive mobile layout. Opening **Prepare materials** or **Practice Interview** must not make an opportunity card jump to full-row width.
 
 This action must not change the current opportunity decision, preliminary fit score, spreadsheet record, or notification status. A failed search or document save remains visible with a specific retry action; it is not reported as a completed practice set.
 
