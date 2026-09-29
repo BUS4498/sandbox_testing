@@ -6,7 +6,7 @@ const DISPOSITIONS = new Set(["NEW", "MATERIALLY_CHANGED"]);
 const POSTING_STATUSES = new Set(["ACTIVE", "CLOSED", "UNCERTAIN"]);
 const RESPONSE_TYPES = new Set(["NONE", "CONFIRMATION", "TEXT", "CHOICE"]);
 const PREP_STATUSES = new Set(["NOT_REQUESTED", "PREPARED", "NEEDS_INFORMATION"]);
-const TEMPLATE_TYPES = new Set(["RESUME_TAILORING_CHECKLIST", "COVER_LETTER_OUTLINE", "APPLICATION_QUESTION_WORKSHEET"]);
+const TEMPLATE_TYPES = new Set(["TAILORED_RESUME", "COVER_LETTER_DRAFT", "APPLICATION_QUESTION_WORKSHEET"]);
 const FORBIDDEN_KEY = /(password|api[_-]?key|access[_-]?token|refresh[_-]?token|secret|credential|raw[_-]?(html|page))/i;
 
 const STRING_ARRAY_SCHEMA = Object.freeze({
@@ -91,7 +91,7 @@ const APPLICATION_PREP_SCHEMA = Object.freeze({
       items: {
         type: "object",
         properties: {
-          type: { type: "string", enum: ["RESUME_TAILORING_CHECKLIST", "COVER_LETTER_OUTLINE", "APPLICATION_QUESTION_WORKSHEET"] },
+          type: { type: "string", enum: ["TAILORED_RESUME", "COVER_LETTER_DRAFT", "APPLICATION_QUESTION_WORKSHEET"] },
           title: { type: "string" },
           markdown: { type: "string" },
           placeholders: STRING_ARRAY_SCHEMA,
