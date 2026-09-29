@@ -33,7 +33,7 @@ The local-first system should:
 
 The system is an internship-preparation assistant, not an autonomous job applicant. It has no application-submission capability.
 
-An optional **owner-only Codex Sites pilot** is specified in [`runtime/codex-sites-private-pilot.md`](../runtime/codex-sites-private-pilot.md). It is a separate hosted variant, not a replacement for the local application. Its first checkpoint uses synthetic context and manual collection only; real-resume handling and hosted Daily Run remain unavailable until separately implemented and verified.
+An optional **owner-only Codex Sites pilot** is specified in [`runtime/codex-sites-private-pilot.md`](../runtime/codex-sites-private-pilot.md). It is a separate hosted variant, not a replacement for the local application. The current Site supports manual collection and confirmed student setup; its cloud Daily Run has been removed for now.
 
 Collection reset is a confirmed local-controller operation, not an agent workflow stage or model decision.
 
@@ -63,7 +63,7 @@ When a tracked opportunity needs student information, confirmation, or an applic
 
 When the student enables local daily collection, the local controller triggers the same production workflow once per day at the configured local time while the application is running.
 
-The first owner-only hosted checkpoint has no Daily Run trigger. Its dashboard must say so explicitly; a later hosted schedule requires its own supported trigger and verification before this mode is enabled there.
+The current owner-only hosted Site has no Daily Run trigger or schedule controls. A future hosted schedule would require a new owner decision, supported trigger, and verification before this mode could be enabled there.
 
 Manual and scheduled collection use the same discovery workflow, policies, verified student context, duplicate-prevention rules, decision process, action rules, verification requirements, and operational memory. A targeted opportunity update uses the same core workflow and safeguards but scopes **SENSE** to the new student-supplied information and existing posting evidence rather than invoking web discovery. No trigger expands the agent's authority.
 
@@ -184,3 +184,4 @@ Within those completion rules, the system should:
 - **wait for human approval** before a consequential action that remains under student control;
 - **continue within the current run** when an unresolved issue can be safely investigated without exceeding scope or authority; and
 - **run again at the next configured daily schedule** when daily automation is enabled by the student.
+
