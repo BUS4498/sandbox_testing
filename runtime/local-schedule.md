@@ -1,6 +1,6 @@
 # Local Daily Schedule Specification
 
-This specification applies only to the locally running application. The first owner-only Codex Sites checkpoint is manual-only and must show hosted Daily Run as unavailable; a later hosted trigger is governed by [`codex-sites-private-pilot.md`](codex-sites-private-pilot.md).
+This specification applies only to the locally running application. The owner-only Codex Site currently has manual collection only; its cloud Daily Run was removed and remains deferred under [`codex-sites-private-pilot.md`](codex-sites-private-pilot.md).
 
 ## Purpose
 
@@ -54,3 +54,4 @@ The initial implementation does not create Windows Task Scheduler jobs, macOS la
 ## Security and Approval Boundary
 
 Scheduling does not preapprove applications, employer communications, final-material changes, or new external disclosures. The scheduled run uses the same student authority rules as manual collection. API keys and other credentials must never appear in schedule settings, prompts, dashboard events, or logs.
+
