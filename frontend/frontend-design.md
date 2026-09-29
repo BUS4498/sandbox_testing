@@ -49,9 +49,15 @@ Show a concise summary with indicators for:
 
 Indicators should link or filter to the relevant records. Urgency and failure must not rely on color alone.
 
+Keep the top workbench compact on desktop: show setup readiness, the verified provider-connection state, the primary **Collect Opportunities** control, and a small text-led agent status without making the student scroll past a large introductory panel to reach the collection. The pixel character supports this status; it must not consume more attention than the current opportunities. Put detailed completed-run metrics in a compact, expandable latest-run area rather than repeating the same result in the agent-status panel and a second large block.
+
+For the owner-only hosted pilot, give the workbench a cooler, more contemporary undergraduate tone: a crisp ink-and-cool-neutral foundation, vivid but restrained teal/cyan accents, succinct action-oriented copy, and a few playful details. Keep opportunity evidence and next steps more prominent than decoration; maintain readable contrast and reduced-motion support.
+
+On wider screens, let the agent-status panel fill the workbench height beside the setup and collection controls, avoiding an empty gap below it. Keep its current message near the top so an expanded student-setup form does not push the status out of view. On narrow screens, return to a compact stacked panel.
+
 ## Current internship collection
 
-Display the collection in a clean table on larger screens and a readable card layout when space is limited. Keep it synchronized with the local spreadsheet.
+Display the collection as a scannable, full-width row list on larger screens and a readable stacked layout when space is limited. Keep it synchronized with the local spreadsheet.
 
 Each opportunity should show:
 
@@ -78,7 +84,11 @@ In that pilot, display current, valid preliminary scores from high to low by def
 
 The student should be able to search, filter, sort, and open an opportunity without losing the current dashboard context.
 
-Do not show a separate dashboard-wide **Information needed to continue** box that repeats the selected-opportunity or opportunity-card content. Put each exact question, missing fact, response status, and **Update Opportunity** control directly on the affected opportunity. The selected-opportunities area may summarize the same opportunity immediately after a run, but it should link the student to that single actionable record rather than create a second response surface.
+On wider screens, present the current opportunities as concise, full-width rows rather than two simultaneously expanded columns. Each row should expose the company and role, location or arrangement, recommendation, current preliminary-score state when available, a short evidence-based reason, the next action or exact missing-information cue, and an obvious **Apply** link. Selecting **Review details** opens one focused opportunity panel while the ordered collection remains in place. The panel holds the complete rationale, bullet lists of verified matches and gaps, posting evidence, student response, Word drafts, and interview practice. Keep only one opportunity panel open at a time; closing it should return keyboard focus to its originating row. On narrow screens, the same detail panel should occupy the available width without horizontal scrolling. Do not widen or rearrange a row when opening its details.
+
+The summary row and its detail panel must identify the same opportunity. Do not truncate away the only actionable question or hide the only response path; when student input is needed, surface that state in the row and show the exact question beside **Update Opportunity** in the detail panel. Preserve existing human approval, source-link, score-qualification, and draft-review language.
+
+Do not show a separate dashboard-wide **Information needed to continue** box that repeats the selected-opportunity or opportunity-row content. Show an input-needed cue on the affected row and put the full question, response status, and **Update Opportunity** control together in that opportunity's detail panel. The selected-opportunities area may summarize the same opportunity immediately after a run, but it should link the student to that single actionable record rather than create a second response surface.
 
 ## Reset Collection experience
 
@@ -107,6 +117,8 @@ Add a structured preference-and-constraint form beside or immediately below the 
 The default role choices are **AI Business Analyst Intern**, **AI Systems Analyst Intern**, **Business Process Automation Analyst Intern**, **AI Product Analyst Intern**, **Business Systems Analyst Intern**, **Data or Business Intelligence Analyst Intern**, and **AI Transformation or Technology Consulting Intern**. Present them as selectable choices rather than silently assuming all apply, require at least one intentional selection, and allow a custom role.
 
 Provide a clearly separated **Use synthetic demonstration setup** control for classroom testing. Activating it requires an explicit student action and labels every resulting assessment as synthetic. Switching back to real-student setup must restore the real setup form without deleting confirmed private files.
+
+In the hosted pilot, the confirmed real-student path is the primary setup path. Place synthetic demonstration as a smaller secondary option beside or below that path, never as an equally prominent primary action. When selected, keep the active **Synthetic demo** status obvious and preserve a clear way back to a saved real profile. The visual hierarchy must not silently select or disguise the demonstration mode.
 
 Place the **Student notification email** control immediately above the **Collect Opportunities** button. It should explain that the address remains local and that the initial API version creates verified local notification previews after material updates. Do not imply that a preview was sent or request an email password, token, or provider credential.
 
@@ -172,6 +184,8 @@ Examples include “Reading your verified role, location, timing, and work-autho
 Avoid vague descriptions such as “Carrying out a permitted local action.” When low-level activity cannot be classified more precisely, say what approved resource is being read or what output is being prepared, and explicitly avoid claiming that a write or external action succeeded before verification.
 
 Display an accessible progress bar and percentage derived from completed or reached workflow stages. Treat the percentage as an approximate stage-based indicator, not a prediction of remaining time. It must move forward monotonically during a workflow, reach 100% only after verification and memory completion, and never be fabricated from chain-of-thought or token activity.
+
+Show the progress bar only while a workflow is active. After completion, move the verified outcome and duration to the latest-run summary and return the character panel to **Ready** or an explicit recoverable **Action required** state. Never show an idle **Waiting** state beside a stale 100% bar.
 
 Do not display raw chain-of-thought, hidden reasoning, internal prompt text, or private scratch work. Show concise evidence, rationale, status, and observable outcomes instead.
 
@@ -273,6 +287,8 @@ Include a small animated pixel-style character as a supplemental representation 
 
 The character must not reveal hidden chain-of-thought text. Its state must match the actual workflow state and must never celebrate a failed or unresolved run.
 
+Use a few restrained, cute motions: a brief idle blink or antenna movement, a small task-specific working motion, and a short check or sparkle after verified success. Motion should be short and should not cause cards, buttons, or text to jump. A failure or unresolved approval state uses a calm warning pose, not a celebration. Honor `prefers-reduced-motion` with static poses and identical text status; animation is never the only way to understand progress.
+
 For reduced-motion users, replace animation with a static pose or icon plus the same visible text status. The character may be hidden from assistive technology when the equivalent status is already announced elsewhere.
 
 ## Recent material changes
@@ -318,6 +334,8 @@ Show:
 Distinguish local preview creation, provider submission, and confirmed delivery. Do not display API keys, sender identity, provider credentials, tokens, or secret configuration.
 
 In the owner-only hosted pilot, the recipient is the connected Outlook owner's confirmed address. Show **Outlook disconnected**, **Ready to notify**, **Submitted**, **Failed**, or **Outcome unknown** from verified state; do not equate a saved recipient with authorization. Provide a clear Connect/Disconnect Outlook action when the hosted email group is implemented, never a form asking for an Outlook password. An Outlook `202 Accepted` is **Submitted**, not **Delivered**. When mail is not connected, show why no live notification was sent and preserve the material collection update.
+
+Show separate, compact **Check OpenAI** and **Check Jev** controls near the hosted collection action. Each displays its own sanitized result and checks only the server-side provider configuration: OpenAI confirms configured-model access; TypeSafe confirms authenticated availability of the configured Jev model through its model-list endpoint. Neither check generates content, scores an opportunity, exposes credentials, or treats a configured key as a successful connection. A Jev check is optional for collection; a failed or unchecked Jev connection must not falsely block an otherwise ready OpenAI discovery run. Explain that a model-list check does not prove a later scoring request will succeed.
 
 ## Owner-only hosted pilot
 
@@ -444,6 +462,8 @@ The interface should:
 - avoid relying on color or motion alone;
 - support zoom, reduced motion, and narrow browser windows; and
 - avoid exposing credentials, technical secrets, unnecessary personal information, or raw filesystem complexity.
+
+For the owner-only hosted pilot's visual refinement, retain the existing teal identity while shifting the surrounding palette toward cool neutrals, deep ink, and limited lively accent color. Reduce repeated heavy borders and shadows. Use a clear type hierarchy, generous but economical spacing, one dominant primary action at a time, and gentle hover/pressed feedback. Preserve the distinct shapes and names of Collect, Update Opportunity, Prepare materials, Practice Interview, and Apply. Verify the ready, active, partial, failed, awaiting-input, and completed views at desktop and narrow widths before publication; a visual redesign must not change workflow behavior, stored data, model-call limits, or authority boundaries.
 
 ## Future implementation boundary
 
