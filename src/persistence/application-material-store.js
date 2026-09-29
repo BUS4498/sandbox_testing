@@ -22,6 +22,7 @@ const ALLOWED_TYPES = new Map([
   ["RESUME_TAILORING_CHECKLIST", "resume-tailoring-checklist"],
   ["COVER_LETTER_OUTLINE", "cover-letter-outline"],
   ["APPLICATION_QUESTION_WORKSHEET", "application-question-worksheet"],
+  ["INTERVIEW_PRACTICE", "interview-practice-questions"],
 ]);
 
 const COLORS = Object.freeze({
@@ -48,7 +49,7 @@ export class LocalApplicationMaterialStore {
     return this;
   }
 
-  saveTemplate({ opportunityId, company, roleTitle, type, title, markdown, placeholders = [], runId }) {
+  saveTemplate({ opportunityId, company, roleTitle, type, title, markdown, placeholders = [], runId, practiceResult = null, opportunityLastUpdated = null }) {
     return this.#enqueue(async () => {
       if (!opportunityId) throw new TypeError("opportunityId is required for an application template.");
       if (!ALLOWED_TYPES.has(type)) throw new TypeError(`Unsupported application template type: ${type}.`);
@@ -74,6 +75,7 @@ export class LocalApplicationMaterialStore {
         fileName,
         contentType: WORD_MIME,
         format: "DOCX",
+        ...(type === "INTERVIEW_PRACTICE" ? { practiceResult, opportunityLastUpdated: String(opportunityLastUpdated ?? "") } : {}),
       };
       const document = buildWordTemplate({
         company: cleanInline(company),
@@ -292,6 +294,7 @@ function publicMetadata(value) {
     fileName: path.basename(String(value.fileName)),
     contentType: WORD_MIME,
     format: "DOCX",
+    ...(value.type === "INTERVIEW_PRACTICE" ? { practiceResult: value.practiceResult ?? null, opportunityLastUpdated: String(value.opportunityLastUpdated ?? "") } : {}),
   };
 }
 

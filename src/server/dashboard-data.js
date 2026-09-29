@@ -102,6 +102,7 @@ export async function buildDashboardData({
 }
 
 function publicOpportunity(record, decision, studentInput, materials) {
+  const interviewMaterial = [...materials].reverse().find((item) => item.type === "INTERVIEW_PRACTICE" && item.practiceResult);
   return {
     opportunityId: record.opportunityId,
     company: record.company,
@@ -122,9 +123,16 @@ function publicOpportunity(record, decision, studentInput, materials) {
     nextActionDate: record.nextActionDate,
     unresolvedIssue: record.unresolvedIssue,
     lastVerified: record.lastVerified,
+    lastUpdated: record.lastUpdated,
     lastAgentReview: record.lastAgentReview,
     studentInput,
-    materials,
+    materials: materials.filter((item) => item.type !== "INTERVIEW_PRACTICE"),
+    interviewPractice: interviewMaterial ? {
+      ...interviewMaterial.practiceResult,
+      materialId: interviewMaterial.materialId,
+      preparedAt: interviewMaterial.createdAt,
+      stale: String(interviewMaterial.opportunityLastUpdated ?? "") !== String(record.lastUpdated ?? ""),
+    } : null,
   };
 }
 
@@ -184,6 +192,8 @@ function publicRun(currentRun, latestRun, now, firstRun) {
       notificationPreviews: numberOrNull(currentRun.notificationPreviews ?? recorded?.notificationPreviews),
       unresolvedIssues: numberOrNull(currentRun.unresolvedIssues ?? recorded?.unresolvedIssues),
       selectionShortfallReason: currentRun.selectionShortfallReason ?? recorded?.selectionShortfallReason ?? null,
+      interviewReported: numberOrNull(currentRun.interviewReported ?? recorded?.interviewReported),
+      interviewLikely: numberOrNull(currentRun.interviewLikely ?? recorded?.interviewLikely),
     },
   };
 }

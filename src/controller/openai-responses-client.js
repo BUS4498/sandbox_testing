@@ -5,6 +5,7 @@ import OpenAI from "openai";
 
 import { MAX_DISCOVERY_SEARCHES } from "../workflow/workflow-limits.js";
 import { WORKFLOW_RESULT_JSON_SCHEMA } from "../workflow/workflow-result-contract.js";
+import { INTERVIEW_PRACTICE_SCHEMA, validateInterviewResult, verifyInterviewReports } from "./interview-practice-contract.js";
 
 const APPROVED_SEARCH_DOMAINS = Object.freeze([
   "greenhouse.io",
@@ -165,6 +166,37 @@ export class OpenAIResponsesClient {
       searchesPerformed,
       sources,
     };
+  }
+
+  async runInterviewResearch({ company, roleTitle, location, postingUrl } = {}) {
+    if (!company || !roleTitle) throw new TypeError("A company and role are required for interview practice.");
+    const client = await this.#client();
+    const publicPosting = { company, roleTitle, location: location || "Unknown", postingUrl: postingUrl || "Unknown" };
+    const input = `Search public candidate accounts, YouTube descriptions/transcripts, and credible interview-report sites for questions actually asked for the public role below. Use one to three targeted web searches and inspect no more than ten underlying public pages. Do not search with any student name, resume, profile, email, or other private information. A video title or generic advice is not proof that a question was actually asked. Include a reported question only with a specific public URL and a short exact quote from that page. Mark exact versus related roles. If no real questions can be verified, return likely role-specific practice questions, clearly separate from reported questions. Never invent a reported question. Return the requested JSON only.\n${JSON.stringify(publicPosting)}`;
+    let response;
+    try {
+      response = await client.responses.create({ model: this.model, input, reasoning: { effort: this.reasoningEffort },
+        text: { format: { type: "json_schema", name: "interview_practice_result", strict: true, schema: INTERVIEW_PRACTICE_SCHEMA } },
+        tools: [{ type: "web_search", search_context_size: "low" }], tool_choice: "required", max_tool_calls: 13, include: ["web_search_call.action.sources"],
+      });
+    } catch (cause) { throw normalizeProviderError(cause); }
+    if (response?.status !== "completed") throw new OpenAIResponsesRuntimeError("Interview research did not complete.", "INTERVIEW_INCOMPLETE");
+    const searchesPerformed = countWebSearchCalls(response?.output);
+    const sourcesInspected = (response?.output || []).filter((item) => item?.type === "web_search_call" && item?.action?.type === "open_page").length;
+    if (searchesPerformed < 1 || searchesPerformed > 3 || sourcesInspected > 10) throw new OpenAIResponsesRuntimeError("Interview research exceeded its three-search or ten-page limit.", "INTERVIEW_BUDGET_EXCEEDED");
+    let result;
+    try {
+      result = validateInterviewResult(response.output_text, collectSources(response.output).map((item) => item.url));
+      result = await verifyInterviewReports(result, { company, roleTitle });
+    } catch { throw new OpenAIResponsesRuntimeError("Interview research did not pass source and structure checks.", "INTERVIEW_VALIDATION_FAILED"); }
+    if (!result.reportedQuestions.length && !result.likelyQuestions.length) result.likelyQuestions = [
+      `Why are you interested in the ${roleTitle} internship at ${company}?`,
+      `How would you identify and document business requirements for this ${roleTitle} role?`,
+      "Describe a project where you analyzed information and explained your recommendation.",
+      "How would you check whether a process or system improvement is working?",
+      "What would you do if you lacked a skill needed for an internship assignment?",
+    ];
+    return { ...result, searchesPerformed, sourcesInspected, responseId: safeIdentifier(response?.id) };
   }
 
   async close() {}

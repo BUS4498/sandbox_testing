@@ -15,6 +15,7 @@ class FakeRunManager extends EventEmitter {
     this.pendingApprovals = [];
     this.started = 0;
     this.updates = [];
+    this.interviewRequests = [];
     this.approvalResponses = [];
     this.setupReady = true;
   }
@@ -81,6 +82,23 @@ class FakeRunManager extends EventEmitter {
       startedAt: "2026-08-25T11:59:30.000Z",
       finishedAt: null,
       searchesPerformed: 0,
+    };
+    return this.current;
+  }
+
+  startInterviewPractice({ opportunityId, opportunity }) {
+    this.interviewRequests.push({ opportunityId, opportunity });
+    this.current = {
+      runId: "run-interview-dashboard-test",
+      active: true,
+      trigger: "STUDENT_REQUEST",
+      workflowType: "INTERVIEW",
+      targetOpportunityId: opportunityId,
+      targetLabel: `${opportunity.company} — ${opportunity.roleTitle}`,
+      stage: "SEARCHING_WEB",
+      label: "Searching for reported questions",
+      outcome: "IN_PROGRESS",
+      startedAt: "2026-08-25T11:59:30.000Z",
     };
     return this.current;
   }
@@ -186,6 +204,7 @@ async function withDashboard(run) {
   };
   const applicationMaterialStore = {
     async listMaterials() { return []; },
+    async saveTemplate() { return {}; },
     async readMaterial(materialId) {
       if (materialId !== "material-dashboard-001") return null;
       return {
@@ -554,6 +573,30 @@ test("application materials download as Word documents", async () => {
     assert.equal(response.headers.get("content-type"), "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
     assert.match(response.headers.get("content-disposition"), /cover-letter-outline\.docx/);
     assert.deepEqual([...new Uint8Array(await response.arrayBuffer())], [0x50, 0x4b, 0x03, 0x04]);
+  });
+});
+
+test("interview practice starts only on a protected request for a tracked opportunity", async () => {
+  await withDashboard(async ({ address, runManager }) => {
+    const url = `${address.url}/api/opportunities/opp-dashboard-001/interview-practice`;
+    const rejected = await fetch(url, { method: "POST" });
+    assert.equal(rejected.status, 403);
+    assert.equal(runManager.interviewRequests.length, 0);
+
+    const missing = await fetch(`${address.url}/api/opportunities/unknown/interview-practice`, {
+      method: "POST",
+      headers: { "X-Local-Request-Token": "synthetic-local-token" },
+    });
+    assert.equal(missing.status, 404);
+    assert.equal(runManager.interviewRequests.length, 0);
+
+    const accepted = await fetch(url, {
+      method: "POST",
+      headers: { "X-Local-Request-Token": "synthetic-local-token" },
+    });
+    assert.equal(accepted.status, 202);
+    assert.equal((await accepted.json()).run.workflowType, "INTERVIEW");
+    assert.equal(runManager.interviewRequests[0].opportunityId, "opp-dashboard-001");
   });
 });
 

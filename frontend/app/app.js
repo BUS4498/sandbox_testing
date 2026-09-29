@@ -334,11 +334,12 @@ function opportunityCard(record) {
 
   const evidence = evidenceDisclosure(record);
   const materials = materialList(record.materials);
+  const interview = interviewPracticeDisclosure(record.interviewPractice);
   const actions = make("footer", "opportunity-actions");
   appendLink(actions, record.applicationUrl, "Apply", "button-link primary-link", "Open the employer application page");
   appendLink(actions, record.postingUrl, "Source", "button-link source-link", record.source ? `Source: ${record.source}` : "Open the original posting source");
-  actions.append(actionButton("Update Opportunity", "respond"), actionButton("Prepare materials", "prepare"));
-  card.append(header, meta, rationale, action, evidence, materials, actions);
+  actions.append(actionButton("Update Opportunity", "respond"), actionButton("Prepare materials", "prepare"), actionButton(record.interviewPractice ? "Refresh Interview Practice" : "Practice Interview", "interview"));
+  card.append(header, meta, rationale, action, evidence, materials, interview, actions);
   return card;
 }
 
@@ -372,18 +373,41 @@ function materialList(materials = []) {
   return section;
 }
 
+function interviewPracticeDisclosure(result) {
+  const details = make("details", "interview-practice-results");
+  if (!result) { details.hidden = true; return details; }
+  details.append(makeText("summary", "Interview practice questions"));
+  if (result.stale) details.append(makeText("p", "This opportunity changed since these questions were prepared. Refresh before relying on them.", "interview-warning"));
+  details.append(makeText("h4", "Publicly reported questions"));
+  const reported = make("ul");
+  if (!result.reportedQuestions?.length) reported.append(makeText("li", "No question was verified in an accessible public candidate account."));
+  for (const item of result.reportedQuestions || []) {
+    const row = make("li"); row.append(makeText("span", item.question), makeText("small", `${item.roleMatch === "EXACT_ROLE" ? "Same role" : "Related role"} · ${item.sourceDate}`));
+    appendLink(row, item.sourceUrl, `${item.sourceName} source`, "interview-source", "Open the public candidate report"); reported.append(row);
+  }
+  details.append(reported, makeText("h4", "Likely questions to practice"), makeText("p", "Generated preparation prompts; not questions confirmed to have been asked by this employer."));
+  const likely = make("ul"); for (const question of result.likelyQuestions || []) likely.append(makeText("li", question));
+  details.append(likely);
+  if (result.searchNotes) details.append(makeText("p", result.searchNotes));
+  const download = makeText("a", "Download Word practice set", "material-link"); download.href = `/api/materials/${encodeURIComponent(result.materialId)}`; details.append(download);
+  return details;
+}
+
 function renderRun(run) {
   const summary = run?.summary ?? {};
+  $(".summary-grid").hidden = run?.workflowType === "INTERVIEW";
   for (const [id, value] of Object.entries({ searches: summary.searchesPerformed, discovered: summary.candidatesDiscovered, excluded: summary.duplicatesOrInvalid, ranked: summary.candidatesRanked, selected: summary.updatesSelected, added: summary.newOpportunitiesAdded, updated: summary.existingOpportunitiesUpdated, notifications: summary.notificationsSent, unresolved: summary.unresolvedIssues })) setText(`#summary-${id}`, displayNumber(value));
   displayedRun = run ?? null;
   updateRunDuration(); window.clearInterval(runTimer); runTimer = run?.active ? window.setInterval(updateRunDuration, 1_000) : null;
   const pill = $("#run-outcome");
   pill.textContent = run?.active ? "Running" : run?.outcome ? titleCase(run.outcome) : "Not run";
   pill.className = `status-pill ${run?.active ? "active" : run?.outcome === "SUCCESS" ? "success" : run?.outcome ? "failure" : "neutral"}`;
-  setText("#summary-title", run?.workflowType === "UPDATE" ? "Opportunity update" : "Today’s collection");
+  setText("#summary-title", run?.workflowType === "INTERVIEW" ? "Interview practice" : run?.workflowType === "UPDATE" ? "Opportunity update" : "Today’s collection");
   const firstRun = run?.active && run?.firstRun ? " The first run can take longer while the API performs the initial bounded search." : "";
   const shortfall = summary.selectionShortfallReason ? ` Fewer than three were selected: ${summary.selectionShortfallReason}` : "";
-  const workflowContext = run?.workflowType === "UPDATE"
+  const workflowContext = run?.workflowType === "INTERVIEW"
+    ? `On-demand public interview-question research for ${run.targetLabel || "one opportunity"}. No collection, fit score, email, or application action is performed.`
+    : run?.workflowType === "UPDATE"
     ? `Targeted update for ${run.targetLabel || "one opportunity"}. No web search is performed.`
     : `Discovery counts appear as the bounded collection workflow runs.${firstRun}`;
   setText("#run-message", run?.error?.message || (run?.finishedAt ? `${run.statusDetail || "Workflow finished."} Completed ${formatDateTime(run.finishedAt)} in ${formatDuration(run.durationMs)}.${shortfall}` : workflowContext));
@@ -508,7 +532,20 @@ function handleOpportunityAction(event) {
   if (dashboard?.run?.active) return showToast("Wait for the active workflow to finish before starting another update.");
   const opportunityId = button.closest("[data-opportunity-id]")?.dataset.opportunityId;
   const record = dashboard.collection.find((item) => item.opportunityId === opportunityId);
-  if (record) openResponse(record, button.dataset.action === "prepare");
+  if (!record) return;
+  if (button.dataset.action === "interview") { void startInterviewPractice(record); return; }
+  openResponse(record, button.dataset.action === "prepare");
+}
+
+async function startInterviewPractice(record) {
+  if (!runtimeReady()) return showToast("Check the OpenAI connection before starting interview research.");
+  try {
+    const response = await localFetch(`/api/opportunities/${encodeURIComponent(record.opportunityId)}/interview-practice`, {});
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error || "Interview research could not start.");
+    renderRun(body.run); await refreshDashboard();
+    showToast(`Interview research started for ${record.company}. It will not collect opportunities or send messages.`);
+  } catch (error) { showToast(error.message); }
 }
 
 function openResponse(record, prepare = false) {
