@@ -8,6 +8,8 @@ Interpret the available evidence and produce an explainable assessment for later
 
 Run after **SENSE** when a valid new or tracked opportunity requires assessment, reassessment, or resolution of an identified issue.
 
+For an explicit interview-practice request, reason only about source support and useful role-related practice themes. Classify accessible reports separately from agent-generated likely questions; do not reassess fit or treat a social account as employer policy.
+
 ## Inputs
 
 - Structured opportunity observation and material changes.

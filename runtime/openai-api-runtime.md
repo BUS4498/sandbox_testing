@@ -20,6 +20,8 @@ Local Workflow Controller
 
 **Collect Opportunities** invokes bounded discovery. **Update Opportunity** processes one saved student response without market discovery. The optional local daily schedule invokes the same collection entry point as the manual control.
 
+**Practice Interview** starts a separate, student-clicked, one-opportunity preparation workflow. Its web-search budget is at most three calls and ten inspected public results; it never borrows from or changes the six-call collection budget. It uses a task-scoped interview-question evidence contract, not the opportunity-discovery result schema. The controller validates source support and labels candidate reports separately from generated practice questions before saving a review-only Word document. It does not update collection records, fit scores, or email notifications.
+
 ## OpenAI API Responsibilities
 
 The Responses API may:
@@ -61,6 +63,7 @@ The controller should compose each API request from the smallest relevant set of
 - only the relevant verified student context;
 - the job-fit Skill for discovery and reassessment;
 - the application-material Skill only when the student requests a template; and
+- the interview-question tool specification only for an explicit **Practice Interview** request; and
 - structured current state or the targeted opportunity record needed for duplicate prevention and continuity.
 
 The controller must not merge every repository file into every request. Confirmed context remains authoritative student background; operational memory remains dynamic history. A real-student request uses the confirmed private resume profile and locally confirmed preferences and constraints. A demonstration request uses the tracked synthetic package only after explicit activation. The controller must not blend the two modes to repair missing fields.

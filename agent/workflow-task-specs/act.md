@@ -8,6 +8,8 @@ Carry out the selected operational decision within the agent's authority and the
 
 Run after **DECIDE** when an action is authorized, a local update is needed, a draft can be prepared, or human input must be requested.
 
+A separate **Practice Interview** click may save a labeled, review-only Word practice document for the selected opportunity. It may not update the spreadsheet, notify the student of a material opportunity change, contact an employer, or submit anything. Source-supported reports and generated questions must remain separate in the saved content.
+
 ## Inputs
 
 - Decision record and intended outcome.

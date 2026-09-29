@@ -10,7 +10,7 @@ The Internship Application Prep Agent is a local-first prototype for an undergra
 
 The application runs on the student's computer and provides a local browser-based dashboard. A local spreadsheet at `data/local/internship_pipeline.xlsx` serves as the student's user-facing collection of current internship opportunities. The surrounding `data/local/` folder also holds operational memory, local settings, notification previews, schedule state, and prepared templates and is excluded from Git. After a material collection update succeeds, the initial API version creates a deterministic local notification preview for the recipient chosen in the dashboard. It does not claim that a preview was sent.
 
-The agent can also prepare formatted Microsoft Word `.docx` draft templates such as a resume-tailoring checklist, cover-letter outline, or application-question worksheet. These artifacts require student review and cannot submit an application.
+The agent can also prepare formatted Microsoft Word `.docx` draft templates such as a resume-tailoring checklist, cover-letter outline, or application-question worksheet. A separate, student-clicked **Practice Interview** action researches publicly reported interview questions for one saved opportunity and labels agent-generated practice questions separately. These artifacts require student review and cannot submit an application.
 
 Before collection or assessment, the dashboard requires one explicitly selected, complete student setup. For real local use, the student confirms a resume in `.docx`, `.pdf`, `.md`, or `.txt` format plus preferred roles, internship dates, weekly availability, work arrangements, geographic boundaries, paid-role preference, relocation flexibility, and work-authorization or sponsorship status. Extraction occurs locally, and the student must review a non-identifying agent-facing preview. Private resume and setup data remain under Git-ignored `data/local/student-profile/`; they are never committed to the repository or sent to an external parsing service. A labeled synthetic demonstration setup is available only after the student explicitly selects it.
 
@@ -57,6 +57,7 @@ Detailed responsibilities for each stage are defined in the workflow task specif
 - [Workflow task specifications](agent/workflow-task-specs/)
 - [Tool specifications](agent/tools/)
 - [Internship Web Search tool specification](agent/tools/internship-web-search.md)
+- [On-demand Interview Question Search tool specification](agent/tools/interview-question-search.md)
 - [Student Email Notification tool specification](agent/tools/email-notification.md)
 - [Optional Jev fit-scoring tool specification](agent/tools/jev-fit-scoring.md)
 - [Local Application Materials tool specification](agent/tools/local-application-materials.md)

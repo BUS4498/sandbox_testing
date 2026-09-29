@@ -32,6 +32,8 @@ The hosted runtime must use durable private storage for current opportunity reco
 
 In the hosted variant, the durable current records are the operational source of truth. Generate a current `.xlsx` download from those records as the **user-facing spreadsheet collection**; identify its generation time and record count. Do not present a stale export as synchronized. The local variant continues to maintain its authoritative `data/local/internship_pipeline.xlsx` file. Review-only `.docx` templates, when their hosted group is implemented, must be downloadable, tied to the correct opportunity, and verified before the dashboard reports success.
 
+An on-demand **Practice Interview** group may use the hosted API's general public-web capability only after an owner click on one tracked opportunity. It has its own three-search and ten-inspected-result limits, private saved result and Word download, and source-supported labels that distinguish publicly reported questions from generated practice questions. It does not run during hosted collection, change the opportunity or preliminary fit score, or trigger mail. Existing hosted ownership and profile-mode safeguards apply; a later student-shared Site still requires a separate isolation review.
+
 Do not enable hosted **Reset Collection** until a recoverable private snapshot/export and read-back verification are implemented. A failed write or export remains visible. No private runtime content belongs in source control or a deployment archive.
 
 ## OpenAI configuration and cost

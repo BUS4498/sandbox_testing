@@ -26,8 +26,9 @@ The local-first system should:
 - allow a manual **Collect Opportunities** action for bounded web discovery;
 - allow a targeted **Update Opportunity** action that immediately processes newly supplied student information for one tracked opportunity without performing web discovery;
 - optionally run automatically once per day;
-- create informational student-notification previews after tracked opportunities materially change, with live sending available only through a separately approved provider integration; and
-- prepare local, review-only Microsoft Word application templates when the student requests them; and
+- create informational student-notification previews after tracked opportunities materially change, with live sending available only through a separately approved provider integration;
+- prepare local, review-only Microsoft Word application templates when the student requests them;
+- offer a separate, student-clicked **Practice Interview** action that checks public reports of interview questions and clearly labels agent-generated alternatives; and
 - let the student explicitly archive and reset the current local collection without changing authoritative context, notification settings, API configuration, or local scheduling.
 
 The system is an internship-preparation assistant, not an autonomous job applicant. It has no application-submission capability.
@@ -80,6 +81,8 @@ Detailed instructions for each stage belong in [`agent/workflow-task-specs/`](wo
 
 The trigger determines scope, not the workflow architecture. **Collect Opportunities** uses bounded public-web discovery. **Update Opportunity** processes one tracked opportunity and its newly supplied student information immediately, without waiting for a later collection run.
 
+**Practice Interview** is another scoped, student-initiated preparation path for one tracked opportunity. It uses the [Interview Question Search tool](tools/interview-question-search.md) only after the student clicks that action. It neither collects new opportunities nor changes the current fit score or decision, spreadsheet, or notification status.
+
 ## Token and Cost Design Principle
 
 Use model reasoning selectively. The system should optimize for **useful attention, not maximum information collection**.
@@ -131,7 +134,8 @@ The agent works with:
 - email notification capability;
 - a local daily scheduling trigger;
 - professional communication drafting capability;
-- review-only application-material preparation capability; and
+- review-only application-material preparation capability;
+- on-demand public interview-question research and labeled practice-question drafting capability; and
 - private local storage for prepared application templates.
 
 The student chooses the notification recipient in the local dashboard. The current local API implementation creates verified local previews only. The approved hosted-pilot transport uses Microsoft Graph delegated `Mail.Send` for the connected owner's own address; it must keep authorization secrets out of the repository, browser, spreadsheet, and operational memory. Provider acceptance must not be described as confirmed delivery.

@@ -41,6 +41,8 @@ For a student response, verify that the intended opportunity received the studen
 
 For an application template, verify that the intended `.docx` file exists in the private local material area, is a readable Word package, belongs to the correct opportunity, carries the student-review label, preserves required placeholders and content, and does not claim submission or final approval.
 
+For an interview-practice document, also verify its opportunity version, source URLs and report labels, separation from generated questions, readable Word download, and the absence of spreadsheet, score, decision, or email side effects. A source that could not be inspected must not be labeled as a verified reported question.
+
 For the local API implementation, verify that the preview exists and matches the structured notification; record `PREVIEWED`, never `SUBMITTED` or `DELIVERED`. In the owner-only hosted pilot, a Microsoft Graph `202 Accepted` may establish `SUBMITTED` only. Delivery requires independent confirmation; a timeout or interruption with uncertain outcome is `UNKNOWN` and blocks automatic retry. Verify that the pre-send attempt and the material-update idempotency key were durable and that no prior notification for the same change was submitted.
 
 For the hosted collection, verify that the current opportunity record survived a durable write and read-back, that the downloadable spreadsheet reflects the same current records when generated, and that no duplicate opportunity was created. A successful in-memory write or stale workbook download is not success.

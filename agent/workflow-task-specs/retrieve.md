@@ -6,7 +6,7 @@ Load only the student context, prior operational state, and tracked-opportunity 
 
 ## When this task runs
 
-Run first in every manual collection, scheduled collection, or targeted opportunity-update cycle. Run again only if a later stage identifies a specific missing record needed to continue.
+Run first in every manual collection, scheduled collection, targeted opportunity-update, or student-clicked interview-practice cycle. Run again only if a later stage identifies a specific missing record needed to continue.
 
 ## Inputs
 
@@ -28,6 +28,7 @@ Run first in every manual collection, scheduled collection, or targeted opportun
 7. Do not load all context, memory, or spreadsheet records indiscriminately.
 8. For a targeted update, retrieve only the selected opportunity, its newly saved student response, relevant verified context, and related operational history. Do not retrieve unrelated opportunities.
 9. Keep student-supplied information out of public-web search queries except for the minimum non-identifying search criteria needed to find relevant postings, such as role themes, internship period, broad location boundaries, and work-arrangement preferences. Never include resume text, legal-eligibility details, or free-form private constraints in a web-search query. A targeted update performs no internship-market discovery search.
+10. For **Practice Interview**, retrieve only the selected opportunity, current public posting evidence and version, and prior saved practice result when relevant. Do not retrieve the private resume or start market discovery.
 
 ## Expected output
 

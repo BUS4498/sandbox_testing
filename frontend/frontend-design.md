@@ -351,6 +351,14 @@ Provide a **Prepare materials** action for tracked opportunities. The student ma
 
 Prepared artifacts should be saved as professionally formatted Microsoft Word `.docx` files and appear in the opportunity details with type, creation time, unresolved placeholders, and a **Download Word draft** action. Every document and dashboard record must say **Draft template — student review required**. Raw Markdown must not be the student-facing saved artifact. The dashboard must never offer **Submit application**, automatic form completion, employer upload, or a control that makes a template appear final.
 
+## On-demand interview practice
+
+Show **Practice Interview** as a separate button on each tracked opportunity, not as a checkbox inside **Prepare materials**. It runs only after the student clicks it; neither **Collect Opportunities** nor a daily run prepares interview questions automatically. During the scoped run, show plain-language progress such as checking the selected role, searching public accounts, checking source support, preparing practice questions, and verifying the Word draft. The search is limited to three calls and ten inspected public results per click, independently of the collection budget.
+
+Display two clearly separated groups: **Publicly reported questions** with clickable source links, publication date when available, and exact-role or related-role labels; and **Likely practice questions** explicitly marked as agent-generated. When no candidate report is verified, say **No publicly reported questions verified** and show the supported likely questions. Do not make a source link or video title look like proof of an exact question when the underlying content was unavailable. Offer a position-specific **Download interview practice Word draft** action, show when it was researched, and warn when the opportunity or student setup has changed since preparation.
+
+This action must not change the current opportunity decision, preliminary fit score, spreadsheet record, or notification status. A failed search or document save remains visible with a specific retry action; it is not reported as a completed practice set.
+
 ## Opportunity detail view
 
 Allow the student to inspect:
@@ -395,6 +403,7 @@ Possible controls include:
 - **Archive**
 - **Update Opportunity**
 - **Prepare materials**
+- **Practice Interview**
 - **Open application**
 - **View source**
 

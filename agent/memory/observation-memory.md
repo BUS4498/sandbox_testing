@@ -15,6 +15,7 @@ Observation memory records relevant facts produced by approved inputs, actions, 
 - notification preview was created or failed, or a future approved provider was unavailable or returned an uncertain result;
 - student supplied a confirmation, clarification, not-interested choice, or preparation request;
 - Word application template was saved, unavailable, unreadable, or failed verification;
+- a public interview-question report was source-checked, unsupported, inaccessible, or for a different role or year;
 - deadline changed;
 - scheduled run was missed;
 - tool failed;

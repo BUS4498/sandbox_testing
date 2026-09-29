@@ -37,6 +37,7 @@ Optional hosted Jev scoring uses a separate server-side Sites secret, `JEV_API_K
 - Require the student to review and confirm an editable, non-identifying agent-facing profile before it is used as authoritative resume evidence.
 - Never include the original resume file, direct contact details, or unconfirmed profile text in model requests. Send only the minimum confirmed evidence needed for the active task.
 - Never send work-authorization details, free-form private constraints, or resume evidence in public-web search queries. Use only the minimum non-identifying role, timing, broad location, and work-arrangement criteria needed for discovery.
+- For on-demand interview-question search, use only the employer, role, and public posting details. Do not send the student's resume, name, contact information, eligibility, private answers, or free-form constraints in a public query. Save structured question evidence and source links rather than full social posts, transcripts, or handles.
 - Allow an **Unsure or prefer not to state** work-authorization value. Preserve the resulting uncertainty and request clarification only when a specific opportunity makes the fact consequential.
 - Do not commit the local runtime spreadsheet when it may contain personal or evolving application data.
 - Store the spreadsheet and runtime state under the repository's `data/local/` folder, which must remain excluded from Git.
