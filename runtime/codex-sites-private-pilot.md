@@ -54,7 +54,7 @@ The first live mail test requires an explicitly approved self-addressed message 
 
 ## Manual trigger and future schedule
 
-For the first hosted checkpoint, **Collect Opportunities** is manual only. The local app's daily process timer is not a hosted scheduler and must not be represented as one. Show **Daily Run: Not available in this pilot** with no invented last or next run. A later hosted trigger requires an approved supported scheduler, authenticated invocation, deduplication, missed-run semantics, and tests proving that it uses the same collection entry point and policies. Until then, the local app's existing schedule remains local-only.
+For the first hosted checkpoint, **Collect Opportunities** was manual only. The local app's daily process timer is not a hosted scheduler. The separately approved GitHub Actions cloud trigger is specified in [`github-cloud-schedule.md`](github-cloud-schedule.md): it requires authenticated owner-scoped invocation, one attempt per local day, missed-run reporting, and tests proving that it uses the same collection entry point and policies. Keep hosted Daily Run disabled until its GitHub secrets and check-only invocation are verified. The local app's existing schedule remains local-only.
 
 ## Verification and release gate
 

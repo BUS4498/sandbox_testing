@@ -249,7 +249,7 @@ The dashboard should continue to provide **Collect Opportunities** independently
 
 Clearly explain that the initial scheduler runs only while the local application is active. If the computer or application was unavailable at the scheduled time, display **Missed Run** when the application next starts; never imply that the run occurred. Detailed behavior belongs in `runtime/local-schedule.md`.
 
-For the first owner-only hosted checkpoint, replace the schedule controls with **Daily Run: Not available in this pilot**. Do not display invented last or next hosted run times. A later hosted scheduler must have its own verified trigger and status before those controls are enabled there.
+For the first owner-only hosted checkpoint, show **Daily Run: Not available in this pilot**. The later GitHub Actions cloud trigger is specified in `runtime/github-cloud-schedule.md`. Once its authenticated check-only path and owner setting are verified, show the 9:00 AM Pacific target, Enabled/Disabled state, last actual scheduled attempt and outcome, next expected day, and missed-run status. Distinguish manual Collect from a scheduled run. Never display an invented successful run or claim that GitHub's intended time guarantees an exact start.
 
 ## Pixel-style agent character
 
