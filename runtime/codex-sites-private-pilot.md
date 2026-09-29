@@ -34,7 +34,7 @@ In the hosted variant, the durable current records are the operational source of
 
 An on-demand **Practice Interview** group may use the hosted API's general public-web capability only after an owner click on one tracked opportunity. It has its own three-search and ten-inspected-result limits, private saved result and Word download, and source-supported labels that distinguish publicly reported questions from generated practice questions. It does not run during hosted collection, change the opportunity or preliminary fit score, or trigger mail. Existing hosted ownership and profile-mode safeguards apply; a later student-shared Site still requires a separate isolation review.
 
-Do not enable hosted **Reset Collection** until a recoverable private snapshot/export and read-back verification are implemented. A failed write or export remains visible. No private runtime content belongs in source control or a deployment archive.
+Hosted **Reset Collection** is an owner-initiated controller operation, never a model decision or a collection run. Before clearing any active data, create an owner-scoped downloadable archive of current opportunities, opportunity-related run/event history, student responses, Word-draft metadata and bytes; verify the archive by private storage read-back and checksum. Require a typed `RESET` confirmation, reject the request while another workflow is active, and clear the active collection only after archive verification. Preserve the student setup and server-side credentials. Show the archive's creation time, contents, and download control. Retain each private archive until the owner explicitly deletes it; a reset must not silently delete earlier archives. A failed archive or clear operation must remain visible without claiming success. No private runtime content belongs in source control or a deployment archive. An archived file is a recovery/export artifact, not an automatic restore operation.
 
 ## OpenAI configuration and cost
 
@@ -59,4 +59,5 @@ For the first hosted checkpoint, **Collect Opportunities** is manual only. The l
 ## Verification and release gate
 
 Before reporting a hosted pilot as working, verify owner-only access, denial of unauthorized access, clean source/assets, secret non-disclosure, persistent record survival after reload and redeploy, valid spreadsheet download, actual bounded search and assessment on synthetic context, duplicate and error paths, and honest email states. Test Graph separately with the one approved self-addressed message. Site publication and original GitHub publication are separate outcomes; verify each destination independently.
+
 
