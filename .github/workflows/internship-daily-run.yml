@@ -1,0 +1,52 @@
+name: Private Internship Daily Run
+
+on:
+  schedule:
+    - cron: "0 9 * * *"
+      timezone: "America/Los_Angeles"
+  workflow_dispatch:
+    inputs:
+      check_only:
+        description: "Check private Site access and trigger-token configuration without running collection"
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: internship-private-daily-run
+  cancel-in-progress: false
+
+jobs:
+  wake-private-site:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Invoke owner-approved private workflow
+        env:
+          SITE_ACCESS_TOKEN: ${{ secrets.PRIVATE_SITE_ACCESS_TOKEN }}
+          SCHEDULE_TOKEN: ${{ secrets.INTERNSHIP_SCHEDULE_TOKEN }}
+          CHECK_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.check_only || false }}
+        shell: bash
+        run: |
+          if [[ -z "$SITE_ACCESS_TOKEN" || -z "$SCHEDULE_TOKEN" ]]; then
+            echo "::error::Private Site access and schedule-trigger secrets must both be configured. No collection ran."
+            exit 1
+          fi
+          if [[ "$CHECK_ONLY" != "true" ]]; then CHECK_ONLY=false; fi
+          status=$(curl --silent --show-error --max-time 300 \
+            --output /dev/null --write-out '%{http_code}' \
+            --request POST \
+            --header "Content-Type: application/json" \
+            --header "OAI-Sites-Authorization: Bearer ${SITE_ACCESS_TOKEN}" \
+            --header "Authorization: Bearer ${SCHEDULE_TOKEN}" \
+            --data "{\"checkOnly\":${CHECK_ONLY},\"githubRunId\":\"${GITHUB_RUN_ID}\"}" \
+            'https://internship-prep-agent-private-pilot.nicole-ai-lab.chatgpt.site/api/daily-trigger')
+          if [[ "$status" != "200" ]]; then
+            echo "::error::Private Site Daily Run returned HTTP ${status}. Check the owner dashboard; no private response body was logged."
+            exit 1
+          fi
+          echo "Private Site accepted the check or scheduled workflow. Verify the actual outcome in the owner dashboard."
+
