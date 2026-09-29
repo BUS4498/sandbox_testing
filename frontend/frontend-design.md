@@ -72,6 +72,10 @@ Use the visible link text **Source** regardless of the provider's or career site
 
 Do not expose a standalone **Fit** column. Fit assessment remains structured agent evidence, but the dashboard should present what a student can act on: the recommendation, why the role aligns, verified matches, genuine gaps, and exact clarification needed. Translate internal `INSUFFICIENT INFORMATION` into **Needs clarification** and show the missing facts.
 
+In the owner-only hosted pilot, an optional **Preliminary fit** indicator may appear on an opportunity card beside—not instead of—the recommendation and evidence bullets. Show the rounded 0–100 score, TypeSafe/Jev attribution, and a short explanation that it reflects evidence alignment, not a hiring probability. Show **Score unavailable** when source or profile evidence is insufficient and **Needs reassessment** when the saved score belongs to an older evidence version or student setup. Never imply that a higher score authorizes an application or changes the student's decision. A score-only refresh does not generate a material-update email.
+
+In that pilot, display current, valid preliminary scores from high to low by default. Put unscored, stale, failed, or other-profile records after scored records and label their status; never treat an unavailable score as zero. Offer a **Recently reviewed** alternative. Sorting changes only the dashboard view, not recommendations, spreadsheet rows, or operational history. Use a stable secondary order for equal scores.
+
 The student should be able to search, filter, sort, and open an opportunity without losing the current dashboard context.
 
 Do not show a separate dashboard-wide **Information needed to continue** box that repeats the selected-opportunity or opportunity-card content. Put each exact question, missing fact, response status, and **Update Opportunity** control directly on the affected opportunity. The selected-opportunities area may summarize the same opportunity immediately after a run, but it should link the student to that single actionable record rather than create a second response surface.
@@ -144,6 +148,8 @@ The final form action should be **Save and Update**, which must:
 6. verify the outcome and update memory; and
 7. refresh the opportunity card with the resolved issue, new recommendation, new next action, or explicit remaining question.
 
+For a substantive information or confirmation response, show whether TypeSafe resolved a specific evidence gap and whether the preliminary score was refreshed, reused because scored evidence did not change, or remains unavailable. Do not call OpenAI for this targeted reassessment. A fresh TypeSafe request is permitted only for a screened non-identifying answer that may change verified scoring evidence; otherwise preserve the existing score. **Not interested** and **Unsure** choices need no rescoring. Keep the score subordinate to the existing evidence-backed explanation and recommendation; the score cannot change a business decision on its own.
+
 If the runtime is unavailable or another workflow holds the run lock, retain the saved response, mark it **Update ready to retry**, and display an **Update Opportunity** retry button. Do not require the student to use **Collect Opportunities** or wait for a daily collection run.
 
 ### Visible progress labels
@@ -161,7 +167,7 @@ The interface may display concise stage labels, but the primary status should be
 - **Remembering**
 - **Finished**
 
-Examples include “Reading your verified role, location, timing, and work-authorization preferences,” “Requesting a bounded public-web search for Summer 2027 analyst internships in California,” “Validating eight structured candidates returned by the API,” “Adding Northstar Foods — Business Systems Intern to the local spreadsheet,” “Creating a Word cover-letter outline for Northstar Foods,” and “Saving three verified notification previews for your configured address.” Use a company, role, candidate count, file type, or action count only when it is present in observable runtime data. Do not imply access to hidden reasoning.
+Examples include “Reading your verified role, location, timing, and work-authorization preferences,” “Requesting a bounded public-web search for Summer 2027 analyst internships in California,” “Validating eight structured candidates returned by the API,” “Adding Northstar Foods — Business Systems Intern to the local spreadsheet,” “Creating a Word cover-letter draft for Northstar Foods,” and “Saving three verified notification previews for your configured address.” Use a company, role, candidate count, file type, or action count only when it is present in observable runtime data. Do not imply access to hidden reasoning.
 
 Avoid vague descriptions such as “Carrying out a permitted local action.” When low-level activity cannot be classified more precisely, say what approved resource is being read or what output is being prepared, and explicitly avoid claiming that a write or external action succeeded before verification.
 
@@ -243,7 +249,7 @@ The dashboard should continue to provide **Collect Opportunities** independently
 
 Clearly explain that the initial scheduler runs only while the local application is active. If the computer or application was unavailable at the scheduled time, display **Missed Run** when the application next starts; never imply that the run occurred. Detailed behavior belongs in `runtime/local-schedule.md`.
 
-For the first owner-only hosted checkpoint, replace the schedule controls with **Daily Run: Not available in this pilot**. Do not display invented last or next hosted run times. A later hosted scheduler must have its own verified trigger and status before those controls are enabled there.
+The current owner-only hosted Site has no Daily Run control. Collection starts only from **Collect Opportunities**. The removed GitHub Actions design is retained in `runtime/github-cloud-schedule.md` for possible future review, not as a current UI requirement. Never display an invented scheduled run. This does not change the local application's separate schedule controls.
 
 ## Pixel-style agent character
 
@@ -317,7 +323,9 @@ In the owner-only hosted pilot, the recipient is the connected Outlook owner's c
 
 The hosted dashboard must visibly identify itself as a **Private pilot** and show the actual deployment/data mode. Its first checkpoint supports manually initiated **Collect Opportunities** with the explicitly selected synthetic demonstration profile. Live public-posting results may be shown, but profile matches and draft content must be labeled synthetic. Do not silently activate real setup, copy local records, or show sample opportunities as results of a failed live run.
 
-Show a timestamped **Download current spreadsheet** control only when an `.xlsx` generated from verified hosted current records is available. Do not show **Open local spreadsheet** or a laptop path. Hosted Reset Collection, real-resume upload, prepared Word downloads, and Daily Run must each be labeled **Not available in this pilot** until their own private-storage and verification groups are complete; leave the corresponding local-app controls unchanged.
+Show a timestamped **Download current spreadsheet** control only when an `.xlsx` generated from verified hosted current records is available. Do not show **Open local spreadsheet** or a laptop path. Label hosted capabilities according to their verified state. Do not show a Daily Run setup or status panel while cloud scheduling is removed; leave the corresponding local-app controls unchanged.
+
+Once hosted Reset Collection is verified, place its secondary control beside the hosted collection download. Explain that it archives the owner's current opportunities, related history, responses, and Word drafts before clearing the active collection; it keeps student setup, secrets, and earlier reset archives. Require the owner to type `RESET` and prevent reset during another workflow. After success, refresh the current collection and run/activity views and show an owner-only archive download with its creation time. Retain archives until the owner explicitly deletes them. An archive download supports recovery, but the dashboard must not imply that one-click restore is available.
 
 After the Outlook group is implemented, live email status must distinguish a verified collection update, an attempted send, provider acceptance, unknown outcome, and independently confirmed delivery. The pixel character may show **Sending Notifications** only during an actual send attempt and must not celebrate an unconfirmed outcome. The Site must remain owner-only; a public or student-shared dashboard requires a separate design and approval.
 
@@ -339,11 +347,21 @@ Student responses must not be inserted into internship-discovery web queries. Th
 
 Provide a **Prepare materials** action for tracked opportunities. The student may request one or more review-only templates:
 
-- resume-tailoring checklist;
-- cover-letter outline; and
+- tailored resume draft using the supplied PDF as a visual layout reference, with proposed changes highlighted;
+- complete, role-specific Cal Poly-inspired cover-letter draft; and
 - application-question worksheet.
 
-Prepared artifacts should be saved as professionally formatted Microsoft Word `.docx` files and appear in the opportunity details with type, creation time, unresolved placeholders, and a **Download Word draft** action. Every document and dashboard record must say **Draft template — student review required**. Raw Markdown must not be the student-facing saved artifact. The dashboard must never offer **Submit application**, automatic form completion, employer upload, or a control that makes a template appear final.
+Prepared artifacts should be saved as professionally formatted Microsoft Word `.docx` files and appear in the opportunity details with type, creation time, unresolved placeholders, and a **Download Word draft** action. A tailored resume must retain the full confirmed original resume content and integrate small, verified role-specific edits in place; do not replace it with only selected excerpts. Highlight proposed edits against unchanged text. A privately retained original resume may be used only for its owner's draft and must be deletable; a PDF-to-Word conversion may retain content without identical layout, and the UI should disclose that. The cover letter must contain complete draft paragraphs based on the posting's recorded duties and qualifications, not an outline. Use editable placeholders for contact details absent from the non-identifying profile; never borrow identity or claims from another person's reference file. Every document and dashboard record must say **Draft template — student review required**. Raw Markdown must not be the student-facing saved artifact. The dashboard must never offer **Submit application**, automatic form completion, employer upload, or a control that makes a template appear final.
+
+## On-demand interview practice
+
+Show **Practice Interview** as a separate button on each tracked opportunity, not as a checkbox inside **Prepare materials**. It runs only after the student clicks it; neither **Collect Opportunities** nor a daily run prepares interview questions automatically. During the scoped run, show plain-language progress such as checking the selected role, searching for reported questions, searching for interview-process information, checking source support, preparing the practice set, and verifying the Word draft. Run two distinct search themes when available, with an optional third gap-filling search, within three calls and ten inspected public results per click independently of the collection budget. Show the actual search count and a clear incomplete-research message if a search fails.
+
+Display four clearly separated groups: **Publicly reported questions** with clickable source links, publication date when available, and exact-role or related-role labels; **Reported interview process** with the same provenance and candidate-report versus employer-guidance labels; **Likely practice questions** explicitly marked as agent-generated; and **General process preparation** explicitly marked as non-employer-specific. When no candidate report or employer-specific process is verified, say so instead of inventing details. Do not make a source link or video title look like proof of an exact question or interview stage when the underlying content was unavailable. Include these distinctions in the position-specific **Download interview practice Word draft**, show when it was researched, and warn when the opportunity or student setup has changed since preparation.
+
+Use shape as well as color and wording to distinguish action families: a prominent solid rectangular **Collect Opportunities** control, a clearly outlined **Update Opportunity** control, a softer rounded **Prepare materials** control, a distinct pill-shaped **Practice Interview** control, and an unmistakable external **Apply** link. Keep hover, keyboard-focus, disabled, and narrow-screen states readable; do not rely on shape or color alone to convey authority. On wider desktop screens, let the dashboard grow beyond its current narrow maximum width while preserving comfortable text line lengths and the existing responsive mobile layout. Opening **Prepare materials** or **Practice Interview** must not make an opportunity card jump to full-row width.
+
+This action must not change the current opportunity decision, preliminary fit score, spreadsheet record, or notification status. A failed search or document save remains visible with a specific retry action; it is not reported as a completed practice set.
 
 ## Opportunity detail view
 
@@ -389,6 +407,7 @@ Possible controls include:
 - **Archive**
 - **Update Opportunity**
 - **Prepare materials**
+- **Practice Interview**
 - **Open application**
 - **View source**
 

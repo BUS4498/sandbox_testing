@@ -18,6 +18,8 @@ Keep student information, credentials, local runtime data, and external access a
 
 For the owner-only Sites pilot, configure `OPENAI_API_KEY` separately as a server-side Sites secret; do not read or copy the protected local key file into a deployment. Microsoft Graph authorization must use the owner's interactive delegated flow and keep OAuth material in approved protected server-side storage. Never place either credential in Sites source assets, environment examples with values, browser storage, spreadsheet exports, logs, or operational memory. Verify owner-only access before enabling hosted secrets or private persistence.
 
+Optional hosted Jev scoring uses a separate server-side Sites secret, `JEV_API_KEY`, solely for TypeSafe AI at `api.typesafe.ai`. Transfer only a compact, non-identifying summary of verified matches, gaps, preferences, constraints, and evidence completeness. For a student-approved targeted update, a screened non-identifying answer and its specific existing gap or unknown may be sent to TypeSafe for resolution and rescoring; no OpenAI reassessment is needed for that action. Do not transfer the original resume, name, email, contact details, application materials, unrelated responses, full posting, or free-form private constraints. Keep the key, request body, and raw provider response out of browser assets, logs, spreadsheet exports, and operational memory. A scoring failure must not block access to the opportunity's prior qualitative assessment.
+
 ## Student and test data
 
 - Avoid collecting or displaying unnecessary personal information.
@@ -34,7 +36,9 @@ For the owner-only Sites pilot, configure `OPENAI_API_KEY` separately as a serve
 - Extract supported resume files locally. Do not send an original resume to an external parsing service.
 - Require the student to review and confirm an editable, non-identifying agent-facing profile before it is used as authoritative resume evidence.
 - Never include the original resume file, direct contact details, or unconfirmed profile text in model requests. Send only the minimum confirmed evidence needed for the active task.
+- For student-requested tailored resume and cover-letter drafting, send only relevant confirmed, non-identifying profile excerpts and public posting responsibilities/requirements to the configured OpenAI API. Do not send the original resume or its contact details; do not publish personal resume content or generated private drafts to GitHub. A separately approved hosted original file may be retained only in owner-scoped private storage, must be deletable with the profile, and must never be served to another student.
 - Never send work-authorization details, free-form private constraints, or resume evidence in public-web search queries. Use only the minimum non-identifying role, timing, broad location, and work-arrangement criteria needed for discovery.
+- For on-demand interview-question search, use only the employer, role, and public posting details. Do not send the student's resume, name, contact information, eligibility, private answers, or free-form constraints in a public query. Save structured question evidence and source links rather than full social posts, transcripts, or handles.
 - Allow an **Unsure or prefer not to state** work-authorization value. Preserve the resulting uncertainty and request clarification only when a specific opportunity makes the fact consequential.
 - Do not commit the local runtime spreadsheet when it may contain personal or evolving application data.
 - Store the spreadsheet and runtime state under the repository's `data/local/` folder, which must remain excluded from Git.
@@ -44,9 +48,11 @@ For the owner-only Sites pilot, configure `OPENAI_API_KEY` separately as a serve
 
 The hosted pilot is an **additional deployment**, not a migration of `data/local/`. Its first checkpoint uses synthetic student context only, does not accept a real resume, and does not copy existing local opportunities or settings. Label live postings assessed against the synthetic profile as synthetic assessments. Real-student upload and profile storage require a later explicit consent, retention, deletion, and isolation design before activation.
 
-Use durable private hosted storage for current opportunity records, operational memory, settings, and notification attempts. Keep current records separate from detailed history and make the user-facing spreadsheet a verified current export. A hosted reset must remain unavailable until a recoverable private archive/export and read-back are implemented. Do not use ephemeral deployment files as durable records or include private runtime data in a source archive.
+Use durable private hosted storage for current opportunity records, operational memory, settings, and notification attempts. Keep current records separate from detailed history and make the user-facing spreadsheet a verified current export. A hosted reset must remain unavailable until an owner-scoped downloadable archive of affected records and Word bytes is created and checked by read-back. Retain reset archives until the owner explicitly deletes them; never include the student setup, credentials, or prior archives in the active-collection reset. Do not use ephemeral deployment files as durable records or include private runtime data in a source archive.
 
 The Site must remain owner-only. A student-accessible or public version requires a separate access and per-student isolation review. The owner's OpenAI key must not be exposed to visitors or silently shared with a class.
+
+The owner has removed the optional GitHub Actions cloud Daily Run from the current hosted Site. Do not reactivate its workflow or trigger using retained credentials. The deferred design in `runtime/github-cloud-schedule.md` would require separate secrets, minimum data transfer, and fresh approval and verification before any future use. Historical private schedule metadata may be retained for compatibility, but it is not an active control or authorization.
 
 ## External services
 
@@ -57,3 +63,4 @@ Routine student notifications should use minimum non-identifying disclosure: opp
 ## Security failures
 
 If a credential may be exposed, data may have been sent without authority, or local data integrity is uncertain, stop the affected action, preserve non-secret diagnostic evidence, inform the student, and require remediation before resuming.
+
