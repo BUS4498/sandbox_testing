@@ -65,6 +65,9 @@ The separately approved owner-only Codex Sites pilot is defined in
 implementation, read that specification in addition to the relevant
 local specifications. Keep the local app operational; do not make its
 filesystem paths or process timer appear to work in the hosted Site.
+The hosted cloud Daily Run has been removed for now. Do not recreate a
+GitHub trigger, hosted schedule endpoint, or Site schedule controls without
+a new owner decision; the local-only scheduler is unaffected.
 The first hosted checkpoint is manual-only and synthetic-context-only.
 Never copy `data/local/`, a protected key file, or OAuth tokens into
 Sites source, Git, or browser assets. The hosted Outlook transport needs

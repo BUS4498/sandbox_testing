@@ -55,7 +55,7 @@ For local scheduled execution, verify that:
 
 The production agent does not verify that it changed the daily automation because it has no authority to create or modify that automation.
 
-The first hosted checkpoint has no scheduled trigger. Verify that its dashboard states **Daily Run: Not available in this pilot** rather than inventing a last or next run.
+The current hosted Site has no scheduled trigger. Verify that it does not show Daily Run controls or invent a last or next scheduled run; its plain-language boundary note may say that collection is manual.
 
 Never claim success merely because an action was requested or attempted.
 
