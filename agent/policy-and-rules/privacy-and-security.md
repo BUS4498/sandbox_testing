@@ -48,7 +48,7 @@ Optional hosted Jev scoring uses a separate server-side Sites secret, `JEV_API_K
 
 The hosted pilot is an **additional deployment**, not a migration of `data/local/`. Its first checkpoint uses synthetic student context only, does not accept a real resume, and does not copy existing local opportunities or settings. Label live postings assessed against the synthetic profile as synthetic assessments. Real-student upload and profile storage require a later explicit consent, retention, deletion, and isolation design before activation.
 
-Use durable private hosted storage for current opportunity records, operational memory, settings, and notification attempts. Keep current records separate from detailed history and make the user-facing spreadsheet a verified current export. A hosted reset must remain unavailable until a recoverable private archive/export and read-back are implemented. Do not use ephemeral deployment files as durable records or include private runtime data in a source archive.
+Use durable private hosted storage for current opportunity records, operational memory, settings, and notification attempts. Keep current records separate from detailed history and make the user-facing spreadsheet a verified current export. A hosted reset must remain unavailable until an owner-scoped downloadable archive of affected records and Word bytes is created and checked by read-back. Retain reset archives until the owner explicitly deletes them; never include the student setup, credentials, or prior archives in the active-collection reset. Do not use ephemeral deployment files as durable records or include private runtime data in a source archive.
 
 The Site must remain owner-only. A student-accessible or public version requires a separate access and per-student isolation review. The owner's OpenAI key must not be exposed to visitors or silently shared with a class.
 
@@ -61,4 +61,5 @@ Routine student notifications should use minimum non-identifying disclosure: opp
 ## Security failures
 
 If a credential may be exposed, data may have been sent without authority, or local data integrity is uncertain, stop the affected action, preserve non-secret diagnostic evidence, inform the student, and require remediation before resuming.
+
 
