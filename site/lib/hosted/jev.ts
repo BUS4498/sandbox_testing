@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { appendEvent, getOpportunity, saveOpportunity, type FitScore, type OpportunityRecord, type StudentSetup } from "./store";
-import { isMultiOpportunityIndexUrl } from "./source-links.js";
+import { isApprovedPostingUrl, isMultiOpportunityIndexUrl } from "./source-links.js";
 import { compactFitEvidence, JEV_MODEL, normalizeJevAnswer, RUBRIC_VERSION, scoreQuestions } from "./jev-rubric.js";
 import { assessmentMatchesSetup } from "./opportunity-state.js";
 import { selectJevModel } from "./jev-model-access.js";
@@ -40,7 +40,7 @@ export async function scoreSavedOpportunity(ownerId: string, opportunityId: stri
   if (!record) return { status: "SKIPPED", called: false, reason: "Opportunity no longer exists." };
   if (!assessmentMatchesSetup(record, setup)) return { status: "SKIPPED", called: false, reason: "Reassess this opportunity against the current confirmed student setup before scoring." };
   if (isMultiOpportunityIndexUrl(record.postingUrl)) return { status: "SKIPPED", called: false, reason: "Individual posting is not verified." };
-  if (record.postingStatus === "UNCERTAIN") return { status: "SKIPPED", called: false, reason: "The employer posting's current status is unverified; the agent must check the original source before scoring." };
+  if (record.postingStatus === "UNCERTAIN" && !isApprovedPostingUrl(record.postingUrl)) return { status: "SKIPPED", called: false, reason: "The uncertain listing needs an approved role-specific source before scoring." };
   if (record.postingStatus === "CLOSED") return { status: "SKIPPED", called: false, reason: "The posting is closed and is not scored as a current opportunity." };
   const projection = compactFitEvidence(record, setup);
   if (!projection) return { status: "SKIPPED", called: false, reason: "Current verified qualification and posting evidence is too thin for a defensible preliminary score." };

@@ -1,7 +1,8 @@
 import { assessmentMatchesSetup } from "./opportunity-state.js";
+import { isApprovedPostingUrl, isMultiOpportunityIndexUrl } from "./source-links.js";
 
 export const JEV_MODEL = "jev-1.13.0";
-export const RUBRIC_VERSION = "preliminary-fit-v1";
+export const RUBRIC_VERSION = "preliminary-fit-v2-source-caveats";
 
 const SIGNALS = [
   ["AI and automation", /\b(ai|artificial intelligence|automation|machine learning)\b/i],
@@ -66,7 +67,9 @@ export function compactFitEvidence(record, setup) {
   if (!setup?.ready || !["REAL", "SYNTHETIC_DEMONSTRATION"].includes(setup.mode)) return null;
   // Records created before real-student setup existed have no mode marker.
   // They were assessed only with the synthetic demonstration profile.
-  if (!assessmentMatchesSetup(record, setup) || record?.postingStatus !== "ACTIVE") return null;
+  if (!assessmentMatchesSetup(record, setup) || !["ACTIVE", "UNCERTAIN"].includes(record?.postingStatus)) return null;
+  if (isMultiOpportunityIndexUrl(record.postingUrl)) return null;
+  if (record.postingStatus === "UNCERTAIN" && !isApprovedPostingUrl(record.postingUrl)) return null;
   // Older targeted updates retained the category followed by a narrative.
   // Preserve those records, but still reject assessments without a clear category.
   if (!/^(?:STRONG|MODERATE|WEAK)(?:$|:\s)/i.test(String(record.fitAssessment ?? "").trim())) return null;
@@ -99,6 +102,8 @@ export function compactFitEvidence(record, setup) {
       postingInternshipPeriod: postingPeriod(record.internshipPeriod),
       studentAvailabilityWindow: setup.mode === "SYNTHETIC_DEMONSTRATION" ? "2027-05 through 2027-08" : monthWindow(preferences.availableFrom, preferences.availableThrough),
       deadlineKnown: Boolean(record.deadline && !/^unknown$/i.test(record.deadline)),
+      postingStatus: record.postingStatus,
+      activeStatusConfirmed: record.postingStatus === "ACTIVE",
     },
   };
 }

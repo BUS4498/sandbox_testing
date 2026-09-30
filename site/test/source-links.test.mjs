@@ -1,6 +1,35 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { isEvidenceBackedApplicationUrl, isMultiOpportunityIndexUrl, isSecondaryListing } from "../lib/hosted/source-links.js";
+import { isApprovedPostingUrl, postingAdmissionIssue, isEvidenceBackedApplicationUrl, isMultiOpportunityIndexUrl, isSecondaryListing } from "../lib/hosted/source-links.js";
+
+test("approved role-specific sources are accepted without employer confirmation", () => {
+  for (const url of [
+    "https://simplify.jobs/p/123/Data-Analyst-Intern", "https://jobs.lever.co/example/123",
+    "https://job-boards.greenhouse.io/example/jobs/123", "https://jobs.ashbyhq.com/example/123",
+    "https://www.usajobs.gov/job/123", "https://calcareers.ca.gov/CalHrPublic/Jobs/JobPosting.aspx?JobControlId=123",
+    "https://builtin.com/job/analyst-intern/123", "https://www.linkedin.com/jobs/view/123",
+    "https://www.indeed.com/viewjob?jk=123", "https://wellfound.com/jobs/123-analyst-intern",
+  ]) {
+    const posting = { company: "Example", roleTitle: "Analyst Intern", postingUrl: url, postingStatus: "UNCERTAIN" };
+    assert.equal(isApprovedPostingUrl(url), true, url);
+    assert.equal(postingAdmissionIssue(posting, [url]), null, url);
+    assert.equal(posting.postingStatus, "UNCERTAIN"); // Admission never rewrites status.
+  }
+});
+
+test("relaxed admission still rejects absent evidence, closed new listings, indexes, and lookalikes", () => {
+  const url = "https://simplify.jobs/p/123/Analyst-Intern";
+  const posting = { company: "Example", roleTitle: "Analyst Intern", postingUrl: url, postingStatus: "UNCERTAIN" };
+  assert.match(postingAdmissionIssue(posting, []), /absent/);
+  assert.match(postingAdmissionIssue({ ...posting, company: "" }, [url]), /incomplete/);
+  assert.match(postingAdmissionIssue({ ...posting, postingStatus: "CLOSED" }, [url]), /closed/);
+  assert.equal(postingAdmissionIssue({ ...posting, postingStatus: "CLOSED" }, [url], "MATERIALLY_CHANGED"), null);
+  const index = "https://simplify.jobs/l/Top-Summer-Internships-2027";
+  assert.match(postingAdmissionIssue({ ...posting, postingUrl: index }, [index]), /index/);
+  for (const bad of ["https://simplify.jobs.evil.example/p/123", "file:///simplify.jobs/p/123", "https://www.indeed.com/jobs?q=intern", "https://www.linkedin.com/jobs", "https://wellfound.com/", "https://builtin.com/jobs"]) {
+    assert.equal(isApprovedPostingUrl(bad), false, bad);
+  }
+});
 
 test("recognizes approved secondary discovery sites without matching lookalike hosts", () => {
   assert.equal(isSecondaryListing("https://www.linkedin.com/jobs/view/123"), true);

@@ -37,4 +37,6 @@ Maintain the existing per-run limits of ten internship web searches, fifteen can
 
 ## Release verification
 
+The controller accepts supported role-specific listings from the approved discovery portfolio without requiring employer-site confirmation. Require an observed source reference, company, role, and distinct posting URL. Preserve `UNCERTAIN` active status, unknown deadlines and eligibility, and secondary-versus-employer provenance. Those caveats alone must not block saving, qualitative assessment, or evidence-ready Jev scoring. Closed new postings, fabricated links, generic indexes, duplicates, and confirmed hard-constraint conflicts remain excluded. Do not bypass access controls or convert unknown fields into verified facts.
+
 Before switching audience, verify current source and deployment identity, authentication, cross-user isolation, usage ceilings under concurrent requests, record persistence, reset/download scope, secret non-disclosure, and the signed-in student journey with a synthetic profile. Recheck on the live Site after publication. Do not run billable collection solely for release testing without specific authorization. Preserve the owner's existing records and keep a rollback path to restricted access if a defect appears.

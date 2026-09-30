@@ -53,6 +53,8 @@ Use one of these evidence-based assessments:
 
 Explain why the label applies. Do not reduce fit to one unexplained numerical score. Any numerical aid must remain secondary, transparent, and traceable to the evidence matrix.
 
+An accepted posting from the approved source portfolio does not require a second employer-site verification. Compare its stated qualifications with confirmed student evidence; carry unknown active status, deadline, or eligibility separately. Those source caveats alone do not force `INSUFFICIENT INFORMATION` or prevent a preliminary score. Use that label when decisive student-to-requirement evidence is actually too thin or contradictory, and never treat unknown eligibility as satisfied.
+
 For the hosted pilot's required evidence-ready Jev indicator, finish the qualitative assessment first. Pass only the approved non-identifying structured evidence projection to `agent/tools/jev-fit-scoring.md`. Do not let the score supply missing qualifications, overrule a hard constraint, or become a hiring probability. If the evidence is too thin or belongs to a different student setup, leave the score unavailable and explain why.
 
 ## Output contract

@@ -62,11 +62,10 @@ The funnel should reduce the candidate pool before expensive model reasoning. It
 Check whether each candidate appears to be:
 
 - a real internship opportunity;
-- currently accessible;
-- reasonably current; and
+- supported by an observed role-specific listing in the approved portfolio; and
 - supported by a valid source.
 
-Inspect the underlying posting when reasonably accessible. Prefer an employer-controlled Greenhouse, Lever, or Ashby posting for final verification when an approved secondary source identifies the opportunity and such a posting is reasonably available. Do not accept a search-result snippet alone as sufficient evidence when the posting can be checked. Preserve unavailable or uncertain fields rather than inventing them.
+Inspect the underlying listing when reasonably accessible. Apply the [approved-source admission rule](../tools/internship-web-search.md): a supported role-specific posting from a selected source is valid without employer-site confirmation. Check employer pages only as optional enrichment. A company, internship role, distinct posting URL, and observed source reference are the minimum admission evidence; a generic index alone is not an individual opportunity. Preserve unavailable fields. An access failure or unknown active status does not invalidate that accepted listing.
 
 Assign a validation or posting status when supported:
 
@@ -75,7 +74,7 @@ Assign a validation or posting status when supported:
 - `UNCERTAIN`; or
 - `INVALID / INCOMPLETE`.
 
-Validation or posting status is separate from the duplicate and change classification below. For example, a tracked posting may be both `CLOSED` and `EXISTING — MATERIALLY CHANGED`.
+Source acceptance, posting status, and duplicate/change classification are separate. An accepted approved-source listing may remain `UNCERTAIN` and still proceed to ranking, assessment, saving, and evidence-ready scoring. A tracked posting may be both `CLOSED` and `EXISTING — MATERIALLY CHANGED`; a known closed new posting is still excluded.
 
 ### Step 4 — Deduplicate
 
@@ -198,7 +197,7 @@ For interview practice, return the selected opportunity ID and version, search t
 
 If content is inaccessible, incomplete, ambiguous, or contradictory, preserve what was actually observed and classify or label the limitation appropriately. Do not treat a failed search, inaccessible page, missing result, or failed recheck as evidence that a posting closed.
 
-An `UNCERTAIN` or `INVALID / INCOMPLETE` result must not be silently converted into a valid new opportunity. Preserve any source-verification issue for later review or escalation. A failed search call does not expand the ten-call budget or justify lowering validation and relevance standards.
+Do not silently turn `UNCERTAIN` into `ACTIVE`. An accepted approved-source listing can remain uncertain and enter the collection with clear caveats. An `INVALID / INCOMPLETE` result lacking the minimum company, role, distinct URL, or source evidence is still excluded. Preserve unresolved details for later review; a failed search does not expand the budget.
 
 ## What is passed to the next stage
 

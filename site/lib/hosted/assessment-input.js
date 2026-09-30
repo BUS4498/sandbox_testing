@@ -14,6 +14,7 @@ export function privateAssessmentInput(discovery) {
       deadline: opportunity.deadline,
       postingStatus: opportunity.postingStatus,
       postingUrl: opportunity.postingUrl,
+      source: opportunity.source,
       responsibilities: opportunity.responsibilities,
       requiredQualifications: opportunity.requiredQualifications,
       preferredQualifications: opportunity.preferredQualifications,

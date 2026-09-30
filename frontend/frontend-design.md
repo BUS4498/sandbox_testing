@@ -59,6 +59,8 @@ On wider screens, let the agent-status panel fill the workbench height beside th
 
 Display the collection as a scannable, full-width row list on larger screens and a readable stacked layout when space is limited. Keep it synchronized with the local spreadsheet.
 
+Accept supported role-specific postings from the approved source portfolio without demanding employer-site confirmation. Display **Approved-source listing · active status unconfirmed** when applicable, rather than implying that the listing failed admission. Keep unknown deadline, location, and eligibility visible as posting-detail caveats. These caveats must not hide the opportunity or an otherwise evidence-ready Jev score; confirmed closure, hard-constraint conflict, stale student evidence, and genuinely insufficient fit evidence remain distinct. A follow-up source check is not a question the student must answer.
+
 Each opportunity should show:
 
 - company;

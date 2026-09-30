@@ -87,7 +87,7 @@ Within the ten-call budget, select up to ten source-focused searches using the h
 
 Do not attempt to visit all nine sources merely because they appear in this portfolio. Use prior search observations to vary source coverage across later runs when doing so is useful, but do not repeatedly search a lower-priority source after the current run already has enough strong candidates.
 
-LinkedIn, Indeed, and Wellfound are public-discovery fallbacks. Do not sign in, bypass login prompts, use a student account, or treat an inaccessible listing as verified. When any secondary source identifies an opportunity, attempt to validate the requirements, status, and application link against an employer-controlled career page—preferably its Greenhouse, Lever, or Ashby posting—when reasonably available.
+LinkedIn, Indeed, and Wellfound are public-discovery fallbacks. Do not sign in, bypass login prompts, or use a student account. Public role-specific evidence can establish source acceptance, not employer confirmation. A further employer check is optional; unavailable details remain unknown and do not invalidate an otherwise supported approved-source listing.
 
 ## Search behavior
 
@@ -118,7 +118,15 @@ Within the approved portfolio, prefer sources in approximately this order:
 5. Built In; and
 6. a publicly accessible LinkedIn, Indeed, or Wellfound listing.
 
-When a secondary source identifies an opportunity, attempt to verify it against the employer's own career site when reasonably possible. Preserve both the discovery source and the best verified posting source when they differ.
+When a secondary source identifies an opportunity, an employer-site check is optional enrichment within the remaining budget, not a condition for admission. Preserve both the discovery source and any employer source actually observed.
+
+### Approved-source admission
+
+Treat a role-specific listing from the approved portfolio as a valid opportunity for screening, assessment, and collection without requiring employer confirmation. At minimum, observed source evidence must establish the company, internship role, and a distinct posting link. An approved structured list may supply this evidence and the role-specific link; its generic index URL must not become the posting URL for every role. Prefer reading the detail page when accessible, but a failed employer-page check must not discard an otherwise supported approved-source listing.
+
+Keep **source acceptance** separate from **posting status**. Accepted does not mean employer-confirmed, currently open, or eligible for this student. Retain `UNCERTAIN` status and unknown deadlines, location restrictions, compensation, or eligibility where appropriate. Source/date caveats accompany the record and do not alone prevent assessment, saving, or evidence-ready Jev scoring. Do not invent requirements from a role title.
+
+Reject fabricated or unsupported links, generic indexes presented as individual postings, known closed new postings, duplicates, and confirmed conflicts with hard student constraints. Unknown facts are not confirmed conflicts. Never bypass authentication or access controls.
 
 The tool must not:
 
@@ -179,7 +187,7 @@ The tool may not make a final fit assessment, select a final agent decision, wri
 
 If search is unavailable, a result cannot be opened, a source conflicts with another source, or a posting cannot be verified, return the observed information with an explicit failure or uncertainty status. Do not treat inaccessibility as proof that an opportunity is closed.
 
-One failed query or inaccessible source should not invalidate other independently verified results. Return partial results with their provenance and identify any unresolved source-verification issue for later review or escalation.
+One failed query or inaccessible employer source should not invalidate an accepted approved-source listing. Return partial results with their provenance and identify unresolved posting details as non-blocking caveats unless decisive qualification evidence is genuinely insufficient.
 
 If repeated external failures prevent reliable discovery, stop further searching within the run, preserve the failure observations, and return any candidates already supported by sufficient evidence. Do not spend additional search calls merely to compensate for failures, and do not lower the relevance or evidence standard to fill the five-opportunity limit.
 

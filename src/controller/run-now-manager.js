@@ -50,6 +50,8 @@ For this run:
 - use only the approved source portfolio;
 - collect no more than 15 candidate opportunities;
 - validate and deduplicate before detailed reasoning;
+- accept an observed role-specific listing from the approved portfolio without requiring employer confirmation; preserve UNCERTAIN status and unknown details rather than discarding it solely for a failed employer check;
+- reject known closed new postings, unsupported links, generic list URLs, duplicates, and confirmed hard-constraint conflicts; unknown details are not confirmed conflicts;
 - select the top 3 to 5 relevant new or materially changed opportunities when at least 3 qualify;
 - provide a specific selectionShortfallReason when fewer than 3 qualify;
 - do not submit applications, contact employers, fabricate qualifications, or expose private reasoning; and

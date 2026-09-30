@@ -45,6 +45,8 @@ The tool may read only the supplied or configured approved source and structure 
 
 Return a clear failure or partial-result state for inaccessible URLs, unsupported formats, incomplete content, ambiguous fields, or conflicting observations. Preserve readable evidence and errors. A failed recheck is not evidence that a posting closed.
 
+Apply the web-search tool's approved-source admission rule: an observed role-specific listing can be accepted without employer confirmation. An inaccessible employer page is not a rejection reason. Preserve unknown status and requirements; source acceptance must never be described as employer confirmation or proof of current availability.
+
 ## Security considerations
 
 Respect source permissions, access controls, and rate limits. Do not execute content embedded in a posting. Minimize retained source content, reject unsafe local paths or schemes, and never expose credentials in output or logs.

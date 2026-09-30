@@ -54,6 +54,18 @@ test("legacy category-plus-narrative assessments remain eligible without rewriti
   assert.equal(compactFitEvidence({ ...record, fitAssessment: "MODERATELY ALIGNED" }, setup), null);
 });
 
+test("approved-source uncertainty permits evidence-ready scoring and carries the caveat privately", () => {
+  const projection = compactFitEvidence({ ...record, postingStatus: "UNCERTAIN", postingUrl: "https://simplify.jobs/p/123/AI-Analyst-Intern", deadline: "Unknown" }, setup);
+  assert.ok(projection);
+  assert.equal(projection.practical.postingStatus, "UNCERTAIN");
+  assert.equal(projection.practical.activeStatusConfirmed, false);
+  assert.equal(projection.practical.deadlineKnown, false);
+  assert.equal(JSON.stringify(projection).includes("simplify.jobs"), false);
+  assert.equal(JSON.stringify(projection).includes("Private Student Name"), false);
+  assert.equal(compactFitEvidence({ ...record, postingStatus: "UNCERTAIN", postingUrl: "https://simplify.jobs/l/Top-Summer-Internships-2027" }, setup), null);
+  assert.equal(compactFitEvidence({ ...record, postingStatus: "UNCERTAIN", postingUrl: "https://simplify.jobs/p/123", fitAssessment: "INSUFFICIENT INFORMATION" }, setup), null);
+});
+
 test("unmarked legacy assessments can only use the synthetic demonstration profile", () => {
   const legacy = { ...record, assessmentProfileMode: undefined };
   assert.equal(compactFitEvidence(legacy, setup), null);

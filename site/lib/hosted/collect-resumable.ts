@@ -3,7 +3,7 @@ import { discoveryPrompt, realAssessmentPrompt } from "./prompt";
 import { HostedOpenAIError, readBackgroundAssessment, readBackgroundDiscovery, retrieveBackground, startBackgroundAssessment, startBackgroundDiscovery, type ValidatedResult } from "./openai";
 import { materialFields, toRecord, type RunSummary, type Selection } from "./collect";
 import { appendEvent, canonicalUrl, collectionAllowance, findDuplicate, finishRun, getStudentSetup, latestRun, listOpportunities, saveOpportunity, startRun, updateRun, UsageLimitError, type RunRecord, type StudentSetup } from "./store";
-import { isEvidenceBackedApplicationUrl, isMultiOpportunityIndexUrl } from "./source-links.js";
+import { isEvidenceBackedApplicationUrl, postingAdmissionIssue } from "./source-links.js";
 import { availableJevModel, scoreSavedOpportunity } from "./jev";
 
 type Phase = "DISCOVERY" | "ASSESSMENT_START" | "ASSESSMENT" | "PROCESS";
@@ -110,11 +110,12 @@ async function processSelection(ownerId: string, run: RunRecord, job: Collection
   let sourceUrl: string;
   try { sourceUrl = canonicalUrl(selection.opportunity.postingUrl); }
   catch { summary.unresolvedIssues.push(`${label}: posting URL could not be validated.`); summary.needsAttention++; return; }
-  if (isMultiOpportunityIndexUrl(sourceUrl)) {
+  const admissionIssue = postingAdmissionIssue({ ...selection.opportunity, postingUrl: sourceUrl }, job.evidenceUrls, selection.updateDisposition);
+  if (admissionIssue) {
     summary.duplicatesOrInvalid++; summary.needsAttention++;
-    summary.unresolvedIssues.push(`${label}: the supplied URL is a multi-role discovery list, not this role's posting.`);
-    summary.selected.push({ opportunityId: null, company: selection.opportunity.company, roleTitle: selection.opportunity.roleTitle, outcome: "POSTING_NOT_VERIFIED" });
-    await appendEvent(ownerId, run.id, null, "EVALUATION", { expected: "Distinct opportunity posting", observed: "Multi-role discovery list URL", outcome: "FAILURE", sourceUrl });
+    summary.unresolvedIssues.push(`${label}: ${admissionIssue} No record changed.`);
+    summary.selected.push({ opportunityId: null, company: selection.opportunity.company, roleTitle: selection.opportunity.roleTitle, outcome: "POSTING_NOT_ACCEPTED" });
+    await appendEvent(ownerId, run.id, null, "EVALUATION", { expected: "Supported role-specific posting", observed: admissionIssue, outcome: "FAILURE", sourceUrl });
     return;
   }
   if (job.processedUrls.includes(sourceUrl)) {
@@ -123,21 +124,6 @@ async function processSelection(ownerId: string, run: RunRecord, job: Collection
     return;
   }
   job.processedUrls.push(sourceUrl);
-  if (!job.evidenceUrls.includes(sourceUrl)) {
-    summary.unresolvedIssues.push(`${label}: the posting URL was absent from returned web-source evidence; no record changed.`);
-    summary.needsAttention++;
-    summary.selected.push({ opportunityId: null, company: selection.opportunity.company, roleTitle: selection.opportunity.roleTitle, outcome: "SOURCE_UNVERIFIED" });
-    await appendEvent(ownerId, run.id, null, "EVALUATION", { expected: "Source-backed posting", observed: "Selected URL missing from returned source references", outcome: "FAILURE", postingUrl: sourceUrl });
-    return;
-  }
-  if (selection.opportunity.postingStatus === "CLOSED" && selection.updateDisposition === "NEW") { summary.duplicatesOrInvalid++; return; }
-  if (selection.opportunity.postingStatus === "UNCERTAIN" && selection.updateDisposition === "NEW") {
-    summary.duplicatesOrInvalid++;
-    summary.unresolvedIssues.push(`${label}: the current employer posting could not be verified, so this lead was not added. The agent may recheck it in a later bounded run.`);
-    summary.selected.push({ opportunityId: null, company: selection.opportunity.company, roleTitle: selection.opportunity.roleTitle, outcome: "SOURCE_CHECK_PENDING" });
-    await appendEvent(ownerId, run.id, null, "EVALUATION", { expected: "Verified current posting before adding a new row", observed: "Posting status uncertain", outcome: "PARTIAL SUCCESS", postingUrl: sourceUrl });
-    return;
-  }
   const known = await listOpportunities(ownerId);
   const knownById = new Map(known.map((record) => [record.opportunityId, record]));
   const duplicate = await findDuplicate(ownerId, selection.opportunity);

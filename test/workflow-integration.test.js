@@ -139,6 +139,26 @@ function readyDemoStore() {
   };
 }
 
+test("approved-source listing is saved locally with uncertain status and missing deadline intact", async () => {
+  await withIntegratedWorkflow(async ({ manager, spreadsheetTracker, client }) => {
+    const started = manager.startCollection();
+    const finished = await manager.waitForRun(started.runId);
+    assert.notEqual(finished.status, "FAILURE");
+    const record = await spreadsheetTracker.getOpportunity("opp-integration-001");
+    assert.equal(record.postingStatus, "UNCERTAIN");
+    assert.equal(record.deadline, "");
+    assert.equal(record.source, "Simplify");
+    assert.match(client.calls[0].input, /without requiring employer confirmation/);
+  }, () => {
+    const result = workflowResult({ deadline: "" });
+    Object.assign(result.selectedOpportunities[0].opportunity, {
+      source: "Simplify", postingUrl: "https://simplify.jobs/p/example/Information-Systems-Intern", postingStatus: "UNCERTAIN",
+    });
+    result.selectedOpportunities[0].fitEvidence.unknowns.push("Active status unconfirmed");
+    return result;
+  });
+});
+
 test("integrates API structured output through spreadsheet, notification preview, verification, memory, and run summary", async () => {
   await withIntegratedWorkflow(async ({ manager, memoryStore, spreadsheetTracker, directory, client }) => {
     const stageEvents = [];

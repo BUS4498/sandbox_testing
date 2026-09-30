@@ -27,6 +27,7 @@ For an explicit interview-practice request, reason only about source support and
 5. Consider career preferences, location, availability, constraints, deadline, and urgency.
 6. Incorporate relevant prior student decisions and evaluations without treating them as permanent authority.
 7. Explain conflicts and uncertainty.
+   Source acceptance is not proof of active status. Assess an accepted approved-source listing using its actual duties and requirements even when employer confirmation, deadline, or status is unknown. Keep those caveats separate from student qualification gaps; do not make the entire fit assessment unavailable solely because employer confirmation is absent.
 8. Never fabricate qualifications, experience, coursework, projects, or preferences.
 9. If a pending student response addresses a prior unknown or unresolved issue, evaluate that response as student-supplied evidence, identify what it resolves, and state whether more information is still required.
 10. When application-template preparation was requested, identify the verified facts, posting requirements, gaps, and placeholders that the `application-material-prep` Skill may use. Do not prepare or finalize the material inside the fit assessment itself.
