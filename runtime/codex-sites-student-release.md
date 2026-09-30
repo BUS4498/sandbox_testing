@@ -2,6 +2,8 @@
 
 ## Relationship to the private pilot
 
+Release verification (September 2026): the published Site requires sign-in, and anonymous and forged-identity-header requests to `/api/status` returned 401. Synthetic two-student tests verified separate records and archives, reset isolation, and non-resettable Collect allowances. A second real signed-in student account has not yet been exercised in production; that remains a classroom canary check, not a reason to infer cross-account behavior from the owner's session alone.
+
 This release converts the existing hosted Internship Prep Desk into a student-facing Site. The earlier [private-pilot specification](codex-sites-private-pilot.md) records the design and acceptance history; this document governs the changed audience. The local app remains a separate local-first option. The hosted Site does not read a student's laptop files except an upload the student explicitly selects, and it does not inherit the local app's spreadsheet, credentials, or schedule.
 
 ## Audience and identity
