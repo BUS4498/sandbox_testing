@@ -26,13 +26,14 @@ The local-first system should:
 - allow a manual **Collect Opportunities** action for bounded web discovery;
 - allow a targeted **Update Opportunity** action that immediately processes newly supplied student information for one tracked opportunity without performing web discovery;
 - optionally run automatically once per day;
-- create informational student-notification previews after tracked opportunities materially change, with live sending available only through a separately approved provider integration; and
-- prepare local, review-only Microsoft Word application templates when the student requests them; and
+- create informational student-notification previews after tracked opportunities materially change, with live sending available only through a separately approved provider integration;
+- prepare local, review-only Microsoft Word application templates when the student requests them;
+- offer a separate, student-clicked **Practice Interview** action that checks public reports of interview questions and process, clearly labeling generated preparation guidance; and
 - let the student explicitly archive and reset the current local collection without changing authoritative context, notification settings, API configuration, or local scheduling.
 
 The system is an internship-preparation assistant, not an autonomous job applicant. It has no application-submission capability.
 
-An optional **owner-only Codex Sites pilot** is specified in [`runtime/codex-sites-private-pilot.md`](../runtime/codex-sites-private-pilot.md). It is a separate hosted variant, not a replacement for the local application. Its first checkpoint uses synthetic context and manual collection only; real-resume handling and hosted Daily Run remain unavailable until separately implemented and verified.
+The separate hosted variant began as an **owner-only Codex Sites pilot** specified in [`runtime/codex-sites-private-pilot.md`](../runtime/codex-sites-private-pilot.md). Its student-facing release requirements are in [`runtime/codex-sites-student-release.md`](../runtime/codex-sites-student-release.md). It is not a replacement for the local application. The Site supports manual collection and confirmed student setup; its cloud Daily Run has been removed for now.
 
 Collection reset is a confirmed local-controller operation, not an agent workflow stage or model decision.
 
@@ -62,7 +63,7 @@ When a tracked opportunity needs student information, confirmation, or an applic
 
 When the student enables local daily collection, the local controller triggers the same production workflow once per day at the configured local time while the application is running.
 
-The first owner-only hosted checkpoint has no Daily Run trigger. Its dashboard must say so explicitly; a later hosted schedule requires its own supported trigger and verification before this mode is enabled there.
+The hosted Site has no Daily Run trigger or schedule controls. A future hosted schedule would require a new owner decision, supported trigger, and verification before this mode could be enabled there.
 
 Manual and scheduled collection use the same discovery workflow, policies, verified student context, duplicate-prevention rules, decision process, action rules, verification requirements, and operational memory. A targeted opportunity update uses the same core workflow and safeguards but scopes **SENSE** to the new student-supplied information and existing posting evidence rather than invoking web discovery. No trigger expands the agent's authority.
 
@@ -79,6 +80,8 @@ Detailed discovery and scheduling behavior belongs in the [Internship Web Search
 Detailed instructions for each stage belong in [`agent/workflow-task-specs/`](workflow-task-specs/) and are not duplicated here.
 
 The trigger determines scope, not the workflow architecture. **Collect Opportunities** uses bounded public-web discovery. **Update Opportunity** processes one tracked opportunity and its newly supplied student information immediately, without waiting for a later collection run.
+
+**Practice Interview** is another scoped, student-initiated preparation path for one tracked opportunity. It uses the [Interview Question Search tool](tools/interview-question-search.md) only after the student clicks that action. It neither collects new opportunities nor changes the current fit score or decision, spreadsheet, or notification status.
 
 ## Token and Cost Design Principle
 
@@ -131,10 +134,11 @@ The agent works with:
 - email notification capability;
 - a local daily scheduling trigger;
 - professional communication drafting capability;
-- review-only application-material preparation capability; and
+- review-only application-material preparation capability;
+- on-demand public interview-question and process research with labeled preparation drafting capability; and
 - private local storage for prepared application templates.
 
-The student chooses the notification recipient in the local dashboard. The current local API implementation creates verified local previews only. The approved hosted-pilot transport uses Microsoft Graph delegated `Mail.Send` for the connected owner's own address; it must keep authorization secrets out of the repository, browser, spreadsheet, and operational memory. Provider acceptance must not be described as confirmed delivery.
+The student chooses the notification recipient in the local dashboard. The current local API implementation creates verified local previews only. The hosted student Site currently sends no live email. Any future per-student hosted notification transport requires separate approval and secure authorization; provider acceptance must not be described as confirmed delivery.
 
 The [`application-material-prep`](skills/application-material-prep/SKILL.md) Skill prepares evidence-grounded templates, and the [Local Application Materials tool](tools/local-application-materials.md) stores verified draft artifacts under the Git-ignored `data/local/` runtime folder. These capabilities do not create an application-submission path.
 

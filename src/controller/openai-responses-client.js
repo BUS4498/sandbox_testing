@@ -5,6 +5,7 @@ import OpenAI from "openai";
 
 import { MAX_DISCOVERY_SEARCHES } from "../workflow/workflow-limits.js";
 import { WORKFLOW_RESULT_JSON_SCHEMA } from "../workflow/workflow-result-contract.js";
+import { INTERVIEW_PRACTICE_SCHEMA, validateInterviewResult, verifyInterviewReports } from "./interview-practice-contract.js";
 
 const APPROVED_SEARCH_DOMAINS = Object.freeze([
   "greenhouse.io",
@@ -165,6 +166,55 @@ export class OpenAIResponsesClient {
       searchesPerformed,
       sources,
     };
+  }
+
+  async runInterviewResearch({ company, roleTitle, location, postingUrl } = {}) {
+    if (!company || !roleTitle) throw new TypeError("A company and role are required for interview practice.");
+    const client = await this.#client();
+    const publicPosting = { company, roleTitle, location: location || "Unknown", postingUrl: postingUrl || "Unknown" };
+    const searchTheme = async (theme) => {
+      const focus = theme === "QUESTIONS"
+        ? "Search ONCE for candidate-reported questions actually asked for this employer and role. Fill reportedQuestions and likelyQuestions; leave process arrays empty."
+        : "Search ONCE for candidate-reported interview stages, format, assessments, or employer-published process guidance for this employer and role. Fill reportedProcess and generalProcessGuidance; leave question arrays empty. Candidate accounts are not employer policy.";
+      const input = `${focus} Use one focused web-search query and cite accessible public candidate accounts, YouTube descriptions or transcripts, or employer-authorized pages. A snippet or inaccessible video is not proof. For each reported item, include an exact source quote of at most 180 characters. Mark exact versus related roles. Do not invent rounds, timing, or questions. Search with no student name, resume, profile, email, or private information. Return JSON only.\n${JSON.stringify(publicPosting)}`;
+      let response;
+      try {
+        response = await client.responses.create({ model: this.model, input, reasoning: { effort: this.reasoningEffort },
+          text: { format: { type: "json_schema", name: "interview_practice_result", strict: true, schema: INTERVIEW_PRACTICE_SCHEMA } },
+          tools: [{ type: "web_search", search_context_size: "low" }], tool_choice: "required", max_tool_calls: 1, include: ["web_search_call.action.sources"],
+        });
+      } catch (cause) { throw normalizeProviderError(cause); }
+      if (response?.status !== "completed") throw new OpenAIResponsesRuntimeError(`${theme} interview research did not complete. No new practice set was saved.`, "INTERVIEW_INCOMPLETE");
+      const count = countWebSearchCalls(response?.output);
+      if (count < 1 || count > 2) throw new OpenAIResponsesRuntimeError(`${theme} interview research did not stay within its search budget.`, "INTERVIEW_BUDGET_EXCEEDED");
+      return { text: response.output_text, urls: collectSources(response.output).map((item) => item.url), count, responseId: safeIdentifier(response?.id) };
+    };
+    const questions = await searchTheme("QUESTIONS");
+    const process = await searchTheme("PROCESS");
+    const searchesPerformed = questions.count + process.count;
+    if (searchesPerformed > 3) throw new OpenAIResponsesRuntimeError("Interview research exceeded its three-search limit.", "INTERVIEW_BUDGET_EXCEEDED");
+    let result;
+    try {
+      const questionResult = validateInterviewResult(questions.text, questions.urls);
+      const processResult = validateInterviewResult(process.text, process.urls);
+      result = { reportedQuestions: questionResult.reportedQuestions, reportedProcess: processResult.reportedProcess,
+        likelyQuestions: questionResult.likelyQuestions, generalProcessGuidance: processResult.generalProcessGuidance,
+        searchNotes: [questionResult.searchNotes, processResult.searchNotes].filter(Boolean).join(" ") };
+      result = await verifyInterviewReports(result, { company, roleTitle });
+    } catch { throw new OpenAIResponsesRuntimeError("Interview research did not pass source and structure checks.", "INTERVIEW_VALIDATION_FAILED"); }
+    if (!result.reportedQuestions.length && !result.likelyQuestions.length) result.likelyQuestions = [
+      `Why are you interested in the ${roleTitle} internship at ${company}?`,
+      `How would you identify and document business requirements for this ${roleTitle} role?`,
+      "Describe a project where you analyzed information and explained your recommendation.",
+      "How would you check whether a process or system improvement is working?",
+      "What would you do if you lacked a skill needed for an internship assignment?",
+    ];
+    // Do not repackage unverified source claims as generic process guidance.
+    result.generalProcessGuidance = [
+      "An introductory conversation, a discussion of role-related work, and time for your questions are possibilities—not this employer's confirmed stages.",
+      "Ask the recruiter to confirm the actual format, stages, assessments, and timing.",
+    ];
+    return { ...result, searchesPerformed, sourcesInspected: result.sourcesInspected, responseId: [questions.responseId, process.responseId].filter(Boolean).join(",") };
   }
 
   async close() {}

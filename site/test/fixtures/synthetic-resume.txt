@@ -1,0 +1,4 @@
+Synthetic Information Systems junior pursuing a B.S. in Business Administration.
+Coursework includes database management, systems analysis, business analytics, and operations.
+Academic projects used SQL to clean retail inventory records, Power BI to build a decision dashboard, and process mapping to improve a student registration workflow.
+Part-time campus operations experience included updating an Excel tracking workbook and documenting recurring process issues.

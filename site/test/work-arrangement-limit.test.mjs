@@ -1,0 +1,72 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { parseAndValidateWorkflowResult } from "../lib/hosted/specs/workflow-result-contract.js";
+
+function resultWithWorkArrangement(workArrangement) {
+  return {
+    schemaVersion: 1,
+    runSummary: {
+      searchesPerformed: 1,
+      candidatesDiscovered: 1,
+      duplicatesOrInvalid: 0,
+      candidatesRanked: 1,
+      selectionShortfallReason: "Only one verified role qualified in this bounded test.",
+    },
+    selectedOpportunities: [{
+      updateDisposition: "NEW",
+      existingOpportunityId: null,
+      opportunity: {
+        opportunityId: null,
+        company: "Example Employer",
+        roleTitle: "Business Analyst Intern",
+        location: "California",
+        workArrangement,
+        internshipPeriod: "Summer 2027",
+        deadline: "Unknown",
+        source: "Employer careers",
+        postingUrl: "https://example.com/jobs/123",
+        applicationUrl: "",
+        employerPostingId: "123",
+        postingStatus: "UNCERTAIN",
+        responsibilities: [],
+        requiredQualifications: [],
+        preferredQualifications: [],
+        dateDiscovered: "2026-09-28",
+        lastVerified: "2026-09-28",
+      },
+      fitAssessment: "MODERATE",
+      agentDecision: "MONITOR",
+      decisionRationale: "Relevant role; work arrangement requires confirmation.",
+      selectionEvidence: ["Individual posting inspected."],
+      fitEvidence: {
+        requiredMatches: [],
+        preferredMatches: [],
+        gaps: [],
+        unknowns: ["Work arrangement requires confirmation."],
+        preferenceAlignment: [],
+      },
+      whatChanged: [],
+      nextAction: "Confirm the work arrangement.",
+      nextActionRequest: { prompt: "", responseType: "NONE", options: [], whatHappensNext: "" },
+      nextActionDate: "Unknown",
+      unresolvedIssue: "",
+      attentionRequired: false,
+      studentInputResolution: null,
+      applicationPrep: { status: "NOT_REQUESTED", templates: [], nextStep: "" },
+    }],
+    unresolvedIssues: [],
+  };
+}
+
+test("accepts a factual work-arrangement description longer than the old 100-character cap", () => {
+  const description = "Hybrid in California; the employer requires regular office collaboration and confirms scheduling details during interviews.";
+  const result = parseAndValidateWorkflowResult(JSON.stringify(resultWithWorkArrangement(description)), { observedSearches: 1 });
+  assert.equal(result.selectedOpportunities[0].opportunity.workArrangement, description);
+});
+
+test("reports the field when a work-arrangement description exceeds the revised limit", () => {
+  assert.throws(
+    () => parseAndValidateWorkflowResult(JSON.stringify(resultWithWorkArrangement("x".repeat(301))), { observedSearches: 1 }),
+    /opportunity\.workArrangement exceeded 300 characters/,
+  );
+});

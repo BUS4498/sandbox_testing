@@ -31,6 +31,8 @@ When evidence is missing, stale, incomplete, or contradictory, mark the claim as
 
 ## Application materials
 
-Drafts may reorganize or clarify verified information, but they must not add unsupported claims. Final resumes, cover letters, application answers, and portfolios remain subject to student review and approval.
+Drafts may reorganize or clarify verified information, but they must not present unsupported claims as facts. A review-only cover letter may retain proposed wording whose sole validation gap is a missing citation to student evidence, only when the affected paragraph itself is prominently labeled **UNVERIFIED — STUDENT MUST VERIFY** and a separate note tells the student exactly what to confirm or remove. Do not use that exception for invented numbers, credentials, or known contradictions. Final resumes, cover letters, application answers, and portfolios remain subject to student review and approval; an unresolved unverified label must not be treated as final wording.
 
 Application-preparation templates must remain labeled as drafts, keep unresolved placeholders visible, and cite the verified student evidence used. A template is not a final material and must never be treated as an application-submission capability.
+
+Interview practice must distinguish an accessible candidate's report of a question or process from employer guidance, generic online advice, and generated preparation. A question or process reported for another role or year is not evidence that the current interviewer will ask it or use the same stages. Never present unverified social content or generated practice as official employer information.

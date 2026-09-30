@@ -270,6 +270,17 @@ export function createDashboardServer({
         }
       }
 
+      const interviewMatch = url.pathname.match(/^\/api\/opportunities\/([^/]+)\/interview-practice$/);
+      if (request.method === "POST" && interviewMatch) {
+        requireLocalMutation(request, requestToken);
+        if (typeof runManager.startInterviewPractice !== "function" || typeof applicationMaterialStore?.saveTemplate !== "function") throw httpError(503, "Interview practice is unavailable.");
+        const opportunityId = decodeURIComponent(interviewMatch[1]);
+        const opportunity = await spreadsheetTracker.getOpportunity(opportunityId);
+        if (!opportunity) throw httpError(404, "This opportunity is no longer in the local collection.");
+        const run = runManager.startInterviewPractice({ opportunityId, opportunity });
+        return sendJson(response, 202, { run });
+      }
+
       const materialMatch = url.pathname.match(/^\/api\/materials\/([^/]+)$/);
       if (request.method === "GET" && materialMatch) {
         if (typeof applicationMaterialStore?.readMaterial !== "function") throw httpError(503, "Application-material storage is unavailable.");

@@ -12,6 +12,7 @@ Action memory records attempted and completed actions, such as:
 - student response recorded;
 - application-template preparation requested;
 - Word application template saved and verified;
+- student-clicked interview-practice search attempted and its Word practice draft saved or failed;
 - communication draft prepared; and
 - student approval requested.
 

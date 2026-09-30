@@ -8,6 +8,8 @@ Carry out the selected operational decision within the agent's authority and the
 
 Run after **DECIDE** when an action is authorized, a local update is needed, a draft can be prepared, or human input must be requested.
 
+A separate **Practice Interview** click may save a labeled, review-only Word practice document for the selected opportunity. It may not update the spreadsheet, notify the student of a material opportunity change, contact an employer, or submit anything. Source-supported questions and process reports must remain separate from generated practice questions and generic process guidance in the saved content.
+
 ## Inputs
 
 - Decision record and intended outcome.
@@ -22,14 +24,14 @@ Run after **DECIDE** when an action is authorized, a local update is needed, a d
    - a valid new opportunity is accepted into the collection; or
    - an existing opportunity has materially changed.
 3. Update relevant status, recommendation, next action, deadline, or next review date.
-4. After a material collection update succeeds and passes read-back verification, create one deterministic informational notification for the configured student address. The local implementation saves and verifies a preview; it must not report the preview as sent. The owner-only hosted pilot may submit the message through separately authorized Microsoft Graph only to the connected owner's confirmed address, after an idempotent attempt record is durable. Do not create a new-update notification when nothing materially changed.
+4. After a material collection update succeeds and passes read-back verification, create one deterministic informational notification for the configured student address where a permitted notification mode exists. The local implementation saves and verifies a preview; it must not report the preview as sent. The current hosted student Site has no live email transport, so it records the material update without claiming an email was sent. Do not create a new-update notification when nothing materially changed.
 5. Accept a student confirmation, clarification, not-interested choice, or preparation request through the local dashboard; write student-owned notes without overwriting other student decisions; and immediately start the scoped **Update Opportunity** workflow. If the runtime is unavailable, preserve the response as pending and show a clear retry action.
 6. When requested and supported by verified evidence, use the `application-material-prep` Skill and Local Application Materials tool to create review-only Microsoft Word `.docx` templates. Label them as drafts, keep unresolved placeholders visible, and do not change final application materials.
 7. Prepare professional communication drafts without sending them to an employer.
 8. Request student approval where required, flag missing information, or record an unresolved task.
 9. Record the next review date. Local schedule changes may occur only through explicit student-controlled dashboard actions handled deterministically by the controller.
 
-The agent may autonomously read approved information, assess opportunities, immediately process a student-supplied update for one tracked opportunity, update its local sandbox spreadsheet and memory, record next-review dates, create informational notification previews, and prepare local review-only templates, drafts, or recommendations. The owner-only hosted variant may use its separately approved student-only Graph transport; no trigger gains permission to send to another recipient.
+The agent may autonomously read approved information, assess opportunities, immediately process a student-supplied update for one tracked opportunity, update its local sandbox spreadsheet and memory, record next-review dates, create informational notification previews, and prepare local review-only templates, drafts, or recommendations. The hosted Site must not send email until a separately approved, per-student transport is implemented and verified; no trigger gains permission to send to an employer or another recipient.
 
 Student approval is required before changing final resume content, treating an application template as final, sending recruiter or employer communication, submitting an application, accepting or declining interviews, or making another consequential external commitment. The agent must never fabricate qualifications, impersonate the student, send unapproved employer-facing messages, override explicit student decisions, or implement an application-submission capability.
 

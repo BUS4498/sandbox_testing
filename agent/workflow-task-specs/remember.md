@@ -36,7 +36,8 @@ Persist relevant information such as:
 - student confirmations, clarifications, not-interested choices, and preparation requests;
 - whether each student input is awaiting review, resolved, or needs more information; and
 - whether the targeted update started, completed, failed, or remains ready for an explicit retry;
-- locally prepared application-template identifiers and verification outcomes.
+- locally prepared application-template identifiers and verification outcomes; and
+- on-demand interview-practice request, source-check result, Word draft identifier, opportunity version, and unresolved verification issue, without retaining full social pages or transcripts.
 
 Link records so a later cycle can answer:
 

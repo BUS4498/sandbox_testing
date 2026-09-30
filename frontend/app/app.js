@@ -334,11 +334,12 @@ function opportunityCard(record) {
 
   const evidence = evidenceDisclosure(record);
   const materials = materialList(record.materials);
+  const interview = interviewPracticeDisclosure(record.interviewPractice);
   const actions = make("footer", "opportunity-actions");
   appendLink(actions, record.applicationUrl, "Apply", "button-link primary-link", "Open the employer application page");
   appendLink(actions, record.postingUrl, "Source", "button-link source-link", record.source ? `Source: ${record.source}` : "Open the original posting source");
-  actions.append(actionButton("Update Opportunity", "respond"), actionButton("Prepare materials", "prepare"));
-  card.append(header, meta, rationale, action, evidence, materials, actions);
+  actions.append(actionButton("Update Opportunity", "respond"), actionButton("Prepare materials", "prepare"), actionButton(record.interviewPractice ? "Refresh Interview Practice" : "Practice Interview", "interview"));
+  card.append(header, meta, rationale, action, evidence, materials, interview, actions);
   return card;
 }
 
@@ -372,18 +373,51 @@ function materialList(materials = []) {
   return section;
 }
 
+function interviewPracticeDisclosure(result) {
+  const details = make("details", "interview-practice-results");
+  if (!result) { details.hidden = true; return details; }
+  details.append(makeText("summary", "Interview questions and process"));
+  if (result.stale) details.append(makeText("p", "This opportunity changed since this research was prepared. Refresh before relying on it.", "interview-warning"));
+  details.append(makeText("h4", "Publicly reported questions"));
+  const reported = make("ul");
+  if (!result.reportedQuestions?.length) reported.append(makeText("li", "No question was verified in an accessible public candidate account."));
+  for (const item of result.reportedQuestions || []) {
+    const row = make("li"); row.append(makeText("span", item.question), makeText("small", `${item.roleMatch === "EXACT_ROLE" ? "Same role" : "Related role"} · ${item.sourceDate}`));
+    appendLink(row, item.sourceUrl, `${item.sourceName} source`, "interview-source", "Open the public candidate report"); reported.append(row);
+  }
+  details.append(reported, makeText("h4", "Publicly reported interview process"));
+  const process = make("ul");
+  if (!result.reportedProcess?.length) process.append(makeText("li", "No role-specific interview procedure was verified. The actual stages, format, and timing remain unknown."));
+  for (const item of result.reportedProcess || []) {
+    const row = make("li"); row.append(makeText("span", item.description), makeText("small", `${item.sourceKind === "EMPLOYER_GUIDANCE" ? "Employer guidance" : "Candidate account"} · ${item.roleMatch === "EXACT_ROLE" ? "Same role" : "Related role"} · ${item.sourceDate}`));
+    appendLink(row, item.sourceUrl, `${item.sourceName} source`, "interview-source", "Open the public process source"); process.append(row);
+  }
+  details.append(process, makeText("h4", "Likely questions to practice"), makeText("p", "Generated preparation prompts; not questions confirmed to have been asked by this employer."));
+  const likely = make("ul"); for (const question of result.likelyQuestions || []) likely.append(makeText("li", question));
+  details.append(likely, makeText("h4", "General process preparation"), makeText("p", "Possible preparations, not this employer's confirmed procedure."));
+  const guidance = make("ul"); for (const item of result.generalProcessGuidance || []) guidance.append(makeText("li", item));
+  if (!guidance.children.length) guidance.append(makeText("li", "Ask the recruiter to confirm the actual process."));
+  details.append(guidance);
+  if (result.searchNotes) details.append(makeText("p", result.searchNotes));
+  const download = makeText("a", "Download Word practice guide", "material-link"); download.href = `/api/materials/${encodeURIComponent(result.materialId)}`; details.append(download);
+  return details;
+}
+
 function renderRun(run) {
   const summary = run?.summary ?? {};
+  $(".summary-grid").hidden = run?.workflowType === "INTERVIEW";
   for (const [id, value] of Object.entries({ searches: summary.searchesPerformed, discovered: summary.candidatesDiscovered, excluded: summary.duplicatesOrInvalid, ranked: summary.candidatesRanked, selected: summary.updatesSelected, added: summary.newOpportunitiesAdded, updated: summary.existingOpportunitiesUpdated, notifications: summary.notificationsSent, unresolved: summary.unresolvedIssues })) setText(`#summary-${id}`, displayNumber(value));
   displayedRun = run ?? null;
   updateRunDuration(); window.clearInterval(runTimer); runTimer = run?.active ? window.setInterval(updateRunDuration, 1_000) : null;
   const pill = $("#run-outcome");
   pill.textContent = run?.active ? "Running" : run?.outcome ? titleCase(run.outcome) : "Not run";
   pill.className = `status-pill ${run?.active ? "active" : run?.outcome === "SUCCESS" ? "success" : run?.outcome ? "failure" : "neutral"}`;
-  setText("#summary-title", run?.workflowType === "UPDATE" ? "Opportunity update" : "Today’s collection");
+  setText("#summary-title", run?.workflowType === "INTERVIEW" ? "Interview practice" : run?.workflowType === "UPDATE" ? "Opportunity update" : "Today’s collection");
   const firstRun = run?.active && run?.firstRun ? " The first run can take longer while the API performs the initial bounded search." : "";
   const shortfall = summary.selectionShortfallReason ? ` Fewer than three were selected: ${summary.selectionShortfallReason}` : "";
-  const workflowContext = run?.workflowType === "UPDATE"
+  const workflowContext = run?.workflowType === "INTERVIEW"
+    ? `On-demand public research into interview questions and procedure for ${run.targetLabel || "one opportunity"}. No collection, fit score, email, or application action is performed.`
+    : run?.workflowType === "UPDATE"
     ? `Targeted update for ${run.targetLabel || "one opportunity"}. No web search is performed.`
     : `Discovery counts appear as the bounded collection workflow runs.${firstRun}`;
   setText("#run-message", run?.error?.message || (run?.finishedAt ? `${run.statusDetail || "Workflow finished."} Completed ${formatDateTime(run.finishedAt)} in ${formatDuration(run.durationMs)}.${shortfall}` : workflowContext));
@@ -508,7 +542,20 @@ function handleOpportunityAction(event) {
   if (dashboard?.run?.active) return showToast("Wait for the active workflow to finish before starting another update.");
   const opportunityId = button.closest("[data-opportunity-id]")?.dataset.opportunityId;
   const record = dashboard.collection.find((item) => item.opportunityId === opportunityId);
-  if (record) openResponse(record, button.dataset.action === "prepare");
+  if (!record) return;
+  if (button.dataset.action === "interview") { void startInterviewPractice(record); return; }
+  openResponse(record, button.dataset.action === "prepare");
+}
+
+async function startInterviewPractice(record) {
+  if (!runtimeReady()) return showToast("Check the OpenAI connection before starting interview research.");
+  try {
+    const response = await localFetch(`/api/opportunities/${encodeURIComponent(record.opportunityId)}/interview-practice`, {});
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error || "Interview research could not start.");
+    renderRun(body.run); await refreshDashboard();
+    showToast(`Interview research started for ${record.company}. It will not collect opportunities or send messages.`);
+  } catch (error) { showToast(error.message); }
 }
 
 function openResponse(record, prepare = false) {
@@ -572,7 +619,7 @@ function updateAgent(stage, label, detail, progressPercent = 0) {
 
 function updateRunDuration() { const duration = displayedRun?.active && displayedRun?.startedAt ? Date.now() - new Date(displayedRun.startedAt).valueOf() : displayedRun?.durationMs; const formatted = formatDuration(duration); setText("#summary-duration", formatted); setText("#run-elapsed", `Elapsed time: ${formatted}`); }
 function setRunButton(disabled, label) { elements.runButton.disabled = disabled; elements.runButton.querySelector("span:last-child").textContent = label; }
-function actionButton(label, action) { const button = makeText("button", label, "secondary-button small"); button.type = "button"; button.dataset.action = action; return button; }
+function actionButton(label, action) { const button = makeText("button", label, `secondary-button small action-${action}`); button.type = "button"; button.dataset.action = action; return button; }
 function appendLink(parent, value, label, className, title = "") { const safe = safeHttpUrl(value); if (!safe) return; const link = makeText("a", label, className); link.href = safe; link.target = "_blank"; link.rel = "noreferrer"; if (title) { link.title = title; link.setAttribute("aria-label", title); } parent.append(link); }
 function make(tag, className) { const node = document.createElement(tag); if (className) node.className = className; return node; }
 function makeText(tag, text, className) { const node = make(tag, className); node.textContent = display(text); return node; }
@@ -595,7 +642,7 @@ function formatDateTime(value) { const date = new Date(value); return Number.isN
 function formatDuration(value) { const total = Math.max(0, Math.floor(Number(value) / 1_000)); if (!Number.isFinite(total)) return "—"; return total >= 60 ? `${Math.floor(total / 60)}m ${String(total % 60).padStart(2, "0")}s` : `${total}s`; }
 function safeHttpUrl(value) { try { const url = new URL(value); return ["http:", "https:"].includes(url.protocol) ? url.href : null; } catch { return null; } }
 function studentInputLabel(input) { if (["READY_FOR_AGENT_REVIEW", "READY_FOR_UPDATE"].includes(input.status)) return "Your response is saved and ready for a targeted update."; if (["UPDATE_STARTING", "UPDATE_IN_PROGRESS"].includes(input.status)) return "The agent is processing your update now."; if (input.status === "UPDATE_FAILED") return input.nextStep || "The update did not finish; your response is still saved."; if (input.status === "REVIEWED") return `Reviewed: ${input.outcome || "complete"}`; return input.status === "NEEDS_MORE_INFORMATION" ? `More information needed: ${input.nextStep || "Review the next action."}` : titleCase(input.status); }
-function materialTitle(type) { return ({ RESUME_TAILORING_CHECKLIST: "Resume-tailoring checklist", COVER_LETTER_OUTLINE: "Cover-letter outline", APPLICATION_QUESTION_WORKSHEET: "Application-question worksheet" })[type] || titleCase(type); }
+function materialTitle(type) { return ({ TAILORED_RESUME: "Tailored resume draft", COVER_LETTER_DRAFT: "Complete cover-letter draft", RESUME_TAILORING_CHECKLIST: "Resume-tailoring checklist", COVER_LETTER_OUTLINE: "Cover-letter outline", APPLICATION_QUESTION_WORKSHEET: "Application-question worksheet" })[type] || titleCase(type); }
 async function localFetch(url, body) {
   const send = () => fetch(url, {
     method: "POST",

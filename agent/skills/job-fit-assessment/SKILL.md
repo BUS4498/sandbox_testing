@@ -53,6 +53,8 @@ Use one of these evidence-based assessments:
 
 Explain why the label applies. Do not reduce fit to one unexplained numerical score. Any numerical aid must remain secondary, transparent, and traceable to the evidence matrix.
 
+For the hosted pilot's required evidence-ready Jev indicator, finish the qualitative assessment first. Pass only the approved non-identifying structured evidence projection to `agent/tools/jev-fit-scoring.md`. Do not let the score supply missing qualifications, overrule a hard constraint, or become a hiring probability. If the evidence is too thin or belongs to a different student setup, leave the score unavailable and explain why.
+
 ## Output contract
 
 Return:
@@ -76,5 +78,6 @@ The overall label supports internal routing and audit. The dashboard should emph
 ## Boundaries
 
 Do not predict selection, fabricate qualifications, alter student context, decide on the student's behalf, edit final application materials, contact an employer, or submit an application.
+
 
 

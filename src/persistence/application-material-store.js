@@ -19,9 +19,12 @@ import {
 
 const WORD_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 const ALLOWED_TYPES = new Map([
+  ["TAILORED_RESUME", "tailored-resume"],
+  ["COVER_LETTER_DRAFT", "cover-letter-draft"],
   ["RESUME_TAILORING_CHECKLIST", "resume-tailoring-checklist"],
   ["COVER_LETTER_OUTLINE", "cover-letter-outline"],
   ["APPLICATION_QUESTION_WORKSHEET", "application-question-worksheet"],
+  ["INTERVIEW_PRACTICE", "interview-practice-questions"],
 ]);
 
 const COLORS = Object.freeze({
@@ -48,11 +51,11 @@ export class LocalApplicationMaterialStore {
     return this;
   }
 
-  saveTemplate({ opportunityId, company, roleTitle, type, title, markdown, placeholders = [], runId }) {
+  saveTemplate({ opportunityId, company, roleTitle, type, title, markdown, placeholders = [], runId, practiceResult = null, opportunityLastUpdated = null }) {
     return this.#enqueue(async () => {
       if (!opportunityId) throw new TypeError("opportunityId is required for an application template.");
       if (!ALLOWED_TYPES.has(type)) throw new TypeError(`Unsupported application template type: ${type}.`);
-      const safeContent = cleanContent(markdown);
+      const safeContent = cleanContent(markdown, type);
       const safePlaceholders = cleanStringArray(placeholders, 30);
       const materialId = this.idFactory();
       const createdAt = this.clock().toISOString();
@@ -74,8 +77,10 @@ export class LocalApplicationMaterialStore {
         fileName,
         contentType: WORD_MIME,
         format: "DOCX",
+        ...(type === "INTERVIEW_PRACTICE" ? { practiceResult, opportunityLastUpdated: String(opportunityLastUpdated ?? "") } : {}),
       };
       const document = buildWordTemplate({
+        type,
         company: cleanInline(company),
         roleTitle: cleanInline(roleTitle),
         title: metadata.title,
@@ -134,7 +139,10 @@ export class LocalApplicationMaterialStore {
   }
 }
 
-function buildWordTemplate({ company, roleTitle, title, createdAt, content, placeholders }) {
+function buildWordTemplate({ type, company, roleTitle, title, createdAt, content, placeholders }) {
+  if (type === "TAILORED_RESUME" || type === "COVER_LETTER_DRAFT") {
+    return buildApplicationDraft({ type, company, roleTitle, title, createdAt, content, placeholders });
+  }
   const body = [
     new Paragraph({
       children: [new TextRun({ text: "INTERNSHIP APPLICATION PREPARATION", bold: true, size: 18, color: COLORS.teal, characterSpacing: 80 })],
@@ -218,6 +226,72 @@ function buildWordTemplate({ company, roleTitle, title, createdAt, content, plac
   });
 }
 
+function buildApplicationDraft({ type, company, roleTitle, title, createdAt, content, placeholders }) {
+  const resume = type === "TAILORED_RESUME";
+  const font = resume ? "Times New Roman" : "Aptos";
+  const body = resume ? [
+    new Paragraph({ children: [new TextRun({ text: "[Your name]", bold: true, size: 28, font })], alignment: AlignmentType.CENTER, spacing: { after: 30 } }),
+    new Paragraph({ children: [new TextRun({ text: "[Your phone]  •  [Your email]  •  [Your professional link]", size: 19, font })], alignment: AlignmentType.CENTER, spacing: { after: 110 } }),
+    new Paragraph({ children: [new TextRun({ text: `${title} — DRAFT TEMPLATE — STUDENT REVIEW REQUIRED`, italics: true, size: 16, font })], spacing: { after: 60 } }),
+    new Paragraph({ children: [new TextRun({ text: "Highlighted lines are proposed role-focused emphasis; verify them against your original resume.", italics: true, size: 16, font })], spacing: { after: 100 } }),
+    ...applicationContentParagraphs(content, true),
+  ] : [
+    new Paragraph({ children: [new TextRun({ text: "CAL POLY-INSPIRED APPLICATION DRAFT", bold: true, color: "154734", size: 18, characterSpacing: 70 })], spacing: { after: 100 } }),
+    new Paragraph({ children: [new TextRun({ text: "[Your name]", bold: true, color: "154734", size: 28 })], spacing: { after: 30 } }),
+    new Paragraph({ children: [new TextRun({ text: "[Your email]  •  [Your phone]  •  [Your location]", size: 19 })], spacing: { after: 150 } }),
+    new Paragraph({ children: [new TextRun({ text: `${title} — DRAFT TEMPLATE — STUDENT REVIEW REQUIRED`, italics: true, color: "6B5A27", size: 17 })], spacing: { after: 160 } }),
+    new Paragraph({ text: "[Date]" }),
+    new Paragraph({ text: "Hiring Team" }),
+    new Paragraph({ text: company }),
+    new Paragraph({ children: [new TextRun({ text: `Re: ${roleTitle}`, bold: true, color: "154734" })], spacing: { before: 100, after: 120 } }),
+    ...applicationContentParagraphs(content, false),
+  ];
+  body.push(new Paragraph({
+    children: [new TextRun({ text: "Student review required: replace contact placeholders, verify every claim, and revise this draft in your own voice. Nothing was sent or submitted.", italics: true, size: 17, color: resume ? "555555" : "6B5A27" })],
+    spacing: { before: 130, after: 70 },
+  }));
+  return new Document({
+    creator: "Internship Application Prep Agent",
+    title,
+    description: "Review-only internship application draft",
+    styles: { default: { document: {
+      run: { font, size: resume ? 19 : 21, color: "000000" },
+      paragraph: { spacing: { after: resume ? 55 : 155, line: resume ? 240 : 300, lineRule: "auto" } },
+    } } },
+    sections: [{ properties: { page: { size: { width: 12240, height: 15840 }, margin: {
+      top: resume ? 780 : 1100, right: resume ? 850 : 1250, bottom: resume ? 780 : 1100, left: resume ? 850 : 1250,
+    } } }, children: body }],
+  });
+}
+
+function applicationContentParagraphs(content, resume) {
+  const paragraphs = [];
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    if (resume) {
+      const heading = line.match(/^#{1,3}\s+(.+)$/);
+      if (heading) {
+        paragraphs.push(new Paragraph({
+          children: [new TextRun({ text: heading[1].toUpperCase(), bold: true, font: "Times New Roman", size: 20 })],
+          border: { bottom: { style: BorderStyle.SINGLE, color: "000000", size: 5 } },
+          spacing: { before: 145, after: 50 }, keepNext: true,
+        }));
+        continue;
+      }
+      const bullet = line.match(/^[-*•]\s+(.+)$/);
+      paragraphs.push(new Paragraph({
+        children: [new TextRun({ text: bullet ? `•  ${bullet[1]}` : line, font: "Times New Roman", size: 19, highlight: bullet ? "yellow" : undefined })],
+        spacing: { after: 45 }, indent: bullet ? { left: 250, hanging: 170 } : undefined,
+      }));
+    } else {
+      if (/^#{1,3}\s+/.test(line) || /^[-*]\s+/.test(line)) continue;
+      paragraphs.push(new Paragraph({ children: [new TextRun({ text: line, size: 21 })], spacing: { after: 160, line: 300, lineRule: "auto" } }));
+    }
+  }
+  return paragraphs;
+}
+
 function markdownToParagraphs(markdown) {
   const paragraphs = [];
   let pending = [];
@@ -292,13 +366,20 @@ function publicMetadata(value) {
     fileName: path.basename(String(value.fileName)),
     contentType: WORD_MIME,
     format: "DOCX",
+    ...(value.type === "INTERVIEW_PRACTICE" ? { practiceResult: value.practiceResult ?? null, opportunityLastUpdated: String(value.opportunityLastUpdated ?? "") } : {}),
   };
 }
 
-function cleanContent(value) {
+function cleanContent(value, type) {
   const text = String(value ?? "").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "");
   if (!text.trim()) throw new TypeError("Application template content is required.");
   if (text.length > 20_000) throw new TypeError("Application template content exceeded the local size limit.");
+  if (type === "TAILORED_RESUME" && ((text.match(/^#{1,3}\s+/gm) ?? []).length < 2 || (text.match(/^[-*•]\s+/gm) ?? []).length < 3)) {
+    throw new TypeError("A tailored resume must contain verified resume sections and accomplishments, not a checklist.");
+  }
+  if (type === "COVER_LETTER_DRAFT" && (text.length < 350 || /(?:^|\n)#{1,3}\s+(opening|outline|body evidence|closing)/i.test(text) || (text.match(/\n\s*\n/g) ?? []).length < 2)) {
+    throw new TypeError("A cover letter must contain complete draft paragraphs, not an outline.");
+  }
   return text;
 }
 

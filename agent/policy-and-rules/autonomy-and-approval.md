@@ -16,6 +16,7 @@ Within approved local scope, the agent may:
 - record a next-review date or update the student-configured local daily schedule through deterministic controller logic;
 - create informational notification previews after successful material spreadsheet updates;
 - prepare local, clearly labeled application-material templates for student review when requested;
+- conduct bounded public interview-question research and save a labeled practice draft only when the student clicks **Practice Interview** for one opportunity;
 - prepare drafts for student review;
 - identify unresolved issues; and
 - verify the outcomes of its own permitted actions.

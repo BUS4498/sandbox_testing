@@ -41,7 +41,9 @@ For a student response, verify that the intended opportunity received the studen
 
 For an application template, verify that the intended `.docx` file exists in the private local material area, is a readable Word package, belongs to the correct opportunity, carries the student-review label, preserves required placeholders and content, and does not claim submission or final approval.
 
-For the local API implementation, verify that the preview exists and matches the structured notification; record `PREVIEWED`, never `SUBMITTED` or `DELIVERED`. In the owner-only hosted pilot, a Microsoft Graph `202 Accepted` may establish `SUBMITTED` only. Delivery requires independent confirmation; a timeout or interruption with uncertain outcome is `UNKNOWN` and blocks automatic retry. Verify that the pre-send attempt and the material-update idempotency key were durable and that no prior notification for the same change was submitted.
+For an interview-practice document, also verify its opportunity version, two distinct search themes when the service worked, source URLs and report labels, separation of reported questions and process from generated guidance, readable Word download, and the absence of spreadsheet, score, decision, or email side effects. A source that could not be inspected must not be labeled as a verified reported question or process description.
+
+For the local API implementation, verify that the preview exists and matches the structured notification; record `PREVIEWED`, never `SUBMITTED` or `DELIVERED`. The current hosted student Site has no live email transport; verify the collection update without implying a message was sent. If a later approved transport returns provider acceptance, that may establish `SUBMITTED` only. Delivery requires independent confirmation; an uncertain response must not be retried automatically. Verify any pre-send attempt and material-update idempotency key before a later transport is enabled.
 
 For the hosted collection, verify that the current opportunity record survived a durable write and read-back, that the downloadable spreadsheet reflects the same current records when generated, and that no duplicate opportunity was created. A successful in-memory write or stale workbook download is not success.
 
@@ -53,7 +55,7 @@ For local scheduled execution, verify that:
 
 The production agent does not verify that it changed the daily automation because it has no authority to create or modify that automation.
 
-The first hosted checkpoint has no scheduled trigger. Verify that its dashboard states **Daily Run: Not available in this pilot** rather than inventing a last or next run.
+The current hosted Site has no scheduled trigger. Verify that it does not show Daily Run controls or invent a last or next scheduled run; its plain-language boundary note may say that collection is manual.
 
 Never claim success merely because an action was requested or attempted.
 

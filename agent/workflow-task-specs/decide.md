@@ -8,6 +8,8 @@ Convert the evidence-backed assessment into an explicit, explainable operational
 
 Run after **REASON** whenever a valid opportunity or unresolved issue requires a current decision.
 
+In a student-clicked interview-practice cycle, choose which source-supported question and process reports and which clearly labeled general guidance to include, or whether to ask for a better posting. This preparation choice does **not** change the opportunity's existing primary business decision, recommendation, or preliminary fit score.
+
 ## Inputs
 
 - Evidence-backed assessment.

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 const RESPONSE_TYPES = new Set(["CONFIRM_COMPLETED", "PROVIDE_INFORMATION", "NOT_INTERESTED", "REQUEST_APPLICATION_MATERIALS"]);
-const TEMPLATE_TYPES = new Set(["RESUME_TAILORING_CHECKLIST", "COVER_LETTER_OUTLINE", "APPLICATION_QUESTION_WORKSHEET"]);
+const TEMPLATE_TYPES = new Set(["TAILORED_RESUME", "COVER_LETTER_DRAFT", "APPLICATION_QUESTION_WORKSHEET"]);
 
 export class StudentResponseService {
   constructor({ spreadsheetTracker, memoryStore, clock = () => new Date(), idFactory = randomUUID }) {

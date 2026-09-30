@@ -8,6 +8,8 @@ Interpret the available evidence and produce an explainable assessment for later
 
 Run after **SENSE** when a valid new or tracked opportunity requires assessment, reassessment, or resolution of an identified issue.
 
+For an explicit interview-practice request, reason only about source support and useful role-related practice themes. Classify accessible question reports and process descriptions separately from agent-generated likely questions and general process guidance; do not reassess fit or treat a social account as employer policy.
+
 ## Inputs
 
 - Structured opportunity observation and material changes.
@@ -29,6 +31,7 @@ Run after **SENSE** when a valid new or tracked opportunity requires assessment,
 9. If a pending student response addresses a prior unknown or unresolved issue, evaluate that response as student-supplied evidence, identify what it resolves, and state whether more information is still required.
 10. When application-template preparation was requested, identify the verified facts, posting requirements, gaps, and placeholders that the `application-material-prep` Skill may use. Do not prepare or finalize the material inside the fit assessment itself.
 11. During a targeted **Update Opportunity** workflow, reason only about the selected opportunity and the new response. Do not search for or rank other internships.
+12. In the hosted pilot, form the qualitative, source-backed assessment first, then request Jev scoring for each evidence-ready selected opportunity. The scoring tool receives only a compact non-identifying evidence summary; its number cannot decide eligibility, replace the evidence, or change a business decision automatically. Leave a score unavailable with an explicit reason when decisive evidence is insufficient or belongs to a different profile mode.
 
 ## Expected output
 
@@ -45,3 +48,4 @@ Pass the evidence-backed assessment, urgency, constraints, uncertainties, and ca
 ## What should be remembered
 
 Remember materially new interpretations, identified gaps, and evidence that may change a future assessment. Do not preserve unsupported speculation as fact.
+

@@ -44,6 +44,8 @@ At minimum, the collection should contain these fields:
 | Application URL | Agent; direct application destination when separately available, otherwise the posting URL may serve as the application link |
 | Posting status | Agent from current observation; `ACTIVE`, `CLOSED`, or `UNCERTAIN` |
 | Fit assessment | Agent recommendation |
+| Preliminary fit indicator | Optional agent-maintained 0–100 Jev score, or unavailable; never a hiring probability |
+| Fit indicator provenance | Optional model, rubric version, scoring time, and evidence status |
 | Agent decision | Agent |
 | Decision rationale | Agent |
 | Application status | Student-owned; agent changes only under a clear approved rule |
@@ -65,7 +67,7 @@ The spreadsheet represents the current user-facing internship collection, with o
 
 Detailed historical observations, decisions, actions, verification results, and evaluations belong in operational memory. The current spreadsheet row may show the latest relevant values while memory preserves prior values, provenance, and process history.
 
-The spreadsheet may retain the latest fit assessment for audit and export, but the dashboard should not expose a standalone **Fit** column. It should present the recommendation, concise rationale, verified matches, genuine gaps, and exact missing information in the opportunity details instead.
+The spreadsheet may retain the latest fit assessment and optional preliminary indicator for audit and export, but the dashboard should not expose a standalone **Fit** column. It should present the recommendation, concise rationale, verified matches, genuine gaps, and exact missing information in the opportunity details instead. A score-only refresh is not a material opportunity update and does not trigger a notification. Detailed scoring attempts and history remain in memory, not extra rows.
 
 For the owner-only Sites pilot, the local file tool is not callable against the laptop's `data/local/` path. A separate hosted adapter must persist one current record per opportunity in private durable storage, verify each write by read-back, and produce a current `.xlsx` download as the user-facing collection. The download must identify its generation time and reflect the verified current records; a stale export is not synchronized. Detailed run, notification, and decision history remains in hosted operational memory, not extra spreadsheet rows. This hosted design does not change the local workbook's authority in the local app.
 
@@ -80,3 +82,4 @@ If the file is missing, locked, corrupted, has an incompatible schema, conflicts
 ## Security considerations
 
 Store the workbook in a local runtime data location excluded from Git. Use least-privilege file access, safe writes and recoverable backups, spreadsheet-safe text handling, and no embedded credentials. Avoid storing unnecessary personal data or full copies of web pages when structured current fields and source references are sufficient.
+

@@ -36,7 +36,7 @@ if (notificationMode !== "DRY_RUN") {
 }
 const configuredNotificationEmail = (await settingsStore.getNotificationEmail()) || process.env.NOTIFICATION_EMAIL || null;
 const workflowCoordinator = new WorkflowActionCoordinator({ spreadsheetTracker, memoryStore, applicationMaterialStore });
-const runManager = new RunNowManager({ workspaceRoot: repositoryRoot, memoryStore, spreadsheetTracker, workflowCoordinator, studentProfileStore });
+const runManager = new RunNowManager({ workspaceRoot: repositoryRoot, memoryStore, spreadsheetTracker, workflowCoordinator, studentProfileStore, applicationMaterialStore });
 const localResetService = new LocalRuntimeResetService({ runtimePaths, spreadsheetTracker, memoryStore, applicationMaterialStore, runManager });
 const createNotifier = (recipient) => recipient
   ? new StudentEmailNotifier({
