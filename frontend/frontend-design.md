@@ -108,7 +108,9 @@ Require the student to enter `RESET` before enabling the final **Archive and Res
 
 Provide a prominent **Collect Opportunities** button.
 
-Beside the button, remind students that opportunity matching may take about five minutes. Treat this as an approximate expectation, not a countdown or completion guarantee; continue to show actual elapsed time and meaningful progress while a run is active.
+Beside the button, remind students to allow up to about ten minutes for search and matching. Treat this as an approximate expectation, not a countdown or completion guarantee; continue to show actual elapsed time and meaningful progress while a run is active.
+
+For the hosted student Site, show the owner-funded Collect allowance near the button: at most **three starts per signed-in student** and **60 starts Site-wide** in any rolling 24 hours. When either limit is reached, disable the action and show the server's plain-language retry time. A collection reset does not restore an allowance. This hosted quota does not alter the local app's collection behavior.
 
 Place a **Student Setup** section before the collection control. It should show whether the active package is a **Confirmed real-student setup**, an explicitly selected **Synthetic demonstration setup**, or **Incomplete**. It must not silently activate synthetic defaults. The section should accept `.docx`, `.pdf`, `.md`, and `.txt` resume files up to 5 MB, upload them only to the loopback local controller, and explain that no external parsing service is used.
 

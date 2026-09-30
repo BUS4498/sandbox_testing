@@ -14,24 +14,26 @@ function admit(db, ownerId, kind, now) {
   return db.prepare(INSERT_USAGE_ADMISSION_SQL).run(crypto.randomUUID(), ownerId, kind, policy.group, now.toISOString(), ownerId, kind, since, policy.perStudent, policy.group, since, policy.siteWide).changes === 1;
 }
 
-test("one signed-in student's Collect starts are limited to one per rolling 24 hours", () => {
+test("one signed-in student's Collect starts are limited to three per rolling 24 hours", () => {
   const db = database();
   const now = new Date("2026-09-29T18:00:00.000Z");
   assert.equal(admit(db, "synthetic-student-a", "COLLECTION", now), true);
-  assert.equal(admit(db, "synthetic-student-a", "COLLECTION", new Date(now.getTime() + 60_000)), false);
+  assert.equal(admit(db, "synthetic-student-a", "COLLECTION", new Date(now.getTime() + 60_000)), true);
+  assert.equal(admit(db, "synthetic-student-a", "COLLECTION", new Date(now.getTime() + 120_000)), true);
+  assert.equal(admit(db, "synthetic-student-a", "COLLECTION", new Date(now.getTime() + 180_000)), false);
   assert.equal(admit(db, "synthetic-student-b", "COLLECTION", now), true);
   assert.equal(admit(db, "synthetic-student-a", "COLLECTION", new Date(now.getTime() + 24 * 60 * 60 * 1000 + 1)), true);
   assert.equal(retryAfter(now.toISOString()), "2026-09-30T18:00:00.000Z");
   db.close();
 });
 
-test("50 student Collect starts exhaust the site-wide window, without a reset bypass", () => {
+test("60 student Collect starts exhaust the site-wide window, without a reset bypass", () => {
   const db = database();
   const now = new Date("2026-09-29T18:00:00.000Z");
-  for (let index = 0; index < 50; index++) assert.equal(admit(db, `synthetic-student-${index}`, "COLLECTION", now), true);
+  for (let index = 0; index < 60; index++) assert.equal(admit(db, `synthetic-student-${index}`, "COLLECTION", now), true);
   db.exec("DELETE FROM runs"); // Reset Collection clears runs, not admissions.
-  assert.equal(admit(db, "synthetic-student-51", "COLLECTION", now), false);
-  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM usage_admissions").get().count, 50);
+  assert.equal(admit(db, "synthetic-student-61", "COLLECTION", now), false);
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM usage_admissions").get().count, 60);
   db.close();
 });
 

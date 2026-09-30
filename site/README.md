@@ -9,8 +9,8 @@ This hosted student Site requires ChatGPT sign-in and keeps each student's setup
 - ChatGPT sign-in on a link-accessible Site; visitor access does not grant Site editing or another student's records.
 - Manual, bounded `Collect Opportunities` using an explicitly selected synthetic demonstration profile or a confirmed real-student setup.
 - Browser-side extraction of `.docx`, `.pdf`, `.md`, and `.txt` resumes up to 5 MB, followed by student review and explicit consent. A separate opt-in may retain the original resume in that student's private R2 storage for Word drafting; the original does not reach OpenAI or TypeSafe. The reviewed non-identifying profile and structured preferences are saved in owner-scoped D1 records; the student may switch back to synthetic mode or delete the private profile and original file.
-- Up to ten general public-web searches, 15 screened candidates, and five selected new/materially changed updates. Matching may take about five minutes, with live elapsed-time and progress display.
-- One Collect start per student and 50 Collect starts across the Site in any rolling 24 hours. Secondary model-backed actions have additional per-student and Site-wide limits. These server-side admission records survive a collection reset; the owner should also set provider-side spending safeguards.
+- Up to ten general public-web searches, 15 screened candidates, and five selected new/materially changed updates. Allow up to about ten minutes for search and matching; actual time may vary, with live elapsed-time and progress display.
+- Three Collect starts per student and 60 Collect starts across the Site in any rolling 24 hours. Secondary model-backed actions have additional per-student and Site-wide limits. These server-side admission records survive a collection reset; the owner should also set provider-side spending safeguards.
 - Private durable current collection and structured operational events in the Sites `DB` binding.
 - Read-back verification and a current `.xlsx` download generated from the collection.
 - Run status, elapsed time, selected outcomes, source/application links, and evidence-based recommendations.

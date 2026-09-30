@@ -24,12 +24,12 @@ Reset remains scoped to the signed-in student's active collection. Keep its veri
 
 The owner supplies OpenAI and TypeSafe/Jev keys as Sites server-side secrets. Never expose them to the browser or visitors. Owner-funded classroom use is subject to server-enforced, durable, atomic admission limits measured over a rolling 24-hour window:
 
-- Collect: at most **one start per signed-in student** and **50 starts across the Site**.
+- Collect: at most **three starts per signed-in student** and **60 starts across the Site**.
 - Other workflow starts: at most **ten targeted updates**, **five Word-draft preparations**, **two interview-practice requests**, and **two fit-score backfills per student** in a rolling 24 hours. Across the Site, these secondary starts share a ceiling of **100** in a rolling 24 hours. Some fixed-rule updates may not call a model, but are counted conservatively so the endpoint cannot bypass the limit.
 
 Apply limits before the first external model request. A model call already started counts even if its result fails, times out, or is interrupted. Preflight failures before a model call should not consume a slot when this can be verified. Show a plain-language limit message and when the student may try again. A limit must be enforced by the server and durable storage, not by a disabled browser button alone. The owner should also configure provider-side spend alerts or hard limits; application quotas are a secondary safeguard, not a monetary guarantee.
 
-Maintain the existing per-run limits of ten internship web searches, fifteen candidates, and five selected updates. Matching may take about five minutes; present that as an approximate expectation beside Collect while showing actual progress and elapsed time. Do not promise a five-minute deadline.
+Maintain the existing per-run limits of ten internship web searches, fifteen candidates, and five selected updates. Ask students to allow up to about ten minutes for search and matching; present that as an approximate expectation beside Collect while showing actual progress and elapsed time. Do not promise a ten-minute deadline.
 
 ## Release verification
 

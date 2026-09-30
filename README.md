@@ -2,7 +2,7 @@
 
 > **Current status:** The local prototype uses a deterministic workflow controller with the OpenAI Responses API for bounded reasoning and general public web discovery. It provides a local dashboard, spreadsheet and memory operations, actionable student-response controls, review-only application-template preparation, local scheduling, and verified notification previews after material updates. Application submission and employer communication are not capabilities of this system.
 
-> **Hosted Site status:** The [Internship Prep Desk student Site](https://internship-prep-desk.nicole-ai-lab.chatgpt.site/) is accessible by link but requires ChatGPT sign-in for each student's private workspace. Owner-funded usage is limited to one Collect start per student and 50 Site-wide Collect starts per rolling 24 hours. Opportunity matching may take about five minutes. Live email and cloud Daily Run remain disabled. The hosted Site is separate from the local application and its local-only scheduler.
+> **Hosted Site status:** The [Internship Prep Desk student Site](https://internship-prep-desk.nicole-ai-lab.chatgpt.site/) is accessible by link but requires ChatGPT sign-in for each student's private workspace. Owner-funded usage is limited to three Collect starts per student and 60 Site-wide Collect starts per rolling 24 hours. Allow up to about ten minutes for search and matching; actual time may vary. Live email and cloud Daily Run remain disabled. The hosted Site is separate from the local application and its local-only scheduler.
 
 ## What this project is
 
