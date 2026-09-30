@@ -31,7 +31,7 @@ For an explicit interview-practice request, reason only about source support and
 9. If a pending student response addresses a prior unknown or unresolved issue, evaluate that response as student-supplied evidence, identify what it resolves, and state whether more information is still required.
 10. When application-template preparation was requested, identify the verified facts, posting requirements, gaps, and placeholders that the `application-material-prep` Skill may use. Do not prepare or finalize the material inside the fit assessment itself.
 11. During a targeted **Update Opportunity** workflow, reason only about the selected opportunity and the new response. Do not search for or rank other internships.
-12. When optional Jev scoring is enabled, form the qualitative, source-backed assessment first. The scoring tool receives only a compact non-identifying evidence summary; its number cannot decide eligibility, replace the evidence, or change a business decision automatically. Skip scoring when decisive evidence is insufficient or belongs to a different profile mode.
+12. In the hosted pilot, form the qualitative, source-backed assessment first, then request Jev scoring for each evidence-ready selected opportunity. The scoring tool receives only a compact non-identifying evidence summary; its number cannot decide eligibility, replace the evidence, or change a business decision automatically. Leave a score unavailable with an explicit reason when decisive evidence is insufficient or belongs to a different profile mode.
 
 ## Expected output
 

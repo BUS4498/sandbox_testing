@@ -2,11 +2,11 @@
 
 ## Tool name and purpose
 
-**Jev Fit Scoring** provides an optional, preliminary 0–100 indicator for a saved opportunity. It supplements, but never replaces, the evidence-backed job-fit assessment, required/preferred qualification distinctions, student preferences, and human judgment. It is not a hiring probability, eligibility determination, or application decision.
+**Jev Fit Scoring** provides a required, preliminary 0–100 indicator for each evidence-ready saved opportunity in the owner-only hosted pilot. It supplements, but never replaces, the evidence-backed job-fit assessment, required/preferred qualification distinctions, student preferences, and human judgment. It is not a hiring probability, eligibility determination, or application decision.
 
 ## When the agent may use it
 
-After **REASON** has produced a structured fit assessment for a verified, selected opportunity, the owner-only hosted pilot may request a score from TypeSafe AI System One/Jev. A targeted **Update Opportunity** uses OpenAI for qualitative reassessment of an approved student answer; Jev may then refresh only the preliminary score when the saved structured evidence supports it. A one-time backfill may score at most five existing eligible records. Unchanged evidence alone must not cause another score-only paid call.
+After **REASON** has produced a structured fit assessment for a verified, selected opportunity, the owner-only hosted pilot must request a score from TypeSafe AI System One/Jev when the evidence supports scoring. A targeted **Update Opportunity** uses OpenAI for qualitative reassessment of an approved student answer; Jev then refreshes the preliminary score when the saved structured evidence changes. A backfill may score at most five existing eligible records. Unchanged evidence alone must not cause another score-only paid call.
 
 TypeSafe/Jev must not decide whether a student answer addresses a gap, set the fit category, or change the qualitative recommendation. Those tasks belong to the OpenAI-supported, single-opportunity Reason and Decide review under controller validation. A student answer does not independently verify a qualification; preserve unsupported gaps until the confirmed profile supports them. If structured scoring evidence is insufficient, show an explicit unavailable or stale state without blocking the saved qualitative review. A deterministic **Not interested** or **Unsure** response does not trigger scoring.
 
@@ -16,9 +16,9 @@ Use only a compact, non-identifying projection of already-structured evidence: r
 
 ## Provider and scoring behavior
 
-- Call only the approved TypeSafe AI endpoint `https://api.typesafe.ai/v1/systemone` from the server with the server-side `JEV_API_KEY`; use an approved Jev model ID such as `jev-1.13.0`. No browser or spreadsheet receives the key.
+- Call only the approved TypeSafe AI endpoint `https://api.typesafe.ai/v1/systemone` from the server with the server-side `JEV_API_KEY`. Resolve an available Jev model name or alias from authenticated `GET /v1/models` rather than assuming one pinned release is listed. No browser or spreadsheet receives the key.
 - Use explicit, ordered, descriptive fit levels. Ask narrow questions about qualification alignment, career-goal alignment, and practical constraints in one request when evidence supports them. Combine the results deterministically into a 0–100 indicator and round to five-point steps to avoid false precision. Keep the rubric and weighting version with the result.
-- Do not score when posting or student evidence is insufficient, unverified, stale for the selected profile, or contradictory. `UNAVAILABLE` is not zero. A provider failure leaves the opportunity usable with its narrative assessment intact.
+- Do not score when posting or student evidence is insufficient, unverified, stale for the selected profile, or contradictory. `UNAVAILABLE` is not zero. A provider failure leaves the opportunity usable with its narrative assessment intact, but the update or run is partial and offers a score-retry path rather than claiming completion.
 - Pilot records created before real-student setup existed may lack a profile-mode marker. Treat such a legacy record as a synthetic-demonstration assessment only when the current setup is synthetic and the existing fit evidence is adequate. Never infer that an unmarked record was assessed for a real student.
 - Retain the model version, scoring time, rubric version, evidence fingerprint, result status, and non-secret diagnostic category. Provider confidence describes distribution across rubric levels, not correctness; do not label it a guarantee.
 - At most one scoring request per eligible selected opportunity per evidence version. A discovery run processes no more than five material updates; score-only changes are not material posting updates and do not create student email notifications.
