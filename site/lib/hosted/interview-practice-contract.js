@@ -78,7 +78,7 @@ export function validateInterviewPractice(raw, sourceUrls = []) {
 }
 
 function normalizePage(raw) {
-  return raw.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ").replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ").replace(/<[^>]*>/g, " ")
+  return raw.replace(/<script\b[^>]*>[\s\S]*?<\/script\s*[^>]*>/gi, " ").replace(/<style\b[^>]*>[\s\S]*?<\/style\s*[^>]*>/gi, " ").replace(/<[^>]*>/g, " ")
     .replace(/&quot;|&#34;/gi, '"').replace(/&#39;|&apos;/gi, "'").replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&")
     .replace(/\s+/g, " ").toLowerCase();
 }
