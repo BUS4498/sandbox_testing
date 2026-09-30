@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DatabaseSync } from "node:sqlite";
-import { collectAllowanceSnapshot, INSERT_OWNER_COLLECTION_ADMISSION_SQL, INSERT_USAGE_ADMISSION_SQL, isUnlimitedCollectOwner, OWNER_COLLECTION_USAGE_GROUP, ownerCollectAllowance, RUN_USAGE_LIMITS, retryAfter, usageWindowStart } from "../lib/hosted/usage-policy.js";
+import { collectAllowanceSnapshot, INSERT_OWNER_COLLECTION_ADMISSION_SQL, INSERT_USAGE_ADMISSION_SQL, OWNER_COLLECTION_USAGE_GROUP, ownerCollectAllowance, RUN_USAGE_LIMITS, retryAfter, usageWindowStart } from "../lib/hosted/usage-policy.js";
+import { CLAIM_OWNER_SLOT_SQL, isPairedOwner, OWNER_PAIRING_MAX_ATTEMPTS, ownerPairingWindowStart, pairingCodesMatch, RESERVE_OWNER_PAIRING_ATTEMPT_SQL, validOwnerPairingCode } from "../lib/hosted/owner-verification-policy.js";
 
 function database() {
   const db = new DatabaseSync(":memory:");
@@ -57,14 +58,40 @@ test("60 student Collect starts exhaust the site-wide window, without a reset by
   db.close();
 });
 
-test("owner exemption requires an exact, configured, authenticated account ID", () => {
-  assert.equal(isUnlimitedCollectOwner("synthetic-owner", "synthetic-owner"), true);
-  assert.equal(isUnlimitedCollectOwner("synthetic-student", "synthetic-owner"), false);
-  assert.equal(isUnlimitedCollectOwner("synthetic-owner", undefined), false);
-  assert.equal(isUnlimitedCollectOwner("synthetic-owner", ""), false);
-  assert.equal(isUnlimitedCollectOwner("", "synthetic-owner"), false);
-  assert.equal(isUnlimitedCollectOwner("synthetic-owner@example.edu", "synthetic-owner"), false);
+test("owner exemption requires the exact platform-authenticated ID bound by a one-time claim", () => {
+  assert.equal(isPairedOwner("synthetic-owner", "synthetic-owner"), true);
+  assert.equal(isPairedOwner("synthetic-student", "synthetic-owner"), false);
+  assert.equal(isPairedOwner("synthetic-owner", undefined), false);
+  assert.equal(isPairedOwner("", "synthetic-owner"), false);
   assert.deepEqual(ownerCollectAllowance(), { allowed: true, ownerUnlimited: true, retryAt: null, reason: "", remainingStudent: null, remainingSite: null, perStudentLimit: null });
+});
+
+test("owner pairing accepts only a strong configured code and compares it without storing it", async () => {
+  const code = "AbCdEfGhIjKlMnOpQrStUvWxYz012345";
+  assert.equal(validOwnerPairingCode(code), true);
+  assert.equal(validOwnerPairingCode("short"), false);
+  assert.equal(validOwnerPairingCode(`${code}!`), false);
+  assert.equal(await pairingCodesMatch(code, code), true);
+  assert.equal(await pairingCodesMatch(`${code}x`, code), false);
+  assert.equal(await pairingCodesMatch(code, "short"), false);
+});
+
+test("one-time owner claim is atomic and failed attempts are limited per account", () => {
+  const db = database();
+  db.exec("CREATE TABLE site_owner_identity (slot TEXT PRIMARY KEY, user_id TEXT NOT NULL, verified_at TEXT NOT NULL); CREATE TABLE owner_pairing_attempts (user_id TEXT PRIMARY KEY, attempts INTEGER NOT NULL, window_started_at TEXT NOT NULL);");
+  const now = new Date("2026-09-29T18:00:00.000Z");
+  const reserve = (userId, when) => {
+    const since = ownerPairingWindowStart(when);
+    return db.prepare(RESERVE_OWNER_PAIRING_ATTEMPT_SQL).run(userId, when.toISOString(), since, since, when.toISOString(), since, OWNER_PAIRING_MAX_ATTEMPTS).changes === 1;
+  };
+  for (let index = 0; index < 5; index++) assert.equal(reserve("synthetic-student", now), true);
+  assert.equal(reserve("synthetic-student", now), false);
+  assert.equal(reserve("synthetic-owner", now), true);
+  assert.equal(reserve("synthetic-student", new Date(now.getTime() + 24 * 60 * 60 * 1000)), true);
+  assert.equal(db.prepare(CLAIM_OWNER_SLOT_SQL).run("synthetic-owner", now.toISOString()).changes, 1);
+  assert.equal(db.prepare(CLAIM_OWNER_SLOT_SQL).run("synthetic-student", now.toISOString()).changes, 0);
+  assert.equal(db.prepare("SELECT user_id FROM site_owner_identity WHERE slot='owner'").get().user_id, "synthetic-owner");
+  db.close();
 });
 
 test("owner Collect starts stay auditable and do not consume student start slots", () => {

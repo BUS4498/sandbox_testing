@@ -9,16 +9,10 @@ export const RUN_USAGE_LIMITS = Object.freeze({
   FIT_BACKFILL: { perStudent: 2, group: "SECONDARY", siteWide: 100 },
 });
 
-// A pinned, server-side Sites account ID is the only owner exemption. Owner
-// starts are audited separately and never consume the shared student pool.
+// A one-time, server-verified owner claim controls the exemption. Owner starts
+// are audited separately and never consume the shared student pool.
 export const OWNER_COLLECTION_USAGE_GROUP = "OWNER_COLLECTION";
 export const INSERT_OWNER_COLLECTION_ADMISSION_SQL = "INSERT INTO usage_admissions (id,owner_id,kind,usage_group,started_at) VALUES (?,?,?,?,?)";
-
-export function isUnlimitedCollectOwner(authenticatedUserId, configuredOwnerId) {
-  return typeof authenticatedUserId === "string" && authenticatedUserId.length > 0
-    && typeof configuredOwnerId === "string" && configuredOwnerId.trim().length > 0
-    && authenticatedUserId === configuredOwnerId.trim();
-}
 
 export function ownerCollectAllowance() {
   return { allowed: true, ownerUnlimited: true, retryAt: null, reason: "", remainingStudent: null, remainingSite: null, perStudentLimit: null };

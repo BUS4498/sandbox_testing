@@ -50,6 +50,13 @@
       "when": 1790736048038,
       "tag": "0006_normal_black_tarantula",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1790750879448,
+      "tag": "0007_condemned_multiple_man",
+      "breakpoints": true
     }
   ]
 }

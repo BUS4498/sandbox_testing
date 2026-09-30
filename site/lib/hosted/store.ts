@@ -2,7 +2,8 @@ import { env } from "cloudflare:workers";
 import { normalizeRealSetup } from "./profile-rules.js";
 import { normalizeStudentResponse } from "./student-response-rules.js";
 import { deleteOriginalResume } from "./resume-storage";
-import { collectAllowanceSnapshot, INSERT_OWNER_COLLECTION_ADMISSION_SQL, INSERT_USAGE_ADMISSION_SQL, isUnlimitedCollectOwner, OWNER_COLLECTION_USAGE_GROUP, ownerCollectAllowance, RUN_USAGE_LIMITS, retryAfter, usageWindowStart } from "./usage-policy.js";
+import { collectAllowanceSnapshot, INSERT_OWNER_COLLECTION_ADMISSION_SQL, INSERT_USAGE_ADMISSION_SQL, OWNER_COLLECTION_USAGE_GROUP, ownerCollectAllowance, RUN_USAGE_LIMITS, retryAfter, usageWindowStart } from "./usage-policy.js";
+import { CLAIM_OWNER_SLOT_SQL, isPairedOwner, OWNER_PAIRING_MAX_ATTEMPTS, ownerPairingWindowStart, pairingCodesMatch, RESERVE_OWNER_PAIRING_ATTEMPT_SQL, validOwnerPairingCode } from "./owner-verification-policy.js";
 
 export type FitScore = {
   status: "PENDING" | "SCORED" | "UNAVAILABLE" | "STALE" | "FAILED";
@@ -89,9 +90,51 @@ function database(): D1Database {
   return env.DB;
 }
 
-function isOwnerCollectionAccount(authenticatedUserId: string): boolean {
-  const configuredOwnerId = (env as unknown as { SITE_OWNER_USER_ID?: string }).SITE_OWNER_USER_ID;
-  return isUnlimitedCollectOwner(authenticatedUserId, configuredOwnerId);
+async function isOwnerCollectionAccount(authenticatedUserId: string): Promise<boolean> {
+  // A missing migration fails closed to ordinary student limits.
+  try {
+    const row = await database().prepare("SELECT user_id FROM site_owner_identity WHERE slot='owner' LIMIT 1").first<{ user_id: string }>();
+    return isPairedOwner(authenticatedUserId, row?.user_id);
+  } catch { return false; }
+}
+
+export class OwnerVerificationError extends Error {
+  constructor(readonly code: "NOT_CONFIGURED" | "WRONG_CODE" | "LIMIT" | "ALREADY_CLAIMED", readonly retryAt: string | null = null) {
+    super(code); this.name = "OwnerVerificationError";
+  }
+}
+
+function configuredOwnerPairingCode(): string | null {
+  const value = (env as unknown as { SITE_OWNER_PAIRING_CODE?: string }).SITE_OWNER_PAIRING_CODE;
+  return typeof value === "string" && validOwnerPairingCode(value) ? value : null;
+}
+
+export async function ownerVerificationStatus(authenticatedUserId: string): Promise<{ verified: boolean; pairingReady: boolean }> {
+  return { verified: await isOwnerCollectionAccount(authenticatedUserId), pairingReady: configuredOwnerPairingCode() !== null };
+}
+
+export async function claimSiteOwner(authenticatedUserId: string, candidateCode: string): Promise<void> {
+  const existing = await database().prepare("SELECT user_id FROM site_owner_identity WHERE slot='owner' LIMIT 1").first<{ user_id: string }>();
+  if (isPairedOwner(authenticatedUserId, existing?.user_id)) return;
+  if (existing) throw new OwnerVerificationError("ALREADY_CLAIMED");
+  const configuredCode = configuredOwnerPairingCode();
+  if (!configuredCode) throw new OwnerVerificationError("NOT_CONFIGURED");
+
+  const now = new Date();
+  const startedAt = now.toISOString();
+  const since = ownerPairingWindowStart(now);
+  const reservation = await database().prepare(RESERVE_OWNER_PAIRING_ATTEMPT_SQL)
+    .bind(authenticatedUserId, startedAt, since, since, startedAt, since, OWNER_PAIRING_MAX_ATTEMPTS).run();
+  if (!reservation.meta?.changes) {
+    const row = await database().prepare("SELECT window_started_at FROM owner_pairing_attempts WHERE user_id=?")
+      .bind(authenticatedUserId).first<{ window_started_at: string }>();
+    throw new OwnerVerificationError("LIMIT", row ? new Date(Date.parse(row.window_started_at) + 24 * 60 * 60 * 1000).toISOString() : null);
+  }
+  if (!await pairingCodesMatch(candidateCode, configuredCode)) throw new OwnerVerificationError("WRONG_CODE");
+
+  await database().prepare(CLAIM_OWNER_SLOT_SQL).bind(authenticatedUserId, startedAt).run();
+  const bound = await database().prepare("SELECT user_id FROM site_owner_identity WHERE slot='owner' LIMIT 1").first<{ user_id: string }>();
+  if (!isPairedOwner(authenticatedUserId, bound?.user_id)) throw new OwnerVerificationError("ALREADY_CLAIMED");
 }
 
 export class UsageLimitError extends Error {
@@ -117,7 +160,7 @@ async function usageCounts(ownerId: string, kind: RunRecord["kind"], now: Date):
 }
 
 export async function collectionAllowance(ownerId: string): Promise<{ allowed: boolean; ownerUnlimited: boolean; retryAt: string | null; reason: string; remainingStudent: number | null; remainingSite: number | null; perStudentLimit: number | null }> {
-  if (isOwnerCollectionAccount(ownerId)) return ownerCollectAllowance();
+  if (await isOwnerCollectionAccount(ownerId)) return ownerCollectAllowance();
   const counts = await usageCounts(ownerId, "COLLECTION", new Date());
   return collectAllowanceSnapshot(counts);
 }
@@ -329,7 +372,7 @@ export async function startRun(ownerId: string, kind: RunRecord["kind"] = "COLLE
   const run: RunRecord = { id, kind, status: "IN_PROGRESS", stage: "RETRIEVE", detail: kind === "TARGETED_UPDATE" ? "Reading this opportunity, the saved student response, and the confirmed profile." : kind === "FIT_BACKFILL" ? "Checking existing opportunities for score-ready evidence; no web search." : kind === "MATERIAL_PREP" ? "Reading the selected opportunity and its verified fit evidence before preparing Word drafts." : kind === "INTERVIEW_PRACTICE" ? "Reading the selected opportunity before an on-demand public interview-question search." : "Reading the selected student setup and current collection.", progress: 5, startedAt, finishedAt: null, summary: null, errorCode: null };
   let admitted = false;
   try {
-    if (kind === "COLLECTION" && isOwnerCollectionAccount(ownerId)) {
+    if (kind === "COLLECTION" && await isOwnerCollectionAccount(ownerId)) {
       await database().prepare(INSERT_OWNER_COLLECTION_ADMISSION_SQL)
         .bind(id, ownerId, kind, OWNER_COLLECTION_USAGE_GROUP, startedAt).run();
     } else {

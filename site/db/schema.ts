@@ -55,6 +55,21 @@ export const usageAdmissions = sqliteTable("usage_admissions", {
   index("idx_usage_group_started").on(table.usageGroup, table.startedAt),
 ]);
 
+// One administrator-claimed slot binds the Site owner to the platform's
+// authenticated, app-specific user ID. Collection reset never touches it.
+export const siteOwnerIdentity = sqliteTable("site_owner_identity", {
+  slot: text("slot").primaryKey(),
+  userId: text("user_id").notNull(),
+  verifiedAt: text("verified_at").notNull(),
+});
+
+// Store attempt counts only; submitted pairing codes never enter D1.
+export const ownerPairingAttempts = sqliteTable("owner_pairing_attempts", {
+  userId: text("user_id").primaryKey(),
+  attempts: integer("attempts").notNull(),
+  windowStartedAt: text("window_started_at").notNull(),
+});
+
 export const operationalEvents = sqliteTable("operational_events", {
   id: text("id").primaryKey(),
   ownerId: text("owner_id").notNull(),
