@@ -80,6 +80,21 @@ test("preserves a source-backed internship period longer than 150 characters", (
   assert.equal(result.selectedOpportunities[0].opportunity.internshipPeriod, description);
 });
 
+test("preserves a source-backed location description beyond the old 300-character cap", () => {
+  const input = resultWithWorkArrangement("Hybrid");
+  const description = "California location is listed as San Francisco or San Jose, with team assignment and onsite requirements to be confirmed. ".repeat(4);
+  assert.ok(description.length > 300 && description.length <= 1_000);
+  input.selectedOpportunities[0].opportunity.location = description;
+  const result = parseAndValidateWorkflowResult(JSON.stringify(input), { observedSearches: 1 });
+  assert.equal(result.selectedOpportunities[0].opportunity.location, description.trim());
+});
+
+test("identifies an excessive location field by name", () => {
+  const input = resultWithWorkArrangement("Hybrid");
+  input.selectedOpportunities[0].opportunity.location = "x".repeat(1001);
+  assert.throws(() => parseAndValidateWorkflowResult(JSON.stringify(input), { observedSearches: 1 }), /opportunity\.location exceeded 1000 characters/);
+});
+
 test("names an overlong internship period instead of rejecting it as an anonymous text field", () => {
   const input = resultWithWorkArrangement("Hybrid");
   input.selectedOpportunities[0].opportunity.internshipPeriod = "x".repeat(1001);

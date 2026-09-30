@@ -375,7 +375,7 @@ function validateOpportunity(value, index) {
     opportunityId: optionalString(value.opportunityId, 120),
     company: requiredString(value.company, `selectedOpportunities[${index}].opportunity.company`, 300),
     roleTitle: requiredString(value.roleTitle, `selectedOpportunities[${index}].opportunity.roleTitle`, 300),
-    location: optionalString(value.location, 300),
+    location: optionalString(value.location, 1_000, `selectedOpportunities[${index}].opportunity.location`),
     workArrangement: optionalString(value.workArrangement, 300, `selectedOpportunities[${index}].opportunity.workArrangement`),
     internshipPeriod: optionalString(value.internshipPeriod, 1_000, `selectedOpportunities[${index}].opportunity.internshipPeriod`),
     deadline: optionalString(value.deadline, 80),
