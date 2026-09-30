@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DatabaseSync } from "node:sqlite";
-import { collectAllowanceSnapshot, INSERT_USAGE_ADMISSION_SQL, RUN_USAGE_LIMITS, retryAfter, usageWindowStart } from "../lib/hosted/usage-policy.js";
+import { collectAllowanceSnapshot, INSERT_OWNER_COLLECTION_ADMISSION_SQL, INSERT_USAGE_ADMISSION_SQL, isUnlimitedCollectOwner, OWNER_COLLECTION_USAGE_GROUP, ownerCollectAllowance, RUN_USAGE_LIMITS, retryAfter, usageWindowStart } from "../lib/hosted/usage-policy.js";
 
 function database() {
   const db = new DatabaseSync(":memory:");
@@ -54,6 +54,31 @@ test("60 student Collect starts exhaust the site-wide window, without a reset by
   db.exec("DELETE FROM runs"); // Reset Collection clears runs, not admissions.
   assert.equal(admit(db, "synthetic-student-61", "COLLECTION", now), false);
   assert.equal(db.prepare("SELECT COUNT(*) AS count FROM usage_admissions").get().count, 60);
+  db.close();
+});
+
+test("owner exemption requires an exact, configured, authenticated account ID", () => {
+  assert.equal(isUnlimitedCollectOwner("synthetic-owner", "synthetic-owner"), true);
+  assert.equal(isUnlimitedCollectOwner("synthetic-student", "synthetic-owner"), false);
+  assert.equal(isUnlimitedCollectOwner("synthetic-owner", undefined), false);
+  assert.equal(isUnlimitedCollectOwner("synthetic-owner", ""), false);
+  assert.equal(isUnlimitedCollectOwner("", "synthetic-owner"), false);
+  assert.equal(isUnlimitedCollectOwner("synthetic-owner@example.edu", "synthetic-owner"), false);
+  assert.deepEqual(ownerCollectAllowance(), { allowed: true, ownerUnlimited: true, retryAt: null, reason: "", remainingStudent: null, remainingSite: null, perStudentLimit: null });
+});
+
+test("owner Collect starts stay auditable and do not consume student start slots", () => {
+  const db = database();
+  const now = new Date("2026-09-29T18:00:00.000Z");
+  const ownerStatement = db.prepare(INSERT_OWNER_COLLECTION_ADMISSION_SQL);
+  for (let index = 0; index < 65; index++) {
+    const result = ownerStatement.run(crypto.randomUUID(), "synthetic-owner", "COLLECTION", OWNER_COLLECTION_USAGE_GROUP, now.toISOString());
+    assert.equal(result.changes, 1);
+  }
+  for (let index = 0; index < 60; index++) assert.equal(admit(db, `synthetic-student-${index}`, "COLLECTION", now), true);
+  assert.equal(admit(db, "synthetic-student-61", "COLLECTION", now), false);
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM usage_admissions WHERE usage_group='OWNER_COLLECTION'").get().count, 65);
+  assert.equal(db.prepare("SELECT COUNT(*) AS count FROM usage_admissions WHERE usage_group='COLLECTION'").get().count, 60);
   db.close();
 });
 

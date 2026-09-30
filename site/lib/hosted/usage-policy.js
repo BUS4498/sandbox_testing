@@ -9,6 +9,21 @@ export const RUN_USAGE_LIMITS = Object.freeze({
   FIT_BACKFILL: { perStudent: 2, group: "SECONDARY", siteWide: 100 },
 });
 
+// A pinned, server-side Sites account ID is the only owner exemption. Owner
+// starts are audited separately and never consume the shared student pool.
+export const OWNER_COLLECTION_USAGE_GROUP = "OWNER_COLLECTION";
+export const INSERT_OWNER_COLLECTION_ADMISSION_SQL = "INSERT INTO usage_admissions (id,owner_id,kind,usage_group,started_at) VALUES (?,?,?,?,?)";
+
+export function isUnlimitedCollectOwner(authenticatedUserId, configuredOwnerId) {
+  return typeof authenticatedUserId === "string" && authenticatedUserId.length > 0
+    && typeof configuredOwnerId === "string" && configuredOwnerId.trim().length > 0
+    && authenticatedUserId === configuredOwnerId.trim();
+}
+
+export function ownerCollectAllowance() {
+  return { allowed: true, ownerUnlimited: true, retryAt: null, reason: "", remainingStudent: null, remainingSite: null, perStudentLimit: null };
+}
+
 // One SQLite statement makes the two count checks and the reservation atomic.
 export const INSERT_USAGE_ADMISSION_SQL = "INSERT INTO usage_admissions (id,owner_id,kind,usage_group,started_at) SELECT ?,?,?,?,? WHERE (SELECT COUNT(*) FROM usage_admissions WHERE owner_id=? AND kind=? AND started_at>=?)<? AND (SELECT COUNT(*) FROM usage_admissions WHERE usage_group=? AND started_at>=?)<?";
 
@@ -23,7 +38,7 @@ export function collectAllowanceSnapshot(counts) {
   const { perStudent, siteWide } = RUN_USAGE_LIMITS.COLLECTION;
   const remainingStudent = Math.max(0, perStudent - counts.student.count);
   const remainingSite = Math.max(0, siteWide - counts.site.count);
-  const base = { remainingStudent, remainingSite, perStudentLimit: perStudent };
+  const base = { remainingStudent, remainingSite, perStudentLimit: perStudent, ownerUnlimited: false };
   if (remainingStudent === 0) return { ...base, allowed: false, retryAt: retryAfter(counts.student.oldest), reason: `You have used all ${perStudent} Collect starts in the past 24 hours.` };
   if (remainingSite === 0) return { ...base, allowed: false, retryAt: retryAfter(counts.site.oldest), reason: `The Site's ${siteWide} Collect-run slots are full for this 24-hour window.` };
   return { ...base, allowed: true, retryAt: null, reason: "" };

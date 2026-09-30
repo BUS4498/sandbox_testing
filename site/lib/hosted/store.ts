@@ -2,7 +2,7 @@ import { env } from "cloudflare:workers";
 import { normalizeRealSetup } from "./profile-rules.js";
 import { normalizeStudentResponse } from "./student-response-rules.js";
 import { deleteOriginalResume } from "./resume-storage";
-import { collectAllowanceSnapshot, INSERT_USAGE_ADMISSION_SQL, RUN_USAGE_LIMITS, retryAfter, usageWindowStart } from "./usage-policy.js";
+import { collectAllowanceSnapshot, INSERT_OWNER_COLLECTION_ADMISSION_SQL, INSERT_USAGE_ADMISSION_SQL, isUnlimitedCollectOwner, OWNER_COLLECTION_USAGE_GROUP, ownerCollectAllowance, RUN_USAGE_LIMITS, retryAfter, usageWindowStart } from "./usage-policy.js";
 
 export type FitScore = {
   status: "PENDING" | "SCORED" | "UNAVAILABLE" | "STALE" | "FAILED";
@@ -89,6 +89,11 @@ function database(): D1Database {
   return env.DB;
 }
 
+function isOwnerCollectionAccount(authenticatedUserId: string): boolean {
+  const configuredOwnerId = (env as unknown as { SITE_OWNER_USER_ID?: string }).SITE_OWNER_USER_ID;
+  return isUnlimitedCollectOwner(authenticatedUserId, configuredOwnerId);
+}
+
 export class UsageLimitError extends Error {
   readonly retryAt: string | null;
   constructor(message: string, retryAt: string | null) {
@@ -111,7 +116,8 @@ async function usageCounts(ownerId: string, kind: RunRecord["kind"], now: Date):
   return { student: student ?? { count: 0, oldest: null }, site: site ?? { count: 0, oldest: null } };
 }
 
-export async function collectionAllowance(ownerId: string): Promise<{ allowed: boolean; retryAt: string | null; reason: string; remainingStudent: number; remainingSite: number; perStudentLimit: number }> {
+export async function collectionAllowance(ownerId: string): Promise<{ allowed: boolean; ownerUnlimited: boolean; retryAt: string | null; reason: string; remainingStudent: number | null; remainingSite: number | null; perStudentLimit: number | null }> {
+  if (isOwnerCollectionAccount(ownerId)) return ownerCollectAllowance();
   const counts = await usageCounts(ownerId, "COLLECTION", new Date());
   return collectAllowanceSnapshot(counts);
 }
@@ -323,14 +329,19 @@ export async function startRun(ownerId: string, kind: RunRecord["kind"] = "COLLE
   const run: RunRecord = { id, kind, status: "IN_PROGRESS", stage: "RETRIEVE", detail: kind === "TARGETED_UPDATE" ? "Reading this opportunity, the saved student response, and the confirmed profile." : kind === "FIT_BACKFILL" ? "Checking existing opportunities for score-ready evidence; no web search." : kind === "MATERIAL_PREP" ? "Reading the selected opportunity and its verified fit evidence before preparing Word drafts." : kind === "INTERVIEW_PRACTICE" ? "Reading the selected opportunity before an on-demand public interview-question search." : "Reading the selected student setup and current collection.", progress: 5, startedAt, finishedAt: null, summary: null, errorCode: null };
   let admitted = false;
   try {
-    const policy = RUN_USAGE_LIMITS[kind];
-    const since = usageWindowStart(now);
-    const result = await database().prepare(INSERT_USAGE_ADMISSION_SQL)
-      .bind(id, ownerId, kind, policy.group, startedAt, ownerId, kind, since, policy.perStudent, policy.group, since, policy.siteWide).run();
-    if (!result.meta?.changes) {
-      const counts = await usageCounts(ownerId, kind, now);
-      if (counts.student.count >= policy.perStudent) throw new UsageLimitError(kind === "COLLECTION" ? `You have used all ${policy.perStudent} Collect starts in the past 24 hours.` : `You have reached the 24-hour limit for ${kind.replaceAll("_", " ").toLowerCase()}.`, retryAfter(counts.student.oldest));
-      throw new UsageLimitError(kind === "COLLECTION" ? `The Site's ${policy.siteWide} Collect-run slots are full for this 24-hour window.` : "The Site's 24-hour capacity for this action is full. Try again later.", retryAfter(counts.site.oldest));
+    if (kind === "COLLECTION" && isOwnerCollectionAccount(ownerId)) {
+      await database().prepare(INSERT_OWNER_COLLECTION_ADMISSION_SQL)
+        .bind(id, ownerId, kind, OWNER_COLLECTION_USAGE_GROUP, startedAt).run();
+    } else {
+      const policy = RUN_USAGE_LIMITS[kind];
+      const since = usageWindowStart(now);
+      const result = await database().prepare(INSERT_USAGE_ADMISSION_SQL)
+        .bind(id, ownerId, kind, policy.group, startedAt, ownerId, kind, since, policy.perStudent, policy.group, since, policy.siteWide).run();
+      if (!result.meta?.changes) {
+        const counts = await usageCounts(ownerId, kind, now);
+        if (counts.student.count >= policy.perStudent) throw new UsageLimitError(kind === "COLLECTION" ? `You have used all ${policy.perStudent} Collect starts in the past 24 hours.` : `You have reached the 24-hour limit for ${kind.replaceAll("_", " ").toLowerCase()}.`, retryAfter(counts.student.oldest));
+        throw new UsageLimitError(kind === "COLLECTION" ? `The Site's ${policy.siteWide} Collect-run slots are full for this 24-hour window.` : "The Site's 24-hour capacity for this action is full. Try again later.", retryAfter(counts.site.oldest));
+      }
     }
     admitted = true;
     await database().prepare("INSERT INTO runs (id,owner_id,kind,status,stage,detail,progress,started_at,finished_at,summary_json,error_code) VALUES (?,?,?,?,?,?,?,?,?,?,?)")
