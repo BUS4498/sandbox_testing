@@ -1,5 +1,5 @@
 import { env } from "cloudflare:workers";
-import { buildDraftPlan, buildRoleDraftPlan, createWordDraft, MATERIAL_TYPES, verifyWordDraft, WORD_MIME } from "./word-drafts.js";
+import { buildDraftPlan, buildRoleDraftPlan, createWordDraft, MATERIAL_TYPES, refreshResumeWordLayout, verifyWordDraft, WORD_MIME } from "./word-drafts.js";
 import type { DraftedMaterials } from "./material-drafting";
 import { getOpportunity, type OpportunityRecord } from "./store";
 
@@ -8,6 +8,8 @@ export type MaterialRecord = {
   materialId: string; opportunityId: string; type: MaterialType; title: string;
   fileName: string; createdAt: string; status: "DRAFT_REVIEW_REQUIRED";
   placeholders: string[]; opportunityVersion: number; profileMode: string;
+  tailoringChanges?: { original: string; proposed: string; requirement: string; rationale: string }[];
+  preparationNotice?: string;
 };
 
 type MaterialRow = {
@@ -28,10 +30,13 @@ function bucket(): R2Bucket {
 }
 
 function publicRecord(row: MaterialRow): MaterialRecord {
+  const review = JSON.parse(row.placeholders_json);
   return {
     materialId: row.id, opportunityId: row.opportunity_id, type: row.type as MaterialType,
     title: row.title, fileName: row.file_name, createdAt: row.created_at,
-    status: "DRAFT_REVIEW_REQUIRED", placeholders: JSON.parse(row.placeholders_json) as string[],
+    status: "DRAFT_REVIEW_REQUIRED", placeholders: Array.isArray(review) ? review : review.placeholders ?? [],
+    tailoringChanges: Array.isArray(review) ? [] : review.tailoringChanges ?? [],
+    preparationNotice: Array.isArray(review) ? "" : review.preparationNotice ?? "",
     opportunityVersion: row.opportunity_version, profileMode: row.profile_mode,
   };
 }
@@ -102,7 +107,9 @@ async function savePlannedWordMaterial(ownerId: string, record: OpportunityRecor
     const check = await bucket().get(objectKey);
     if (!check || await hexSha256(new Uint8Array(await check.arrayBuffer())) !== contentHash) throw new Error("The private Word draft failed read-back verification.");
     const result = await database().prepare("INSERT OR IGNORE INTO application_materials (id,owner_id,opportunity_id,request_id,type,title,file_name,object_key,content_hash,placeholders_json,opportunity_version,profile_mode,created_at,status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-      .bind(materialId, ownerId, record.opportunityId, requestId, type, plan.title, fileName, objectKey, contentHash, JSON.stringify(plan.placeholders), record.recordVersion, record.assessmentProfileMode ?? "SYNTHETIC_DEMONSTRATION", now, "DRAFT_REVIEW_REQUIRED").run();
+      .bind(materialId, ownerId, record.opportunityId, requestId, type, plan.title, fileName, objectKey, contentHash, JSON.stringify({ placeholders: plan.placeholders,
+        tailoringChanges: "tailoringChanges" in plan ? plan.tailoringChanges : [],
+        preparationNotice: "preparationNotice" in plan ? plan.preparationNotice : "" }), record.recordVersion, record.assessmentProfileMode ?? "SYNTHETIC_DEMONSTRATION", now, "DRAFT_REVIEW_REQUIRED").run();
     if (result.meta?.changes !== 1) {
       const existing = await priorRequest(ownerId, requestId, type);
       if (existing?.opportunity_id === record.opportunityId) {
@@ -131,5 +138,9 @@ export async function readWordMaterial(ownerId: string, materialId: string): Pro
   if (!object) throw new Error("The saved Word draft is temporarily unavailable.");
   const bytes = new Uint8Array(await object.arrayBuffer());
   if (await hexSha256(bytes) !== row.content_hash || !verifyWordDraft(bytes, row.title)) throw new Error("The saved Word draft did not pass read-back verification.");
-  return { metadata: publicRecord(row), bytes };
+  // Verify the immutable stored file first, then refresh presentation only.
+  // Existing drafts benefit without re-generating claims or spending tokens.
+  const downloadBytes = row.type === "TAILORED_RESUME" ? refreshResumeWordLayout(bytes) : bytes;
+  if (!verifyWordDraft(downloadBytes, row.title)) throw new Error("The refreshed Word layout could not be verified.");
+  return { metadata: publicRecord(row), bytes: downloadBytes };
 }

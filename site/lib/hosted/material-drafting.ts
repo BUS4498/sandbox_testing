@@ -9,7 +9,7 @@ import type { OpportunityRecord, StudentSetup } from "./store";
 
 type Evidence = { id: string; text: string; sourceIndex: number };
 type ResumeItem = { section: "EDUCATION" | "EXPERIENCE" | "PROJECTS" | "SKILLS"; evidenceId: string };
-type ResumeEdit = { evidenceId: string; revisedText: string };
+type ResumeEdit = { evidenceId: string; revisedText: string; requirement: string; rationale: string };
 type LetterParagraph = { text: string; evidenceIds: string[] };
 export type DraftedMaterials = { resumeItems: ResumeItem[]; resumeEdits: ResumeEdit[]; letterParagraphs: LetterParagraph[]; evidence: Evidence[]; resumeBaseline: string[]; validationIssues: Record<string, string>; preparationNotices: Record<string, string>; verificationNotes: Record<string, string[]> };
 
@@ -21,8 +21,8 @@ const SCHEMA = {
       evidenceId: { type: "string" },
     }, required: ["section", "evidenceId"] } },
     resumeEdits: { type: "array", items: { type: "object", additionalProperties: false, properties: {
-      evidenceId: { type: "string" }, revisedText: { type: "string" },
-    }, required: ["evidenceId", "revisedText"] } },
+      evidenceId: { type: "string" }, revisedText: { type: "string" }, requirement: { type: "string" }, rationale: { type: "string" },
+    }, required: ["evidenceId", "revisedText", "requirement", "rationale"] } },
     letterParagraphs: { type: "array", items: { type: "object", additionalProperties: false, properties: {
       text: { type: "string" }, evidenceIds: { type: "array", items: { type: "string" } },
     }, required: ["text", "evidenceIds"] } },
@@ -33,7 +33,7 @@ function selectEvidence(profileText: string, record: OpportunityRecord): Evidenc
   const tokens = new Set((record.roleTitle + " " + (record.fitEvidence?.requiredMatches ?? []).join(" ") + " " + (record.fitEvidence?.preferredMatches ?? []).join(" "))
     .toLowerCase().match(/[a-z]{4,}/g) ?? []);
   const pieces = resumeLines(profileText).map((text, index) => ({ text, index }))
-    .filter((part) => !isResumeSectionHeading(part.text) && part.text.length >= 18 && part.text.length <= 450);
+    .filter((part) => !isResumeSectionHeading(part.text) && part.text.length >= 18 && part.text.length <= 1200);
   const scored = pieces.map((part) => ({
     index: part.index, text: part.text,
     score: [...tokens].reduce((sum, token) => sum + (part.text.toLowerCase().includes(token) ? 1 : 0), 0) + (part.index < 6 ? 2 : 0),
@@ -77,7 +77,7 @@ Student evidence: ${JSON.stringify(evidence)}
 Relevant approved preparation skill:
 ${materialSkillSpec}
 
-For resumeItems, choose 4–12 distinct evidence IDs whose ORIGINAL lines should be emphasized for this role, and identify their sections. The renderer keeps the entire confirmed resume in its original order; your selection must not delete other lines. For resumeEdits, propose at most four in-place line revisions, each tied to a selected evidence ID and specific posting duty or qualification. A revision may reorder existing words and change punctuation or capitalization but must retain every original word and every qualifier, title, date, and metric; add no new words or factual claims. Return an empty array if that cannot produce a useful edit. The controller will reject any edit whose word multiset differs from its original line. For letterParagraphs, write three or four complete, natural paragraphs: interest in this role, concrete evidence of relevant work/projects, connection to the posting's actual responsibilities and qualifications, and a modest closing. Every factual student claim must be traceable to evidenceIds supplied for that paragraph. Both middle paragraphs must cite at least one verified evidence ID; an opening or closing with no factual student claim may use an empty evidenceIds array. Keep a short polite closing within its own paragraph, not a separate fifth paragraph. Do not assert Cal Poly attendance unless an excerpt says it; do not imply official university endorsement. Avoid unsupported enthusiasm about the employer. Use editable identity/contact placeholders in the document, not invented details. Return only the required JSON.`;
+For resumeItems, choose 4–12 distinct evidence IDs relevant to this role and identify their sections. The renderer keeps ALL confirmed content in the original order, including unselected lines. For resumeEdits, propose two to four useful in-place sentence revisions when evidence supports them, never edits merely to reach a count. Each edit must refer to a selected evidence ID, quote one exact recorded responsibility or qualification in requirement, and explain in rationale why the revised emphasis supports that requirement. Put the role-relevant action first, make the sentence clearer, and retain every source fact. You may change grammar/connectives and use neutral action equivalents (built/created/developed; analyze/analysis; document/documentation; support/supported; manage/managed; improve/improvement). Keep all other substantive vocabulary, named tools, titles, dates, numbers (including + and %), limitations, and outcomes from the SAME source line. Do not copy a missing skill or responsibility from the posting into the student's resume. Do not revise headings, contact information, or combine separate positions. Empty edits are valid ONLY when no useful safe rephrasing exists; a preserved copy will be labeled not tailored. For letterParagraphs, write three or four complete, natural paragraphs: interest in this role, concrete evidence of relevant work/projects, connection to the posting's actual responsibilities and qualifications, and a modest closing. Every factual student claim must be traceable to evidenceIds supplied for that paragraph. Both middle paragraphs must cite at least one verified evidence ID; an opening or closing with no factual student claim may use an empty evidenceIds array. Keep a short polite closing within its own paragraph, not a separate fifth paragraph. Do not assert Cal Poly attendance unless an excerpt says it; do not imply official university endorsement. Avoid unsupported enthusiasm about the employer. Use editable identity/contact placeholders in the document, not invented details. Return only the required JSON.`;
   let response: Response;
   try {
     response = await fetch("https://api.openai.com/v1/responses", {
@@ -109,10 +109,16 @@ For resumeItems, choose 4–12 distinct evidence IDs whose ORIGINAL lines should
           resumeItems.some((item) => !ids.has(item.evidenceId) || !["EDUCATION", "EXPERIENCE", "PROJECTS", "SKILLS"].includes(item.section))) {
         throw new Error("The resume selection did not pass verified-evidence checks.");
       }
-      const safe = safeResumeEdits(resumeEdits, resumeItems, evidence);
+      const postingRequirements = [...(record.responsibilities ?? []), ...(record.requiredQualifications ?? []), ...(record.preferredQualifications ?? [])];
+      const supportedEdits = resumeEdits.filter(edit => postingRequirements.some(value => value.trim() === edit.requirement?.trim()) &&
+        typeof edit.rationale === "string" && edit.rationale.trim().length >= 12 && edit.rationale.length <= 500);
+      for (const edit of supportedEdits) assertNoDirectIdentifier([edit.revisedText, edit.requirement, edit.rationale], "resume tailoring change");
+      const safe = safeResumeEdits(supportedEdits, resumeItems, evidence);
+      const omitted = safe.omitted || supportedEdits.length !== resumeEdits.length;
       resumeEdits = safe.edits;
-      if (safe.omitted) preparationNotices.TAILORED_RESUME = "Unsafe proposed wording edits were omitted; the complete original resume was preserved without misleading highlights.";
-      else if (!safe.edits.length) preparationNotices.TAILORED_RESUME = "No safe wording change was proposed; the complete confirmed resume is preserved in a structured Word layout.";
+      preparationNotices.TAILORED_RESUME = safe.edits.length
+        ? `${safe.edits.length} in-place wording changes accepted for ${record.company} — ${record.roleTitle}. Yellow highlights mark changed wording; the separate change log explains each edit.${omitted ? " Unsupported proposals were omitted." : ""}`
+        : "No safe tailoring changes were accepted. This is a preserved resume in an editable Word layout, not a tailored result. Review the posting requirements before use.";
     } catch (error) {
       validationIssues.TAILORED_RESUME = error instanceof Error ? error.message : "The resume selection did not pass verified-evidence checks.";
       resumeItems = []; resumeEdits = [];

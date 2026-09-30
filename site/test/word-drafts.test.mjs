@@ -1,9 +1,24 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { strFromU8, unzipSync } from "fflate";
-import { buildDraftPlan, buildRoleDraftPlan, createWordDraft, DRAFT_NOTICE, verifyWordDraft } from "../lib/hosted/word-drafts.js";
+import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
+import { buildDraftPlan, buildRoleDraftPlan, createWordDraft, DRAFT_NOTICE, refreshResumeWordLayout, verifyWordDraft } from "../lib/hosted/word-drafts.js";
 import { resumeLines } from "../lib/hosted/resume-structure.js";
 import { UNVERIFIED_LABEL } from "../lib/hosted/material-draft-validation.js";
+
+test("saved resume typography refresh leaves all wording, highlights, and other styles intact", () => {
+  const baseline = ['EDUCATION', 'Example University B.S. Information Systems', 'EXPERIENCE', 'Campus Office', '• Built an Excel tracker for 5 teams.', '• Documented recurring requests.', 'SKILLS', 'SQL | Excel'];
+  const evidence = baseline.filter(text => !['EDUCATION', 'EXPERIENCE', 'SKILLS'].includes(text)).map((text, index) => ({ id: `E${index + 1}`, text, sourceIndex: baseline.indexOf(text) }));
+  const plan = buildRoleDraftPlan(record, 'TAILORED_RESUME', { evidence, resumeBaseline: baseline, resumeItems: evidence.slice(0, 4).map(item => ({section: 'EXPERIENCE', evidenceId: item.id})), resumeEdits: [], letterParagraphs: [] });
+  const files = unzipSync(createWordDraft(plan));
+  const oldStyles = strFromU8(files['word/styles.xml']).replace(/(<w:style w:type="paragraph" w:styleId="ResumeBody"[\s\S]*?)<w:spacing[^>]*\/>/, '$1<w:spacing w:after="140" w:line="290" w:lineRule="auto"/>');
+  files['word/styles.xml'] = strToU8(oldStyles);
+  const refreshed = unzipSync(refreshResumeWordLayout(zipSync(files)));
+  assert.equal(strFromU8(refreshed['word/document.xml']), strFromU8(files['word/document.xml']));
+  assert.match(strFromU8(refreshed['word/styles.xml']), /ResumeBody[\s\S]*?w:after="20" w:line="240"/);
+  const coverStyle = value => value.match(/<w:style w:type="paragraph" w:styleId="LetterNormal"[\s\S]*?<\/w:style>/)[0];
+  assert.equal(coverStyle(strFromU8(refreshed['word/styles.xml'])), coverStyle(oldStyles));
+  assert.equal(verifyWordDraft(refreshResumeWordLayout(zipSync(files)), 'Tailored Resume Draft'), true);
+});
 
 const record = {
   opportunityId: "synthetic-opportunity-1",
@@ -64,10 +79,13 @@ test("new resume and cover letter are substantive drafts with verified text, hig
   const resume = createWordDraft(buildRoleDraftPlan(record, "TAILORED_RESUME", drafted));
   const resumeXml = strFromU8(unzipSync(resume)["word/document.xml"]);
   assert.ok(resumeXml.includes("Improved an Excel tracker"));
-  assert.ok(resumeXml.includes("For a course project, built a Power BI dashboard."), "a verified wording revision should appear inside the full resume");
+  assert.ok(resumeXml.includes("What changed and why"));
+  assert.ok(resumeXml.includes("Original:"));
+  assert.ok(resumeXml.includes("Proposed: For a course project, built a Power BI dashboard."), "a verified wording revision should be explained alongside its original");
   assert.ok(resumeXml.includes("Kept an unrelated but valid original resume line."), "tailoring must retain unchanged original content");
   assert.ok(resumeXml.includes('w:highlight w:val="yellow"'));
-  assert.equal((resumeXml.match(/w:highlight w:val="yellow"/g) ?? []).length, 1, "only the actual wording edit should be highlighted");
+  assert.ok((resumeXml.match(/w:highlight w:val="yellow"/g) ?? []).length >= 1, "actual changes should be highlighted in inline runs");
+  assert.ok(resumeXml.includes('<w:rPr></w:rPr><w:t xml:space="preserve">a Power BI '), "unchanged wording must stay unhighlighted");
   assert.ok(resumeXml.includes('w:pStyle w:val="ResumeSection"'));
   assert.ok(resumeXml.includes("[Your name]"));
   assert.ok(!resumeXml.includes("Student review checklist"));

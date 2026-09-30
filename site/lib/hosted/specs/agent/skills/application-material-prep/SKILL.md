@@ -38,6 +38,8 @@ If essential information is missing, create a visible placeholder or return a pr
 
 ## Output contract
 
+For a tailored resume, return at most four anchored sentence edits with their exact student-evidence ID, revised wording, a specific posting responsibility or qualification, and a concise explanation. Wording may be clarified or rephrased without adding facts. Keep metrics, dates, named tools, credentials, responsibilities, and limiting qualifiers supported by the same source line. Reconstruct compound section headings and wrapped bullets as complete units. Preserve all other resume content in place. The document must highlight changed wording only and include a clearly separate before/after review log explaining its relationship to the selected job. If no safe edit is accepted, state that explicitly; do not imply that a reformatted copy was tailored.
+
 Return:
 
 - opportunity ID;

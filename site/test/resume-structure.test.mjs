@@ -13,12 +13,19 @@ test("run-together extracted resume text regains section and bullet boundaries w
   assert.equal(words(lines.join(" ")), words(source));
 });
 
-test("long extracted lines are broken into readable paragraphs, not truncated", () => {
+test("long paragraphs are retained for Word wrapping, not sliced mid-sentence", () => {
   const source = `PROJECTS ${"Mapped student registration steps and verified handoffs. ".repeat(18)}`;
   const lines = resumeLines(source);
-  assert.ok(lines.length > 3);
-  assert.ok(lines.every((line) => line.length <= 380));
+  assert.equal(lines.length, 2);
   assert.equal(lines.join(" ").replace(/\s+/g, " ").trim(), source.replace(/\s+/g, " ").trim());
+});
+
+test("compound headings and wrapped bullet sentences stay intact", () => {
+  const source = "EDUCATION\nExample University\nTECHNICAL & RESEARCH\nEXPERIENCE\nOffice Assistant | Campus Office May 2025 - August 2025\n● Built 5+ Excel trackers supporting 8 teams using\nvalidation rules and predefined templates.\nLEADERSHIP\n& CAMPUS INVOLVEMENT\nStudent Club\n● Organized workshops.\nSKILLS & CERTIFICATES\nExcel | SQL";
+  const lines = resumeLines(source);
+  assert.deepEqual(lines.filter(isResumeSectionHeading), ["EDUCATION", "TECHNICAL & RESEARCH EXPERIENCE", "LEADERSHIP & CAMPUS INVOLVEMENT", "SKILLS & CERTIFICATES"]);
+  assert.ok(lines.includes("• Built 5+ Excel trackers supporting 8 teams using validation rules and predefined templates."));
+  assert.ok(lines.includes("Office Assistant | Campus Office May 2025 - August 2025"));
 });
 
 test("headings fused to prior PDF text become separate resume sections", () => {

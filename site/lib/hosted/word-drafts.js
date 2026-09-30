@@ -1,6 +1,7 @@
 import { strToU8, unzipSync, zipSync } from "fflate";
 import { isResumeSectionHeading } from "./resume-structure.js";
 import { UNVERIFIED_LABEL } from "./material-draft-validation.js";
+import { changedTextRuns } from "./resume-edit-guards.js";
 
 export const WORD_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 export const DRAFT_NOTICE = "DRAFT TEMPLATE — STUDENT REVIEW REQUIRED";
@@ -12,7 +13,7 @@ export const MATERIAL_TYPES = Object.freeze({
   APPLICATION_QUESTION_WORKSHEET: "Application Question Worksheet",
 });
 
-/** @param {Record<string, any>} record @param {"TAILORED_RESUME"|"COVER_LETTER_DRAFT"} type @param {{resumeItems: {section:string,evidenceId:string}[],resumeEdits?:{evidenceId:string,revisedText:string}[],letterParagraphs:{text:string,evidenceIds:string[]}[],evidence:{id:string,text:string,sourceIndex?:number}[],resumeBaseline?:string[],preparationNotices?:Record<string,string>,verificationNotes?:Record<string,string[]>}} drafted */
+/** @param {Record<string, any>} record @param {"TAILORED_RESUME"|"COVER_LETTER_DRAFT"} type @param {{resumeItems: {section:string,evidenceId:string}[],resumeEdits?:{evidenceId:string,revisedText:string,requirement?:string,rationale?:string}[],letterParagraphs:{text:string,evidenceIds:string[]}[],evidence:{id:string,text:string,sourceIndex?:number}[],resumeBaseline?:string[],preparationNotices?:Record<string,string>,verificationNotes?:Record<string,string[]>}} drafted */
 export function buildRoleDraftPlan(record, type, drafted) {
   if (!["TAILORED_RESUME", "COVER_LETTER_DRAFT"].includes(type)) throw new TypeError("Choose a supported tailored draft type.");
   if (!record?.opportunityId || !record?.company || !record?.roleTitle) throw new TypeError("A tracked opportunity is required.");
@@ -25,13 +26,18 @@ export function buildRoleDraftPlan(record, type, drafted) {
   const editByIndex = new Map((drafted.resumeEdits ?? []).map((item) => {
     const source = drafted.evidence.find((entry) => entry.id === item.evidenceId);
     const index = Number.isInteger(source?.sourceIndex) ? source.sourceIndex : (drafted.resumeBaseline ?? []).indexOf(source?.text ?? "");
-    return [index, item.revisedText];
+    return [index, item];
   }).filter(([index]) => Number.isInteger(index) && index >= 0));
   const resumeContent = (drafted.resumeBaseline ?? []).map((line, index) => {
-    const revised = editByIndex.get(index);
+    const edit = editByIndex.get(index);
+    const revised = edit?.revisedText;
     const text = revised && line.startsWith("• ") && !revised.startsWith("• ") ? `• ${revised}` : revised ?? line;
-    return { text: plain(text, 1_800), highlight: Boolean(revised) };
+    return { text: plain(text, 1_800), original: plain(line, 1_800), highlight: Boolean(revised) };
   }).filter((item) => item.text);
+  const tailoringChanges = (drafted.resumeEdits ?? []).map(edit => ({
+    original: plain(evidence.get(edit.evidenceId), 1_800), proposed: plain(edit.revisedText, 1_800),
+    requirement: plain(edit.requirement, 800), rationale: plain(edit.rationale, 500),
+  }));
   const letterParagraphs = drafted.letterParagraphs.map((item) => plain(item.text, 1_000));
   const verificationNotes = (drafted.verificationNotes?.COVER_LETTER_DRAFT ?? []).map((item) => plain(item, 1_000));
   if (type === "TAILORED_RESUME" && resumeItems.length < 4) throw new TypeError("The tailored resume needs verified student content.");
@@ -40,7 +46,8 @@ export function buildRoleDraftPlan(record, type, drafted) {
     title: MATERIAL_TYPES[type], company: plain(record.company, 120), role: plain(record.roleTitle, 160),
     layout: type === "TAILORED_RESUME" ? "RESUME" : "COVER", resumeItems, resumeContent, letterParagraphs,
     sections: [], placeholders: ["Replace the name and contact placeholders with your own details.", "Review every proposed sentence and revise in your own voice before use.", ...verificationNotes],
-    preparationNotice: plain(drafted.preparationNotices?.[type], 300), verificationNotes,
+    preparationNotice: plain(drafted.preparationNotices?.[type], 600), verificationNotes,
+    tailoringChanges: type === "TAILORED_RESUME" ? tailoringChanges : [],
     evidenceMap: drafted.evidence.map((item) => ({ id: item.id, text: plain(item.text, 450) })),
     nextStep: "Download, verify every claim, add your contact details, and edit this draft before using it. Nothing was submitted or sent.",
   };
@@ -111,9 +118,44 @@ function paragraph(value, style = "Normal", list = false) {
   return `<w:p>${prop}<w:r><w:t xml:space="preserve">${xml(value)}</w:t></w:r></w:p>`;
 }
 
-function styledParagraph(value, style, highlight = false) {
+function styledParagraph(value, style, highlight = false, original = undefined) {
   const keepTogether = style === "ResumeSection" ? "<w:keepNext/><w:keepLines/>" : ["ResumeEntry", "ResumeBullet"].includes(style) ? "<w:keepLines/>" : "";
-  return `<w:p><w:pPr><w:pStyle w:val="${style}"/>${keepTogether}</w:pPr><w:r><w:rPr>${highlight ? '<w:highlight w:val="yellow"/>' : ""}</w:rPr><w:t xml:space="preserve">${xml(value)}</w:t></w:r></w:p>`;
+  const runs = highlight && original !== undefined ? changedTextRuns(original, value) : [{ text: value, highlight }];
+  const content = runs.map(run => `<w:r><w:rPr>${run.highlight ? '<w:highlight w:val="yellow"/>' : ""}</w:rPr><w:t xml:space="preserve">${xml(run.text)}${/\s$/.test(run.text) ? " " : ""}</w:t></w:r>`).join("");
+  return `<w:p><w:pPr><w:pStyle w:val="${style}"/>${keepTogether}</w:pPr>${content}</w:p>`;
+}
+
+// Compact resume-only typography. Cover letters and review notes keep their
+// independent styles; source wording and yellow diff runs are never changed.
+function resumeLayoutStyles(styles) {
+  const options = {
+    ResumeName: [16, '<w:spacing w:after="15" w:line="240" w:lineRule="auto"/><w:jc w:val="center"/>', true],
+    ResumeContact: [9, '<w:spacing w:after="60" w:line="240" w:lineRule="auto"/><w:jc w:val="center"/>', false],
+    ResumeSection: [10.5, '<w:pBdr><w:bottom w:val="single" w:sz="5" w:color="000000"/></w:pBdr><w:spacing w:before="100" w:after="35" w:line="240" w:lineRule="auto"/>', true],
+    ResumeEntry: [10, '<w:spacing w:before="30" w:after="20" w:line="240" w:lineRule="auto"/>', true],
+    ResumeBody: [10, '<w:spacing w:after="20" w:line="240" w:lineRule="auto"/>', false],
+    ResumeBullet: [10, '<w:spacing w:after="20" w:line="240" w:lineRule="auto"/><w:ind w:left="300" w:hanging="180"/>', false],
+    ResumeNotice: [7.5, '<w:spacing w:after="35" w:line="240" w:lineRule="auto"/>', false],
+  };
+  return styles.replace(/<w:style w:type="paragraph" w:styleId="(Resume\w+)"[\s\S]*?<\/w:style>/g, (whole, id) => {
+    const option = options[id];
+    if (!option) return whole;
+    const [size, paragraphProperties, bold] = option;
+    return `<w:style w:type="paragraph" w:styleId="${id}"><w:name w:val="${id}"/><w:basedOn w:val="Normal"/><w:pPr>${paragraphProperties}</w:pPr><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/>${bold ? '<w:b/>' : ''}${id === 'ResumeNotice' ? '<w:i/>' : ''}<w:color w:val="${id === 'ResumeNotice' ? '555555' : '000000'}"/><w:sz w:val="${size * 2}"/></w:rPr></w:style>`;
+  });
+}
+
+/** Refresh typography in verified saved resumes without changing their text,
+ * paragraphs, highlights, or stored original. No model request is involved. */
+export function refreshResumeWordLayout(bytes) {
+  const files = unzipSync(bytes);
+  const key = Object.keys(files).find(name => name.replaceAll('\\', '/') === 'word/styles.xml');
+  if (!key) throw new TypeError('The saved resume is missing its Word styles.');
+  const before = new TextDecoder().decode(files[key]);
+  const after = resumeLayoutStyles(before);
+  if (after === before) return bytes;
+  files[key] = strToU8(after);
+  return zipSync(files);
 }
 
 function tailoredBody(plan) {
@@ -122,7 +164,7 @@ function tailoredBody(plan) {
       styledParagraph("[Your name]", "ResumeName"),
       styledParagraph("[Your phone]  •  [Your email]  •  [Your professional link]", "ResumeContact"),
       styledParagraph(plan.title + " — " + DRAFT_NOTICE, "ResumeNotice"),
-      styledParagraph("The confirmed resume text is retained below in its original order. Only proposed wording changes are highlighted; verify every claim.", "ResumeNotice"),
+      styledParagraph(`${plan.tailoringChanges?.length ?? 0} proposed edits. Yellow = changed wording. Original content and order retained; see the separate change log.`, "ResumeNotice"),
     ];
     if (plan.resumeContent?.length) {
       for (const [index, item] of plan.resumeContent.entries()) {
@@ -130,10 +172,21 @@ function tailoredBody(plan) {
         const bullet = item.text.startsWith("• ");
         const nextIsBullet = plan.resumeContent[index + 1]?.text.startsWith("• ");
         const style = heading ? "ResumeSection" : bullet ? "ResumeBullet" : item.text.length < 180 && nextIsBullet ? "ResumeEntry" : "ResumeBody";
-        body.push(styledParagraph(item.text, style, item.highlight));
+        body.push(styledParagraph(item.text, style, item.highlight, item.original));
       }
       body.push(styledParagraph("Student review required — confirm highlighted emphasis, fill contact details, and edit before use.", "ResumeNotice"));
       if (plan.preparationNotice) body.push(styledParagraph(plan.preparationNotice, "ResumeNotice"));
+      body.push(styledParagraph("What changed and why", "LetterReviewHeading"));
+      body.push(styledParagraph(`${plan.company} — ${plan.role}`, "LetterReviewNote"));
+      body.push(styledParagraph("STUDENT REVIEW NOTES — NOT PART OF THE RESUME. The original upload was not changed. PDF formatting is reconstructed in editable Word and may not be identical. Compare these proposed edits with the original and remove these notes before applying.", "LetterReviewNote"));
+      if (!plan.tailoringChanges?.length) body.push(styledParagraph("No safe tailoring edits were accepted. The resume is a preserved copy, not a tailored result.", "LetterReviewNote"));
+      for (const [index, change] of (plan.tailoringChanges ?? []).entries()) {
+        body.push(styledParagraph(`Edit ${index + 1}`, "Heading1"));
+        body.push(styledParagraph(`Original: ${change.original}`, "LetterReviewNote"));
+        body.push(styledParagraph(`Proposed: ${change.proposed}`, "LetterReviewNote"));
+        body.push(styledParagraph(`Posting requirement: ${change.requirement || "Review the selected posting."}`, "LetterReviewNote"));
+        body.push(styledParagraph(`Why this edit: ${change.rationale || "Rephrases existing verified wording; check its relevance before use."}`, "LetterReviewNote"));
+      }
       return body;
     }
     const labels = { EDUCATION: "EDUCATION", EXPERIENCE: "WORK EXPERIENCE", PROJECTS: "PROJECTS & LEADERSHIP", SKILLS: "SKILLS & HONORS" };
@@ -189,11 +242,12 @@ export function createWordDraft(plan, createdAt = new Date().toISOString()) {
     for (const item of ["Verify every qualification and outcome against your own records.", "Revise the wording in your own voice and check the employer's current instructions.", "Nothing has been submitted or sent."]) body.push(paragraph(item, "Normal", true));
   }
   }
-  const document = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body.join("")}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1350" w:right="1350" w:bottom="1350" w:left="1350"/></w:sectPr></w:body></w:document>`;
+  const margin = plan.layout === "RESUME" ? 936 : 1350;
+  const document = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body.join("")}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="${margin}" w:right="${margin}" w:bottom="${margin}" w:left="${margin}"/></w:sectPr></w:body></w:document>`;
   const style = (id, opts = "") => `<w:style w:type="paragraph" w:styleId="${id}"${id === "Normal" ? ' w:default="1"' : ""}><w:name w:val="${id}"/>${id === "Normal" ? "" : '<w:basedOn w:val="Normal"/>'}${opts}</w:style>`;
   const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/><w:sz w:val="22"/><w:color w:val="172F35"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="140" w:line="290" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>${style("Normal")}${style("Title",'<w:rPr><w:b/><w:sz w:val="36"/></w:rPr>')}${style("Subtitle")}${style("Heading1",'<w:rPr><w:b/><w:sz w:val="27"/></w:rPr>')}${style("Notice",'<w:rPr><w:b/></w:rPr>')}${style("Placeholder",'<w:rPr><w:i/></w:rPr>')}${style("ResumeName",'<w:pPr><w:jc w:val="center"/><w:spacing w:after="35"/></w:pPr><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:b/><w:sz w:val="28"/><w:color w:val="000000"/></w:rPr>')}${style("ResumeContact",'<w:pPr><w:jc w:val="center"/><w:spacing w:after="130"/></w:pPr><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="19"/><w:color w:val="000000"/></w:rPr>')}${style("ResumeSection",'<w:pPr><w:spacing w:before="170" w:after="55"/><w:pBdr><w:bottom w:val="single" w:sz="5" w:color="000000"/></w:pBdr></w:pPr><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:b/><w:sz w:val="21"/><w:color w:val="000000"/></w:rPr>')}${style("ResumeEntry",'<w:pPr><w:spacing w:before="65" w:after="35"/></w:pPr><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:b/><w:sz w:val="19"/><w:color w:val="000000"/></w:rPr>')}${style("ResumeBody",'<w:pPr><w:spacing w:after="65"/></w:pPr><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="19"/><w:color w:val="000000"/></w:rPr>')}${style("ResumeBullet",'<w:pPr><w:spacing w:after="45"/><w:ind w:left="300" w:hanging="180"/></w:pPr><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="19"/><w:color w:val="000000"/></w:rPr>')}${style("ResumeNotice",'<w:pPr><w:spacing w:after="70"/></w:pPr><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:i/><w:sz w:val="16"/><w:color w:val="555555"/></w:rPr>')}${style("LetterBrand",'<w:pPr><w:spacing w:after="100"/><w:pBdr><w:bottom w:val="single" w:sz="10" w:color="BD8B13"/></w:pBdr></w:pPr><w:rPr><w:b/><w:sz w:val="18"/><w:color w:val="154734"/></w:rPr>')}${style("LetterName",'<w:pPr><w:spacing w:after="40"/></w:pPr><w:rPr><w:b/><w:sz w:val="28"/><w:color w:val="154734"/></w:rPr>')}${style("LetterContact",'<w:pPr><w:spacing w:after="180"/></w:pPr><w:rPr><w:sz w:val="19"/><w:color w:val="48545A"/></w:rPr>')}${style("LetterSubject",'<w:pPr><w:spacing w:before="100" w:after="140"/></w:pPr><w:rPr><w:b/><w:sz w:val="22"/><w:color w:val="154734"/></w:rPr>')}${style("LetterNormal",'<w:pPr><w:spacing w:after="165" w:line="310" w:lineRule="auto"/></w:pPr><w:rPr><w:sz w:val="21"/><w:color w:val="000000"/></w:rPr>')}${style("LetterNotice",'<w:pPr><w:spacing w:before="100" w:after="110"/></w:pPr><w:rPr><w:i/><w:sz w:val="17"/><w:color w:val="6B5A27"/></w:rPr>')}${style("LetterUnverified",'<w:pPr><w:spacing w:before="120" w:after="165" w:line="310" w:lineRule="auto"/><w:shd w:fill="FFF0C2"/></w:pPr><w:rPr><w:b/><w:sz w:val="21"/><w:color w:val="6F3D00"/></w:rPr>')}${style("LetterReviewHeading",'<w:pPr><w:pageBreakBefore/><w:spacing w:after="130"/></w:pPr><w:rPr><w:b/><w:sz w:val="22"/><w:color w:val="000000"/></w:rPr>')}${style("LetterReviewNote",'<w:pPr><w:spacing w:after="130" w:line="290" w:lineRule="auto"/></w:pPr><w:rPr><w:sz w:val="20"/><w:color w:val="000000"/></w:rPr>')}</w:styles>`;
   // Word enforces OOXML child order more strictly than ZIP/XML readers do.
-  const wordCompatibleStyles = styles
+  const wordCompatibleStyles = resumeLayoutStyles(styles)
     .replace(/(<w:sz\b[^>]*\/>)(<w:color\b[^>]*\/>)/g, "$2$1")
     .replace(/(<w:jc\b[^>]*\/>)(<w:spacing\b[^>]*\/>)/g, "$2$1")
     .replace(/(<w:spacing\b[^>]*\/>)(<w:pBdr>[\s\S]*?<\/w:pBdr>)/g, "$2$1")
