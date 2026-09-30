@@ -33,7 +33,7 @@ for (const [index, owner] of owners.entries()) {
   };
   seed(`INSERT INTO opportunities (id,owner_id,canonical_url,employer_posting_id,normalized_company,normalized_role,normalized_location,normalized_period,record_json,record_version,created_at,updated_at) VALUES (${quote(id)},${quote(owner)},${quote(record.postingUrl)},'',${quote(company.toLowerCase())},'information systems intern','california','summer 2027',${quote(JSON.stringify(record))},1,${quote(now)},${quote(now)})`);
 }
-for (let index = 0; index < 3; index++) seed(`INSERT INTO usage_admissions (id,owner_id,kind,usage_group,started_at) VALUES (${quote(crypto.randomUUID())},${quote(owners[0])},'COLLECTION','COLLECTION',${quote(now)})`);
+for (let index = 0; index < 5; index++) seed(`INSERT INTO usage_admissions (id,owner_id,kind,usage_group,started_at) VALUES (${quote(crypto.randomUUID())},${quote(owners[0])},'COLLECTION','COLLECTION',${quote(now)})`);
 
 function headers(owner) { return owner ? { "oai-authenticated-user-id": owner, "oai-authenticated-user-email": `${owner}@example.test`, Origin: url.origin } : { Origin: url.origin }; }
 async function get(path, owner) { return fetch(`${base}${path}`, { headers: headers(owner) }); }

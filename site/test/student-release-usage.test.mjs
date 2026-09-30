@@ -14,13 +14,15 @@ function admit(db, ownerId, kind, now) {
   return db.prepare(INSERT_USAGE_ADMISSION_SQL).run(crypto.randomUUID(), ownerId, kind, policy.group, now.toISOString(), ownerId, kind, since, policy.perStudent, policy.group, since, policy.siteWide).changes === 1;
 }
 
-test("one signed-in student's Collect starts are limited to three per rolling 24 hours", () => {
+test("one signed-in student's Collect starts are limited to five per rolling 24 hours", () => {
   const db = database();
   const now = new Date("2026-09-29T18:00:00.000Z");
   assert.equal(admit(db, "synthetic-student-a", "COLLECTION", now), true);
   assert.equal(admit(db, "synthetic-student-a", "COLLECTION", new Date(now.getTime() + 60_000)), true);
   assert.equal(admit(db, "synthetic-student-a", "COLLECTION", new Date(now.getTime() + 120_000)), true);
-  assert.equal(admit(db, "synthetic-student-a", "COLLECTION", new Date(now.getTime() + 180_000)), false);
+  assert.equal(admit(db, "synthetic-student-a", "COLLECTION", new Date(now.getTime() + 180_000)), true);
+  assert.equal(admit(db, "synthetic-student-a", "COLLECTION", new Date(now.getTime() + 240_000)), true);
+  assert.equal(admit(db, "synthetic-student-a", "COLLECTION", new Date(now.getTime() + 300_000)), false);
   assert.equal(admit(db, "synthetic-student-b", "COLLECTION", now), true);
   assert.equal(admit(db, "synthetic-student-a", "COLLECTION", new Date(now.getTime() + 24 * 60 * 60 * 1000 + 1)), true);
   assert.equal(retryAfter(now.toISOString()), "2026-09-30T18:00:00.000Z");
@@ -30,16 +32,18 @@ test("one signed-in student's Collect starts are limited to three per rolling 24
 test("remaining Collect allowance is a server-count snapshot with a clear exhausted state", () => {
   const oldest = "2026-09-29T18:00:00.000Z";
   const empty = collectAllowanceSnapshot({ student: { count: 0, oldest: null }, site: { count: 0, oldest: null } });
-  assert.deepEqual([empty.allowed, empty.remainingStudent, empty.remainingSite, empty.perStudentLimit], [true, 3, 60, 3]);
+  assert.deepEqual([empty.allowed, empty.remainingStudent, empty.remainingSite, empty.perStudentLimit], [true, 5, 60, 5]);
   const partial = collectAllowanceSnapshot({ student: { count: 1, oldest }, site: { count: 1, oldest } });
-  assert.deepEqual([partial.allowed, partial.remainingStudent, partial.remainingSite], [true, 2, 59]);
-  const personalLimit = collectAllowanceSnapshot({ student: { count: 3, oldest }, site: { count: 3, oldest } });
+  assert.deepEqual([partial.allowed, partial.remainingStudent, partial.remainingSite], [true, 4, 59]);
+  const priorLimit = collectAllowanceSnapshot({ student: { count: 3, oldest }, site: { count: 3, oldest } });
+  assert.deepEqual([priorLimit.allowed, priorLimit.remainingStudent], [true, 2]);
+  const personalLimit = collectAllowanceSnapshot({ student: { count: 5, oldest }, site: { count: 5, oldest } });
   assert.equal(personalLimit.allowed, false);
   assert.equal(personalLimit.remainingStudent, 0);
   assert.equal(personalLimit.retryAt, "2026-09-30T18:00:00.000Z");
   const siteLimit = collectAllowanceSnapshot({ student: { count: 1, oldest }, site: { count: 60, oldest } });
   assert.equal(siteLimit.allowed, false);
-  assert.equal(siteLimit.remainingStudent, 2);
+  assert.equal(siteLimit.remainingStudent, 4);
   assert.equal(siteLimit.remainingSite, 0);
 });
 
