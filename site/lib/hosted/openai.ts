@@ -5,8 +5,8 @@ import { canonicalUrl } from "./store";
 import { TARGETED_UPDATE_JSON_SCHEMA, validateTargetedUpdate } from "./targeted-update-contract.js";
 import { INTERVIEW_PRACTICE_SCHEMA, validateInterviewPractice, verifyReportedQuestions } from "./interview-practice-contract.js";
 import { PRIVATE_ASSESSMENT_JSON_SCHEMA, mergePrivateAssessment } from "./private-assessment-contract.js";
+import { OPENAI_MODEL, OPENAI_REASONING_EFFORT } from "./openai-model";
 
-const MODEL = "gpt-5.6-luna";
 const MAX_SEARCHES = 10;
 // Approved discovery sites plus employer-authorized application systems linked
 // from those sources. These extra domains are for verification, not new boards.
@@ -114,7 +114,7 @@ export async function retrieveBackground(responseId: string): Promise<Background
 }
 
 export async function startBackgroundDiscovery(prompt: string): Promise<string> {
-  return startBackground({ model: MODEL, input: prompt, reasoning: { effort: "medium" },
+  return startBackground({ model: OPENAI_MODEL, input: prompt, reasoning: { effort: OPENAI_REASONING_EFFORT },
     text: { format: { type: "json_schema", name: "internship_workflow_result", strict: true, schema: WORKFLOW_RESULT_JSON_SCHEMA } },
     tools: [{ type: "web_search", search_context_size: "low", filters: { allowed_domains: APPROVED_DOMAINS } }],
     tool_choice: "auto", max_tool_calls: MAX_SEARCHES, include: ["web_search_call.action.sources"] });
@@ -137,7 +137,7 @@ export function readBackgroundDiscovery(payload: BackgroundResponse): { result: 
 }
 
 export async function startBackgroundAssessment(prompt: string): Promise<string> {
-  return startBackground({ model: MODEL, input: prompt, reasoning: { effort: "medium" },
+  return startBackground({ model: OPENAI_MODEL, input: prompt, reasoning: { effort: OPENAI_REASONING_EFFORT },
     text: { format: { type: "json_schema", name: "internship_private_assessment", strict: true, schema: PRIVATE_ASSESSMENT_JSON_SCHEMA } } });
 }
 
@@ -177,7 +177,7 @@ export async function runInterviewResearch(posting: { company: string; roleTitle
     try {
       response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: MODEL, input: prompt, reasoning: { effort: "medium" },
+      body: JSON.stringify({ model: OPENAI_MODEL, input: prompt, reasoning: { effort: OPENAI_REASONING_EFFORT },
         text: { format: { type: "json_schema", name: "interview_practice_result", strict: true, schema: INTERVIEW_PRACTICE_SCHEMA } },
         tools: [{ type: "web_search", search_context_size: "low" }], tool_choice: "required", max_tool_calls: 1,
         include: ["web_search_call.action.sources"],
@@ -240,9 +240,9 @@ export async function runDiscovery(prompt: string): Promise<{ result: ValidatedR
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: MODEL,
+        model: OPENAI_MODEL,
         input: prompt,
-        reasoning: { effort: "medium" },
+        reasoning: { effort: OPENAI_REASONING_EFFORT },
         text: { format: { type: "json_schema", name: "internship_workflow_result", strict: true, schema: WORKFLOW_RESULT_JSON_SCHEMA } },
         tools: [{ type: "web_search", search_context_size: "low", filters: { allowed_domains: APPROVED_DOMAINS } }],
         tool_choice: "auto",
@@ -297,9 +297,9 @@ export async function runPrivateAssessment(prompt: string, searchResult: Validat
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: MODEL,
+        model: OPENAI_MODEL,
         input: prompt,
-        reasoning: { effort: "medium" },
+        reasoning: { effort: OPENAI_REASONING_EFFORT },
         text: { format: { type: "json_schema", name: "internship_private_assessment", strict: true, schema: PRIVATE_ASSESSMENT_JSON_SCHEMA } },
       }),
       signal: AbortSignal.timeout(180_000),
@@ -343,7 +343,7 @@ export async function runTargetedAssessment(prompt: string, expected: { opportun
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: MODEL, input: prompt, reasoning: { effort: "medium" },
+        model: OPENAI_MODEL, input: prompt, reasoning: { effort: OPENAI_REASONING_EFFORT },
         text: { format: { type: "json_schema", name: "internship_targeted_update", strict: true, schema: TARGETED_UPDATE_JSON_SCHEMA } },
       }),
       signal: AbortSignal.timeout(180_000),

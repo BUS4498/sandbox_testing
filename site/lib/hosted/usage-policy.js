@@ -18,3 +18,13 @@ export function retryAfter(oldest) {
   const time = Date.parse(oldest);
   return Number.isFinite(time) ? new Date(time + USAGE_WINDOW_MS).toISOString() : null;
 }
+
+export function collectAllowanceSnapshot(counts) {
+  const { perStudent, siteWide } = RUN_USAGE_LIMITS.COLLECTION;
+  const remainingStudent = Math.max(0, perStudent - counts.student.count);
+  const remainingSite = Math.max(0, siteWide - counts.site.count);
+  const base = { remainingStudent, remainingSite, perStudentLimit: perStudent };
+  if (remainingStudent === 0) return { ...base, allowed: false, retryAt: retryAfter(counts.student.oldest), reason: `You have used all ${perStudent} Collect starts in the past 24 hours.` };
+  if (remainingSite === 0) return { ...base, allowed: false, retryAt: retryAfter(counts.site.oldest), reason: `The Site's ${siteWide} Collect-run slots are full for this 24-hour window.` };
+  return { ...base, allowed: true, retryAt: null, reason: "" };
+}

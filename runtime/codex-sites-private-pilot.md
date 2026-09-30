@@ -40,7 +40,7 @@ Hosted **Reset Collection** is an owner-initiated controller operation, never a 
 
 ## OpenAI configuration and cost
 
-The owner may use the same authorized OpenAI API key as the local app, but must configure it separately as a **Sites server-side secret** named `OPENAI_API_KEY`. Never read or bundle the protected local key file for deployment. Keep `OPENAI_MODEL=gpt-5.6-luna` and `OPENAI_REASONING_EFFORT=medium` unless the user approves a change and the hosted connection confirms access. Do not expose any secret in browser assets, responses, logs, prompts, or Git.
+The owner may use the same authorized OpenAI API key as the local app, but must configure it separately as a **Sites server-side secret** named `OPENAI_API_KEY`. Never read or bundle the protected local key file for deployment. The user approved hosted model `gpt-6.1-sol` with `medium` reasoning; the Site keeps this model choice in one server-side configuration module, and the hosted connection must confirm access. Do not expose any secret in browser assets, responses, logs, prompts, or Git.
 
 The hosted owner bears API usage charges. Preserve the bounded discovery limits and add a visible run lock, sanitized provider failures, and a safe cost/spend-limit recommendation. A configured secret is not proof of connectivity; verify the model and web-search path through bounded tests before labeling them ready.
 

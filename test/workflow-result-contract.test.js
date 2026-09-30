@@ -78,6 +78,16 @@ test("accepts a bounded structured business result", () => {
   assert.equal(result.runSummary.candidatesDiscovered, 4);
 });
 
+test("preserves a sourced internship-period note beyond 150 characters", () => {
+  const description = "The employer lists a summer cohort with a flexible start date, possible extension into the fall, and final dates to be confirmed by the team after interviews.";
+  assert.ok(description.length > 150);
+  const value = resultObject();
+  value.selectedOpportunities[0].opportunity.internshipPeriod = description;
+  assert.equal(parseAndValidateWorkflowResult(JSON.stringify(value), { observedSearches: 1 }).selectedOpportunities[0].opportunity.internshipPeriod, description);
+  value.selectedOpportunities[0].opportunity.internshipPeriod = "x".repeat(1001);
+  assert.throws(() => parseAndValidateWorkflowResult(JSON.stringify(value), { observedSearches: 1 }), /opportunity\.internshipPeriod exceeded 1000 characters/);
+});
+
 test("allows a valid run to select fewer than five or no opportunities", () => {
   const result = parseAndValidateWorkflowResult(
     JSON.stringify(resultObject({

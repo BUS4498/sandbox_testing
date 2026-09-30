@@ -502,6 +502,11 @@ body { background: radial-gradient(circle at 93% 3%,rgba(121,212,232,.25),transp
 .provider-check-button { min-height: 30px !important; padding: 4px 8px !important; border-radius: 7px !important; color: #175c71; font-size: 11px !important; font-weight: 800; white-space: nowrap; }
 .provider-check-button:hover { background: #e6f6f9; }
 .collect-button { border-color: #18364a; background: #123e59; box-shadow: 3px 3px 0 #37bbca; color: white; }.collect-button:hover { background: #0d637c; }.collect-button:disabled { background: #5b8e99; }
+.collect-allowance { display: flex; align-items: center; gap: 9px; min-height: 46px; padding: 5px 12px 5px 9px; border: 1px solid #8bc9ca; border-radius: 10px; background: #e7f7f5; white-space: nowrap; }
+.collect-allowance strong { color: #086e75; font-size: 27px; line-height: 1; font-variant-numeric: tabular-nums; }
+.collect-allowance span { display: grid; color: #15485a; line-height: 1.2; }
+.collect-allowance b { font-size: 13px; }.collect-allowance small { margin-top: 3px; color: #52717c; font-size: 11px; }
+.collect-guidance { margin: 2px 0 8px; color: #5b707b; font-size: 12px; line-height: 1.45; }
 .agent-panel { border-color: #c9e1eb; background: linear-gradient(140deg,#dff5f6,#e9edff 78%,#f5f9fe); }
 .agent-card { border-color: #d9e9ee; background: rgba(255,255,255,.92); }.agent-card strong { color: #143c53; }
 @media (min-width: 851px) { .workbench .agent-panel { align-self: stretch; justify-content: flex-start; padding-top: clamp(48px,5vw,72px); } }

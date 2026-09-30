@@ -370,7 +370,7 @@ function validateOpportunity(value, index) {
     roleTitle: requiredString(value.roleTitle, `selectedOpportunities[${index}].opportunity.roleTitle`, 300),
     location: optionalString(value.location, 300),
     workArrangement: optionalString(value.workArrangement, 100),
-    internshipPeriod: optionalString(value.internshipPeriod, 150),
+    internshipPeriod: optionalString(value.internshipPeriod, 1_000, `selectedOpportunities[${index}].opportunity.internshipPeriod`),
     deadline: optionalString(value.deadline, 80),
     source: requiredString(value.source, `selectedOpportunities[${index}].opportunity.source`, 300),
     postingUrl,
@@ -494,15 +494,15 @@ function enumValue(value, allowed, field) {
 }
 
 function requiredString(value, field, maximumLength) {
-  const text = optionalString(value, maximumLength);
+  const text = optionalString(value, maximumLength, field);
   if (!text) throw new WorkflowResultValidationError(`${field} is required.`);
   return text;
 }
 
-function optionalString(value, maximumLength) {
+function optionalString(value, maximumLength, field = "A text field") {
   if (value === null || value === undefined) return "";
   const text = String(value).trim();
-  if (text.length > maximumLength) throw new WorkflowResultValidationError(`A text field exceeded ${maximumLength} characters.`);
+  if (text.length > maximumLength) throw new WorkflowResultValidationError(`${field} exceeded ${maximumLength} characters.`);
   return text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "");
 }
 

@@ -44,7 +44,7 @@ export default async function UiPreview({ searchParams }: { searchParams: Promis
     keyConfigured: false, jevConfigured: false,
     setup: { mode: state === "setup" ? "UNSELECTED" : "SYNTHETIC_DEMONSTRATION", ready: state !== "setup", profileText: "", preferences: null, confirmedAt: null, updatedAt: TODAY },
     run: sampleRun(state), opportunities: state === "empty" || state === "setup" ? [] : sampleRecords,
-    studentResponses: [], materials: [], interviewPractice: [], capabilities: { wordDrafts: true, interviewPractice: true, reset: false },
+    studentResponses: [], materials: [], interviewPractice: [], collectAllowance: { allowed: true, reason: "", retryAt: null, remainingStudent: 2, remainingSite: 59, perStudentLimit: 3 }, capabilities: { wordDrafts: true, interviewPractice: true, reset: false },
   };
   return <><nav className="preview-nav" aria-label="Visual preview states"><a href="/ui-preview">Ready</a><a href="/ui-preview?state=setup">Setup</a><a href="/ui-preview?state=running">Running</a><a href="/ui-preview?state=failure">Failure</a><a href="/ui-preview?state=empty">Empty</a></nav><DeskClient previewStatus={status} /></>;
 }

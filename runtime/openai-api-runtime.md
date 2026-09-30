@@ -91,7 +91,7 @@ The model cannot approve actions. The controller and dashboard must preserve all
 - Load `OPENAI_API_KEY` only in the local server process from the operating-system environment or an ignored local `.env` file. An ignored `OPENAI_API_KEY_FILE` may be used when local classroom setup requires a protected secret file.
 - Never expose the key in browser JavaScript, API responses, logs, spreadsheets, memory, prompts, source control, command arguments, or error details.
 - Select the callable API model through `OPENAI_MODEL`; do not confuse a Codex or ChatGPT product label with an API model ID.
-- Select the supported reasoning level through `OPENAI_REASONING_EFFORT`. The approved initial configuration is `gpt-5.6-luna` with `medium` reasoning.
+- Select the supported reasoning level through `OPENAI_REASONING_EFFORT`. The current approved configuration is `gpt-6.1-sol` with `medium` reasoning.
 - Report only sanitized states such as `READY`, `KEY_MISSING`, `MODEL_MISSING`, `UNAVAILABLE`, or `ERROR`.
 - Distinguish local configuration from verified provider access. Sanitized connection results should identify invalid authentication, unavailable or unauthorized model access, temporary provider failure, rate or usage limits, local network failure, and verified readiness without returning a key fragment or raw provider body.
 - Send the minimum non-identifying student context required for the active task.

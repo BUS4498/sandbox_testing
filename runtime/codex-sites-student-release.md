@@ -29,6 +29,8 @@ The owner supplies OpenAI and TypeSafe/Jev keys as Sites server-side secrets. Ne
 
 Apply limits before the first external model request. A model call already started counts even if its result fails, times out, or is interrupted. Preflight failures before a model call should not consume a slot when this can be verified. Show a plain-language limit message and when the student may try again. A limit must be enforced by the server and durable storage, not by a disabled browser button alone. The owner should also configure provider-side spend alerts or hard limits; application quotas are a secondary safeguard, not a monetary guarantee.
 
+Display each signed-in student's remaining Collect starts prominently next to Collect Opportunities, using a fresh server-side rolling-window count. Refresh it after a start and on page load. The displayed count is a snapshot; admission still requires an atomic server-side check.
+
 Maintain the existing per-run limits of ten internship web searches, fifteen candidates, and five selected updates. Ask students to allow up to about ten minutes for search and matching; present that as an approximate expectation beside Collect while showing actual progress and elapsed time. Do not promise a ten-minute deadline.
 
 ## Release verification

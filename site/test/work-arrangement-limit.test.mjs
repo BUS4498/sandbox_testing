@@ -70,3 +70,18 @@ test("reports the field when a work-arrangement description exceeds the revised 
     /opportunity\.workArrangement exceeded 300 characters/,
   );
 });
+
+test("preserves a source-backed internship period longer than 150 characters", () => {
+  const description = "The employer describes a summer cohort with a flexible start date, possible extension into the fall, and final dates to be confirmed with the team after interviews.";
+  assert.ok(description.length > 150);
+  const input = resultWithWorkArrangement("Hybrid");
+  input.selectedOpportunities[0].opportunity.internshipPeriod = description;
+  const result = parseAndValidateWorkflowResult(JSON.stringify(input), { observedSearches: 1 });
+  assert.equal(result.selectedOpportunities[0].opportunity.internshipPeriod, description);
+});
+
+test("names an overlong internship period instead of rejecting it as an anonymous text field", () => {
+  const input = resultWithWorkArrangement("Hybrid");
+  input.selectedOpportunities[0].opportunity.internshipPeriod = "x".repeat(1001);
+  assert.throws(() => parseAndValidateWorkflowResult(JSON.stringify(input), { observedSearches: 1 }), /opportunity\.internshipPeriod exceeded 1000 characters/);
+});

@@ -2,7 +2,7 @@ import { env } from "cloudflare:workers";
 import { normalizeRealSetup } from "./profile-rules.js";
 import { normalizeStudentResponse } from "./student-response-rules.js";
 import { deleteOriginalResume } from "./resume-storage";
-import { INSERT_USAGE_ADMISSION_SQL, RUN_USAGE_LIMITS, retryAfter, usageWindowStart } from "./usage-policy.js";
+import { collectAllowanceSnapshot, INSERT_USAGE_ADMISSION_SQL, RUN_USAGE_LIMITS, retryAfter, usageWindowStart } from "./usage-policy.js";
 
 export type FitScore = {
   status: "PENDING" | "SCORED" | "UNAVAILABLE" | "STALE" | "FAILED";
@@ -111,11 +111,9 @@ async function usageCounts(ownerId: string, kind: RunRecord["kind"], now: Date):
   return { student: student ?? { count: 0, oldest: null }, site: site ?? { count: 0, oldest: null } };
 }
 
-export async function collectionAllowance(ownerId: string): Promise<{ allowed: boolean; retryAt: string | null; reason: string }> {
+export async function collectionAllowance(ownerId: string): Promise<{ allowed: boolean; retryAt: string | null; reason: string; remainingStudent: number; remainingSite: number; perStudentLimit: number }> {
   const counts = await usageCounts(ownerId, "COLLECTION", new Date());
-  if (counts.student.count >= RUN_USAGE_LIMITS.COLLECTION.perStudent) return { allowed: false, retryAt: retryAfter(counts.student.oldest), reason: `You have used all ${RUN_USAGE_LIMITS.COLLECTION.perStudent} Collect starts in the past 24 hours.` };
-  if (counts.site.count >= RUN_USAGE_LIMITS.COLLECTION.siteWide) return { allowed: false, retryAt: retryAfter(counts.site.oldest), reason: `The Site's ${RUN_USAGE_LIMITS.COLLECTION.siteWide} Collect-run slots are full for this 24-hour window.` };
-  return { allowed: true, retryAt: null, reason: "" };
+  return collectAllowanceSnapshot(counts);
 }
 
 export function canonicalUrl(value: string): string {

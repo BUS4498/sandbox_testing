@@ -4,6 +4,7 @@ import materialSkillSpec from "./specs/agent/skills/application-material-prep/SK
 import { prepareLetterForReview } from "./material-draft-validation.js";
 import { safeResumeEdits } from "./resume-edit-guards.js";
 import { isResumeSectionHeading, resumeLines } from "./resume-structure.js";
+import { OPENAI_MODEL, OPENAI_REASONING_EFFORT } from "./openai-model";
 import type { OpportunityRecord, StudentSetup } from "./store";
 
 type Evidence = { id: string; text: string; sourceIndex: number };
@@ -82,7 +83,7 @@ For resumeItems, choose 4–12 distinct evidence IDs whose ORIGINAL lines should
     response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: "gpt-5.6-luna", input, reasoning: { effort: "medium" },
+      body: JSON.stringify({ model: OPENAI_MODEL, input, reasoning: { effort: OPENAI_REASONING_EFFORT },
         text: { format: { type: "json_schema", name: "application_material_drafts", strict: true, schema: SCHEMA } } }),
       signal: AbortSignal.timeout(120_000),
     });

@@ -234,7 +234,7 @@ Use this compact contract:
 
 export const WORKFLOW_RESULT_INSTRUCTION = `${RESULT_CONTRACT_INSTRUCTION}
 
-Discovery-mode rules: select three to five genuinely new or materially changed opportunities when at least three valid, sufficiently relevant candidates qualify. If fewer than three are selected, selectionShortfallReason is required and must identify the qualification, duplicate, hard-constraint, or external-search limitation. Never pad the result with weak opportunities. Keep workArrangement to a concise factual description of at most 300 characters; put longer practical constraints in fitEvidence or nextAction. Preserve unknown values, include structured evidence rather than hidden reasoning, and never include credentials or full webpage content.`;
+Discovery-mode rules: select three to five genuinely new or materially changed opportunities when at least three valid, sufficiently relevant candidates qualify. If fewer than three are selected, selectionShortfallReason is required and must identify the qualification, duplicate, hard-constraint, or external-search limitation. Never pad the result with weak opportunities. Keep workArrangement to a concise factual description of at most 300 characters; put longer practical constraints in fitEvidence or nextAction. Summarize internshipPeriod concisely (ideally within 300 characters), but preserve material timing uncertainty. Preserve unknown values, include structured evidence rather than hidden reasoning, and never include credentials or full webpage content.`;
 
 export const UPDATE_WORKFLOW_RESULT_INSTRUCTION = `${RESULT_CONTRACT_INSTRUCTION}
 
@@ -377,7 +377,7 @@ function validateOpportunity(value, index) {
     roleTitle: requiredString(value.roleTitle, `selectedOpportunities[${index}].opportunity.roleTitle`, 300),
     location: optionalString(value.location, 300),
     workArrangement: optionalString(value.workArrangement, 300, `selectedOpportunities[${index}].opportunity.workArrangement`),
-    internshipPeriod: optionalString(value.internshipPeriod, 150),
+    internshipPeriod: optionalString(value.internshipPeriod, 1_000, `selectedOpportunities[${index}].opportunity.internshipPeriod`),
     deadline: optionalString(value.deadline, 80),
     source: requiredString(value.source, `selectedOpportunities[${index}].opportunity.source`, 300),
     postingUrl,
