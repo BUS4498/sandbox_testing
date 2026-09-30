@@ -2,11 +2,11 @@
 
 ## Tool name and purpose
 
-**Jev Fit Scoring** provides a required, preliminary 0–100 indicator for each evidence-ready saved opportunity in the owner-only hosted pilot. It supplements, but never replaces, the evidence-backed job-fit assessment, required/preferred qualification distinctions, student preferences, and human judgment. It is not a hiring probability, eligibility determination, or application decision.
+**Jev Fit Scoring** provides a required, preliminary 0–100 indicator for each evidence-ready saved opportunity in the hosted student Site. It supplements, but never replaces, the evidence-backed job-fit assessment, required/preferred qualification distinctions, student preferences, and human judgment. It is not a hiring probability, eligibility determination, or application decision.
 
 ## When the agent may use it
 
-After **REASON** has produced a structured fit assessment for a verified, selected opportunity, the owner-only hosted pilot must request a score from TypeSafe AI System One/Jev when the evidence supports scoring. A targeted **Update Opportunity** uses OpenAI for qualitative reassessment of an approved student answer; Jev then refreshes the preliminary score when the saved structured evidence changes. A backfill may score at most five existing eligible records. Unchanged evidence alone must not cause another score-only paid call.
+After **REASON** has produced a structured fit assessment for a verified, selected opportunity, the hosted Site must request a score from TypeSafe AI System One/Jev when the evidence supports scoring. A targeted **Update Opportunity** uses OpenAI for qualitative reassessment of an approved student answer; Jev then refreshes the preliminary score when the saved structured evidence changes. A backfill may score at most five existing eligible records. Unchanged evidence alone must not cause another score-only paid call.
 
 TypeSafe/Jev must not decide whether a student answer addresses a gap, set the fit category, or change the qualitative recommendation. Those tasks belong to the OpenAI-supported, single-opportunity Reason and Decide review under controller validation. A student answer does not independently verify a qualification; preserve unsupported gaps until the confirmed profile supports them. If structured scoring evidence is insufficient, show an explicit unavailable or stale state without blocking the saved qualitative review. A deterministic **Not interested** or **Unsure** response does not trigger scoring.
 
