@@ -33,7 +33,7 @@ The local-first system should:
 
 The system is an internship-preparation assistant, not an autonomous job applicant. It has no application-submission capability.
 
-An optional **owner-only Codex Sites pilot** is specified in [`runtime/codex-sites-private-pilot.md`](../runtime/codex-sites-private-pilot.md). It is a separate hosted variant, not a replacement for the local application. The current Site supports manual collection and confirmed student setup; its cloud Daily Run has been removed for now.
+The separate hosted variant began as an **owner-only Codex Sites pilot** specified in [`runtime/codex-sites-private-pilot.md`](../runtime/codex-sites-private-pilot.md). Its student-facing release requirements are in [`runtime/codex-sites-student-release.md`](../runtime/codex-sites-student-release.md). It is not a replacement for the local application. The Site supports manual collection and confirmed student setup; its cloud Daily Run has been removed for now.
 
 Collection reset is a confirmed local-controller operation, not an agent workflow stage or model decision.
 
@@ -63,7 +63,7 @@ When a tracked opportunity needs student information, confirmation, or an applic
 
 When the student enables local daily collection, the local controller triggers the same production workflow once per day at the configured local time while the application is running.
 
-The current owner-only hosted Site has no Daily Run trigger or schedule controls. A future hosted schedule would require a new owner decision, supported trigger, and verification before this mode could be enabled there.
+The hosted Site has no Daily Run trigger or schedule controls. A future hosted schedule would require a new owner decision, supported trigger, and verification before this mode could be enabled there.
 
 Manual and scheduled collection use the same discovery workflow, policies, verified student context, duplicate-prevention rules, decision process, action rules, verification requirements, and operational memory. A targeted opportunity update uses the same core workflow and safeguards but scopes **SENSE** to the new student-supplied information and existing posting evidence rather than invoking web discovery. No trigger expands the agent's authority.
 
@@ -138,7 +138,7 @@ The agent works with:
 - on-demand public interview-question and process research with labeled preparation drafting capability; and
 - private local storage for prepared application templates.
 
-The student chooses the notification recipient in the local dashboard. The current local API implementation creates verified local previews only. The approved hosted-pilot transport uses Microsoft Graph delegated `Mail.Send` for the connected owner's own address; it must keep authorization secrets out of the repository, browser, spreadsheet, and operational memory. Provider acceptance must not be described as confirmed delivery.
+The student chooses the notification recipient in the local dashboard. The current local API implementation creates verified local previews only. The hosted student Site currently sends no live email. Any future per-student hosted notification transport requires separate approval and secure authorization; provider acceptance must not be described as confirmed delivery.
 
 The [`application-material-prep`](skills/application-material-prep/SKILL.md) Skill prepares evidence-grounded templates, and the [Local Application Materials tool](tools/local-application-materials.md) stores verified draft artifacts under the Git-ignored `data/local/` runtime folder. These capabilities do not create an application-submission path.
 

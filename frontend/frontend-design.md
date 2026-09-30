@@ -10,7 +10,7 @@ The interface should be deliberately simple, friendly, and visually distinctive.
 
 A persistent local-status label should make clear that the application and operational data are running locally.
 
-The sections below describe the local dashboard unless a hosted exception is stated. The approved owner-only Sites pilot is a separate interface variant described under **Owner-only hosted pilot** below. It must not show a local-status label or local file path as though the Site were running on the student's computer.
+The sections below describe the local dashboard unless a hosted exception is stated. The hosted student Site is a separate interface variant described under **Hosted student Site** below. It must not show a local-status label or local file path as though the Site were running on the student's computer.
 
 ## Runtime connection
 
@@ -30,7 +30,7 @@ Bounded model-supported discovery and assessment
 
 The controller should load only the task-relevant specifications and context, submit a bounded API request, validate the structured result, perform permitted local actions, and translate controller/API/tool milestones into dashboard status. The model cannot write local data or approve consequential actions. Detailed runtime behavior belongs in `runtime/openai-api-runtime.md`.
 
-The hosted variant uses an authenticated Sites dashboard and hosted deterministic controller, with private durable persistence and separately authorized Graph mail. It must not call the laptop's loopback controller or read its files. Detailed hosted behavior belongs in `runtime/codex-sites-private-pilot.md`.
+The hosted variant uses an authenticated Sites dashboard and hosted deterministic controller with private durable persistence. Live email is disabled in the current student release; a separately approved provider connection would be required before any hosted send. It must not call the laptop's loopback controller or read its files. Current audience and safeguards belong in `runtime/codex-sites-student-release.md`; the earlier private-pilot design remains historical context.
 
 **Reset Collection** is a separate local-controller operation. It must not invoke the API because no model reasoning is required to archive and reinitialize local data.
 
@@ -51,7 +51,7 @@ Indicators should link or filter to the relevant records. Urgency and failure mu
 
 Keep the top workbench compact on desktop: show setup readiness, the verified provider-connection state, the primary **Collect Opportunities** control, and a small text-led agent status without making the student scroll past a large introductory panel to reach the collection. The pixel character supports this status; it must not consume more attention than the current opportunities. Put detailed completed-run metrics in a compact, expandable latest-run area rather than repeating the same result in the agent-status panel and a second large block.
 
-For the owner-only hosted pilot, give the workbench a cooler, more contemporary undergraduate tone: a crisp ink-and-cool-neutral foundation, vivid but restrained teal/cyan accents, succinct action-oriented copy, and a few playful details. Keep opportunity evidence and next steps more prominent than decoration; maintain readable contrast and reduced-motion support.
+For the hosted student Site, give the workbench a cooler, more contemporary undergraduate tone: a crisp ink-and-cool-neutral foundation, vivid but restrained teal/cyan accents, succinct action-oriented copy, and a few playful details. Keep opportunity evidence and next steps more prominent than decoration; maintain readable contrast and reduced-motion support.
 
 On wider screens, let the agent-status panel fill the workbench height beside the setup and collection controls, avoiding an empty gap below it. Keep its current message near the top so an expanded student-setup form does not push the status out of view. On narrow screens, return to a compact stacked panel.
 
@@ -78,9 +78,9 @@ Use the visible link text **Source** regardless of the provider's or career site
 
 Do not expose a standalone **Fit** column. Fit assessment remains structured agent evidence, but the dashboard should present what a student can act on: the recommendation, why the role aligns, verified matches, genuine gaps, and exact clarification needed. Translate internal `INSUFFICIENT INFORMATION` into **Needs clarification** and show the missing facts.
 
-In the owner-only hosted pilot, a **Preliminary fit** indicator should appear for each evidence-ready opportunity beside—not instead of—the recommendation and evidence bullets. Show the rounded 0–100 score, TypeSafe/Jev attribution, and a short explanation that it reflects evidence alignment, not a hiring probability. Show **Score unavailable** with a specific reason when source or profile evidence is insufficient or scoring fails; a failed required score makes that update partial and offers a retry. Show **Needs reassessment** when the saved score belongs to an older evidence version or student setup. Never imply that a higher score authorizes an application or changes the student's decision. A score-only refresh does not generate a material-update email.
+In the hosted Site, a **Preliminary fit** indicator should appear for each evidence-ready opportunity beside—not instead of—the recommendation and evidence bullets. Show the rounded 0–100 score, TypeSafe/Jev attribution, and a short explanation that it reflects evidence alignment, not a hiring probability. Show **Score unavailable** with a specific reason when source or profile evidence is insufficient or scoring fails; a failed required score makes that update partial and offers a retry. Show **Needs reassessment** when the saved score belongs to an older evidence version or student setup. Never imply that a higher score authorizes an application or changes the student's decision. A score-only refresh does not generate a material-update email.
 
-In that pilot, display current, valid preliminary scores from high to low by default. Put unscored, stale, failed, or other-profile records after scored records and label their status; never treat an unavailable score as zero. Offer a **Recently reviewed** alternative. Sorting changes only the dashboard view, not recommendations, spreadsheet rows, or operational history. Use a stable secondary order for equal scores.
+In the hosted Site, display current, valid preliminary scores from high to low by default. Put unscored, stale, failed, or other-profile records after scored records and label their status; never treat an unavailable score as zero. Offer a **Recently reviewed** alternative. Sorting changes only the dashboard view, not recommendations, spreadsheet rows, or operational history. Use a stable secondary order for equal scores.
 
 The student should be able to search, filter, sort, and open an opportunity without losing the current dashboard context.
 
@@ -107,6 +107,8 @@ Require the student to enter `RESET` before enabling the final **Archive and Res
 ## Collect Opportunities experience
 
 Provide a prominent **Collect Opportunities** button.
+
+Beside the button, remind students that opportunity matching may take about five minutes. Treat this as an approximate expectation, not a countdown or completion guarantee; continue to show actual elapsed time and meaningful progress while a run is active.
 
 Place a **Student Setup** section before the collection control. It should show whether the active package is a **Confirmed real-student setup**, an explicitly selected **Synthetic demonstration setup**, or **Incomplete**. It must not silently activate synthetic defaults. The section should accept `.docx`, `.pdf`, `.md`, and `.txt` resume files up to 5 MB, upload them only to the loopback local controller, and explain that no external parsing service is used.
 
@@ -263,7 +265,7 @@ The dashboard should continue to provide **Collect Opportunities** independently
 
 Clearly explain that the initial scheduler runs only while the local application is active. If the computer or application was unavailable at the scheduled time, display **Missed Run** when the application next starts; never imply that the run occurred. Detailed behavior belongs in `runtime/local-schedule.md`.
 
-The current owner-only hosted Site has no Daily Run control. Collection starts only from **Collect Opportunities**. The removed GitHub Actions design is retained in `runtime/github-cloud-schedule.md` for possible future review, not as a current UI requirement. Never display an invented scheduled run. This does not change the local application's separate schedule controls.
+The current hosted student Site has no Daily Run control. Collection starts only from **Collect Opportunities**. The removed GitHub Actions design is retained in `runtime/github-cloud-schedule.md` for possible future review, not as a current UI requirement. Never display an invented scheduled run. This does not change the local application's separate schedule controls.
 
 ## Pixel-style agent character
 
@@ -333,19 +335,19 @@ Show:
 
 Distinguish local preview creation, provider submission, and confirmed delivery. Do not display API keys, sender identity, provider credentials, tokens, or secret configuration.
 
-In the owner-only hosted pilot, the recipient is the connected Outlook owner's confirmed address. Show **Outlook disconnected**, **Ready to notify**, **Submitted**, **Failed**, or **Outcome unknown** from verified state; do not equate a saved recipient with authorization. Provide a clear Connect/Disconnect Outlook action when the hosted email group is implemented, never a form asking for an Outlook password. An Outlook `202 Accepted` is **Submitted**, not **Delivered**. When mail is not connected, show why no live notification was sent and preserve the material collection update.
+The current hosted student Site sends no live email; state that plainly. A future separately approved per-student email group should show **Disconnected**, **Ready to notify**, **Submitted**, **Failed**, or **Outcome unknown** from verified state; it must not equate a saved recipient with authorization or request an email password. Provider acceptance is **Submitted**, not **Delivered**. When mail is not connected, preserve the material collection update and explain why no notification was sent.
 
 Show separate, compact **Check OpenAI** and **Check Jev** controls near the hosted collection action. Each displays its own sanitized result and checks only the server-side provider configuration: OpenAI confirms configured-model access; TypeSafe resolves an available Jev release or alias through its authenticated model-list endpoint. Neither check generates content, scores an opportunity, exposes credentials, or treats a configured key as a successful connection. Both verified checks are required before hosted collection starts. Explain that a model-list check does not prove a later scoring request will succeed.
 
-## Owner-only hosted pilot
+## Hosted student Site
 
-The hosted dashboard must visibly identify itself as a **Private pilot** and show the actual deployment/data mode. Its first checkpoint supports manually initiated **Collect Opportunities** with the explicitly selected synthetic demonstration profile. Live public-posting results may be shown, but profile matches and draft content must be labeled synthetic. Do not silently activate real setup, copy local records, or show sample opportunities as results of a failed live run.
+The hosted dashboard must identify itself as a student-facing Site and show the actual deployment/data mode. Require sign-in and keep each student's setup, collection, drafts, downloads, and reset archives separate. Offer an explicitly selected synthetic demonstration profile as a secondary option; label its assessments synthetic. Real setup requires student confirmation. Do not copy the owner's pilot records into a student's account or show sample opportunities as results of a failed live run. Follow the audience and usage safeguards in `runtime/codex-sites-student-release.md`.
 
 Show a timestamped **Download current spreadsheet** control only when an `.xlsx` generated from verified hosted current records is available. Do not show **Open local spreadsheet** or a laptop path. Label hosted capabilities according to their verified state. Do not show a Daily Run setup or status panel while cloud scheduling is removed; leave the corresponding local-app controls unchanged.
 
-Once hosted Reset Collection is verified, place its secondary control beside the hosted collection download. Explain that it archives the owner's current opportunities, related history, responses, and Word drafts before clearing the active collection; it keeps student setup, secrets, and earlier reset archives. Require the owner to type `RESET` and prevent reset during another workflow. After success, refresh the current collection and run/activity views and show an owner-only archive download with its creation time. Retain archives until the owner explicitly deletes them. An archive download supports recovery, but the dashboard must not imply that one-click restore is available.
+Once hosted Reset Collection is verified, place its secondary control beside the hosted collection download. Explain that it archives only the signed-in student's current opportunities, related history, responses, and Word drafts before clearing that student's active collection; it keeps student setup, server-side secrets, and earlier reset archives. Require the student to type `RESET` and prevent reset during another workflow. After success, refresh the current collection and run/activity views and show that student's private archive download with its creation time. Retain archives until that student explicitly deletes them. An archive download supports recovery, but the dashboard must not imply that one-click restore is available.
 
-After the Outlook group is implemented, live email status must distinguish a verified collection update, an attempted send, provider acceptance, unknown outcome, and independently confirmed delivery. The pixel character may show **Sending Notifications** only during an actual send attempt and must not celebrate an unconfirmed outcome. The Site must remain owner-only; a public or student-shared dashboard requires a separate design and approval.
+Live hosted email is disabled for the student release. If a later, separately approved per-student email group is implemented, status must distinguish a verified collection update, an attempted send, provider acceptance, unknown outcome, and independently confirmed delivery. The pixel character may show **Sending Notifications** only during an actual send attempt and must not celebrate an unconfirmed outcome.
 
 ## Actionable next steps and student responses
 
@@ -463,7 +465,7 @@ The interface should:
 - support zoom, reduced motion, and narrow browser windows; and
 - avoid exposing credentials, technical secrets, unnecessary personal information, or raw filesystem complexity.
 
-For the owner-only hosted pilot's visual refinement, retain the existing teal identity while shifting the surrounding palette toward cool neutrals, deep ink, and limited lively accent color. Reduce repeated heavy borders and shadows. Use a clear type hierarchy, generous but economical spacing, one dominant primary action at a time, and gentle hover/pressed feedback. Preserve the distinct shapes and names of Collect, Update Opportunity, Prepare materials, Practice Interview, and Apply. Verify the ready, active, partial, failed, awaiting-input, and completed views at desktop and narrow widths before publication; a visual redesign must not change workflow behavior, stored data, model-call limits, or authority boundaries.
+For the hosted Site's visual refinement, retain the existing teal identity while shifting the surrounding palette toward cool neutrals, deep ink, and limited lively accent color. Reduce repeated heavy borders and shadows. Use a clear type hierarchy, generous but economical spacing, one dominant primary action at a time, and gentle hover/pressed feedback. Preserve the distinct shapes and names of Collect, Update Opportunity, Prepare materials, Practice Interview, and Apply. Verify the ready, active, partial, failed, awaiting-input, and completed views at desktop and narrow widths before publication; a visual redesign must not change workflow behavior, stored data, model-call limits, or authority boundaries.
 
 ## Future implementation boundary
 

@@ -65,6 +65,11 @@ The separately approved owner-only Codex Sites pilot is defined in
 implementation, read that specification in addition to the relevant
 local specifications. Keep the local app operational; do not make its
 filesystem paths or process timer appear to work in the hosted Site.
+The student-facing access and per-user data boundary are specified in
+`runtime/codex-sites-student-release.md`; read and verify those release
+requirements before widening the Site audience. The private-pilot document
+remains the historical baseline where the student-release document does not
+supersede it.
 The hosted cloud Daily Run has been removed for now. Do not recreate a
 GitHub trigger, hosted schedule endpoint, or Site schedule controls without
 a new owner decision; the local-only scheduler is unaffected.

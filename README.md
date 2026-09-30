@@ -2,7 +2,7 @@
 
 > **Current status:** The local prototype uses a deterministic workflow controller with the OpenAI Responses API for bounded reasoning and general public web discovery. It provides a local dashboard, spreadsheet and memory operations, actionable student-response controls, review-only application-template preparation, local scheduling, and verified notification previews after material updates. Application submission and employer communication are not capabilities of this system.
 
-> **Hosted pilot status:** The owner-only Codex Site supports manual collection and confirmed student setup. Its cloud Daily Run has been removed for now; live Outlook notification remains disabled. The hosted Site is separate from the local application and its local-only scheduler.
+> **Hosted Site status:** The existing owner-only Codex Site is being prepared for signed-in student access. Its cloud Daily Run has been removed for now; live Outlook notification remains disabled. The hosted Site is separate from the local application and its local-only scheduler. Audience expansion is conditional on the isolation and usage checks in the student-release specification.
 
 ## What this project is
 
@@ -53,6 +53,8 @@ Detailed responsibilities for each stage are defined in the workflow task specif
 - [Production agent overview](agent/agent.md)
 - [OpenAI API runtime architecture](runtime/openai-api-runtime.md)
 - [Owner-only Codex Sites pilot design](runtime/codex-sites-private-pilot.md)
+- [Codex Sites student-release design](runtime/codex-sites-student-release.md)
+- [Hosted Site source mirror](site/README.md) — application source and tests without the owner's Sites deployment identity or credentials
 - [Local daily-schedule specification](runtime/local-schedule.md)
 - [Workflow task specifications](agent/workflow-task-specs/)
 - [Tool specifications](agent/tools/)
@@ -94,11 +96,11 @@ The test suite exercises structured local memory and spreadsheet operations in t
 
 Student update notifications use exact deterministic plain-text messages. The initial API runtime writes private local previews and records them as `PREVIEWED`, not sent or delivered. Live email requires a separately approved provider integration.
 
-The approved hosted-pilot design uses a separate Microsoft Graph Outlook authorization to send only to the connected owner's confirmed address after a verified material update. This does not enable live email in the local app or make a Codex Outlook plugin available to the Site. Provider acceptance is `SUBMITTED`, not confirmed delivery. The Site will use the same authorized OpenAI API key only after the owner configures it separately as a server-side Sites secret; the ignored local key file and `data/local/` are never copied to hosting.
+The current hosted student Site has live email disabled. The earlier owner-pilot design considered a separate Microsoft Graph Outlook authorization; that proposal does not enable email for students or make a Codex Outlook plugin available to the Site. The Site uses separately configured server-side OpenAI and Jev secrets; the ignored local key file and `data/local/` are never copied to hosting. The student release limits owner-funded runs and keeps each signed-in student's data separate.
 
 The dashboard receives observable controller, API, and local-tool milestones and presents only business-level states. The interface does not request or display private chain-of-thought.
 
 The frontend uses a compact operational-workspace layout that prioritizes the current collection, verified run results, next actions, and attention states. Its supplemental pixel agent uses distinct observable animations for retrieval, web search, candidate review, ranking, fit assessment, local actions, collection updates, notifications, verification, memory, completion, and attention states. Reduced-motion settings replace those animations with static state poses.
 
-The API key remains server-side and is read only from the environment or ignored `.env`. Each student must use an independently authorized API key; an instructor key must never be distributed with the repository.
+For the local installation, the API key remains server-side and is read only from the environment or ignored `.env`; each student needs independently authorized local API access. In the hosted Site, the owner funds bounded student runs with Site-held secrets. Those keys are never distributed with the repository or browser assets.
 

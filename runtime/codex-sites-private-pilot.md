@@ -4,6 +4,8 @@
 
 This is a **design for an owner-only hosted pilot**, not a claim that the existing local app has been deployed. The local-first application and its `data/local/` files remain intact. The hosted pilot must not silently copy local runtime data, secrets, resumes, or prior opportunities to Sites.
 
+This document records the earlier private-pilot baseline. The separately approved [student-release specification](codex-sites-student-release.md) governs any later audience expansion and supersedes owner-only wording only after its isolation and cost controls are verified.
+
 The first hosted checkpoint used explicitly selected **synthetic demonstration context** and a manual **Collect Opportunities** trigger. The current private Site also supports confirmed real-student setup, but no automatic Daily Run. Synthetic-profile assessments must remain labeled synthetic. The removed cloud schedule is a deferred design, not a current control or trigger.
 
 ## Runtime boundary

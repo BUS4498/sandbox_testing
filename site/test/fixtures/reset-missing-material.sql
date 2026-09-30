@@ -1,0 +1,3 @@
+-- Deliberately references an absent R2 file; reset must abort without clearing rows.
+INSERT INTO application_materials (id,owner_id,opportunity_id,request_id,type,title,file_name,object_key,content_hash,placeholders_json,opportunity_version,profile_mode,created_at,status)
+VALUES ('55555555-5555-4555-8555-555555555555','reset-smoke-owner','11111111-1111-4111-8111-111111111111','66666666-6666-4666-8666-666666666666','TAILORED_RESUME','Synthetic draft','synthetic.docx','materials/not-the-owner/missing.docx','invalid','[]',1,'SYNTHETIC_DEMONSTRATION','2026-09-28T00:00:04.000Z','DRAFT_REVIEW_REQUIRED');
