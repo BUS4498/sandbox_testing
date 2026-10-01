@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 import { discoveryPrompt, realAssessmentPrompt } from "./prompt";
 import { HostedOpenAIError, readBackgroundAssessment, readBackgroundDiscovery, retrieveBackground, startBackgroundAssessment, startBackgroundDiscovery, type ValidatedResult } from "./openai";
-import { materialFields, toRecord, type RunSummary, type Selection } from "./collect";
+import { deduplicateSelectedDiscovery, materialFields, toRecord, type RunSummary, type Selection } from "./collect";
 import { appendEvent, canonicalUrl, collectionAllowance, findDuplicate, finishRun, getStudentSetup, latestRun, listOpportunities, saveOpportunity, startRun, updateRun, UsageLimitError, type RunRecord, type StudentSetup } from "./store";
 import { isEvidenceBackedApplicationUrl, postingAdmissionIssue } from "./source-links.js";
 import { availableJevModel, scoreSavedOpportunity } from "./jev";
@@ -233,6 +233,9 @@ export async function advanceResumableCollection(ownerId: string): Promise<RunRe
           if (phaseTimedOut(job)) throw new HostedOpenAIError("Public discovery is still running beyond the review window. The run was stopped without recording unverified results.", "DISCOVERY_TIMEOUT");
           return run;
         }
+        const distinct = deduplicateSelectedDiscovery(discovery.result);
+        discovery.result = distinct.result;
+        job.summary.duplicatesIgnored += distinct.removed;
         job.discovery = discovery.result;
         job.evidenceUrls = discovery.evidenceUrls;
         job.observedSearches = discovery.observedSearches;

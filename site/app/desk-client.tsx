@@ -151,8 +151,9 @@ export default function DeskClient({ previewStatus }: { previewStatus?: Status }
   const scoreUpdate = run?.kind === "TARGETED_UPDATE" ? scoreUpdateMessage(summary?.fitScore) : null;
   const selections = Array.isArray(summary?.selected) ? summary.selected as Selection[] : [];
   const rawIssues = Array.isArray(summary?.unresolvedIssues) ? summary.unresolvedIssues as string[] : [];
+  const verifiedCollectionChanges = count(summary, "added") + count(summary, "updated") > 0;
   const issues = run?.kind === "COLLECTION" && ["SUCCESS", "PARTIAL_SUCCESS"].includes(run.status)
-    ? finalAssessmentIssues([], rawIssues) as string[]
+    ? finalAssessmentIssues(verifiedCollectionChanges ? rawIssues : [], verifiedCollectionChanges ? [] : rawIssues) as string[]
     : rawIssues;
   const attentionCount = records.filter(studentResponseNeeded).length;
   const sourceCheckCount = records.filter(sourceCheckPending).length;
@@ -161,6 +162,7 @@ export default function DeskClient({ previewStatus }: { previewStatus?: Status }
   const backfillRun = run?.kind === "FIT_BACKFILL";
   const materialRun = run?.kind === "MATERIAL_PREP";
   const interviewRun = run?.kind === "INTERVIEW_PRACTICE";
+  const roleRun = run?.kind === "ROLE_SUGGESTIONS";
   return <main className="desk">
     {preview && <p className="preview-banner" role="status">Visual preview with synthetic examples. Collection, updates, downloads, and external links are disabled here; the live Site has not changed.</p>}
     <header className="desk-header"><div className="brand-line"><span className="brand-mark">IP</span><div><strong>Internship Prep Desk</strong><small>Signed-in student workspace · {status?.setup?.mode === "REAL" ? "confirmed student setup" : status?.setup?.mode === "SYNTHETIC_DEMONSTRATION" ? "synthetic demonstration" : "setup required"}</small></div></div><span className="privacy-pill">Your workspace</span></header>
@@ -185,10 +187,11 @@ export default function DeskClient({ previewStatus }: { previewStatus?: Status }
     </section>
     <section className="summary" aria-label="Collection summary"><div><span>Tracked opportunities</span><strong>{records.length}</strong></div><div><span>New this run</span><strong>{count(summary, "added")}</strong></div><div><span>Your input needed</span><strong>{attentionCount}</strong></div><div><span>Source checks pending</span><strong>{sourceCheckCount}</strong></div></section>
     {run && <details key={run.id} className="run-report" open={run.status === "FAILURE" || run.status === "PARTIAL_SUCCESS" ? true : undefined}>
-      <summary className="run-report-summary"><span className="eyebrow">LATEST WORKFLOW</span><strong>{interviewRun ? "Interview practice" : materialRun ? "Word draft preparation" : backfillRun ? "Existing fit scores" : targeted ? "Opportunity update" : "Today’s collection"}</strong><span className={`run-badge ${run.status.toLowerCase()}`}>{run.status.replaceAll("_", " ")}</span><small>{elapsed(run.startedAt,run.finishedAt)} · View run details</small></summary>
+      <summary className="run-report-summary"><span className="eyebrow">LATEST WORKFLOW</span><strong>{roleRun ? "Resume-based role suggestions" : interviewRun ? "Interview practice" : materialRun ? "Word draft preparation" : backfillRun ? "Existing fit scores" : targeted ? "Opportunity update" : "Today’s collection"}</strong><span className={`run-badge ${run.status.toLowerCase()}`}>{run.status.replaceAll("_", " ")}</span><small>{elapsed(run.startedAt,run.finishedAt)} · View run details</small></summary>
       <div className="run-report-body">
         <p>{run.detail}</p>
-        {interviewRun ? <div className="targeted-report"><div><span>Searches</span><strong>{count(summary,"searchesPerformed")}</strong><span>Reported questions</span><strong>{count(summary,"reported")}</strong><span>Process details</span><strong>{count(summary,"process")}</strong><span>Likely practice</span><strong>{count(summary,"likely")}</strong><span>Duration</span><strong>{elapsed(run.startedAt,run.finishedAt)}</strong></div></div>
+        {roleRun ? <div className="targeted-report"><div><span>Suggestions</span><strong>{count(summary,"suggestionsReturned")}</strong><span>Web searches</span><strong>0</strong><span>Duration</span><strong>{elapsed(run.startedAt,run.finishedAt)}</strong></div><p>Choose and add roles in student setup, then save. Suggestions alone do not change your preferences or collection.</p></div>
+          : interviewRun ? <div className="targeted-report"><div><span>Searches</span><strong>{count(summary,"searchesPerformed")}</strong><span>Reported questions</span><strong>{count(summary,"reported")}</strong><span>Process details</span><strong>{count(summary,"process")}</strong><span>Likely practice</span><strong>{count(summary,"likely")}</strong><span>Duration</span><strong>{elapsed(run.startedAt,run.finishedAt)}</strong></div></div>
           : materialRun ? <div className="targeted-report"><div><span>Requested</span><strong>{count(summary,"requested")}</strong><span>Prepared</span><strong>{Array.isArray(summary?.prepared) ? summary.prepared.length : 0}</strong><span>Duration</span><strong>{elapsed(run.startedAt,run.finishedAt)}</strong></div>{Array.isArray(summary?.unresolvedIssues) && (summary.unresolvedIssues as string[]).map((issue,index) => <p key={index} className="report-note">{issue}</p>)}</div>
           : backfillRun ? <div className="targeted-report"><div><span>Examined</span><strong>{count(summary,"examined")}</strong><span>TypeSafe calls</span><strong>{count(summary,"providerCalls")}</strong><span>Scored</span><strong>{count(summary,"scored")}</strong><span>Duration</span><strong>{elapsed(run.startedAt,run.finishedAt)}</strong></div>{Array.isArray(summary?.notes) && (summary.notes as string[]).map((note,index) => <p key={index} className="report-note">{note}</p>)}</div>
           : targeted ? <div className="targeted-report"><div><span>Searches</span><strong>0</strong><span>Outcome</span><strong>{String(summary?.outcome ?? (active ? "Processing" : "Unknown")).replaceAll("_", " ")}</strong><span>Duration</span><strong>{elapsed(run.startedAt,run.finishedAt)}</strong></div>{typeof summary?.responseExplanation === "string" && <p>{summary.responseExplanation}</p>}</div>

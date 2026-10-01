@@ -37,3 +37,18 @@ test("headings fused to prior PDF text become separate resume sections", () => {
   assert.ok(lines.indexOf("ADDITIONAL SKILLS & INTERESTS") < lines.findIndex((line) => line.startsWith("Languages and Technical Skills")));
   assert.ok(lines.includes("• Minors: Computer Science, Psychology, Chinese"));
 });
+
+test("PDF letter spacing in section titles does not swallow Projects or Work Experience into a bullet", () => {
+  const source = "EDUCATION\nExample University\n• Relevant coursework: Python\nP ROJECTS\nForecast workflow\n• Built a prototype.\nTECHNICAL SKILLS\n• Python and R\nWORK E XPERIENCE\nCampus Assistant\n• Managed inventory.\nLEADERSHIP AND INVOLVEMENT\nStudent Club";
+  const lines = resumeLines(source);
+  assert.deepEqual(lines.filter(isResumeSectionHeading), ["EDUCATION", "PROJECTS", "TECHNICAL SKILLS", "WORK EXPERIENCE", "LEADERSHIP AND INVOLVEMENT"]);
+  assert.ok(lines.includes("• Relevant coursework: Python"));
+  assert.ok(lines.includes("• Python and R"));
+  assert.ok(lines.includes("Campus Assistant"));
+});
+
+test("legacy PDF bullet glyph becomes a real bullet without changing accomplishment wording", () => {
+  const lines = resumeLines("EXPERIENCE\nCampus Office\n\uF0B7 Built 5+ Excel trackers.\n\uF0B7 Documented onboarding tasks.");
+  assert.ok(lines.includes("• Built 5+ Excel trackers."));
+  assert.ok(lines.includes("• Documented onboarding tasks."));
+});

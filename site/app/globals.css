@@ -240,7 +240,7 @@ h1 { margin: 0 0 17px; font-size: clamp(34px,4vw,56px); line-height: 1.02; lette
 .resume-choose-button:disabled { opacity: .5; cursor: not-allowed; }
 .setup-file-name { margin: 7px 0 0 !important; }
 .role-add-row { display: flex; gap: 9px; margin-top: 7px; }
-.role-add-row input { min-width: 0; flex: 1; padding: 10px 11px; border: 1px solid #bccfc8; border-radius: 9px; background: white; color: #18383e; font-size: 14px; }
+.role-add-row input,.role-add-row select { min-width: 0; width: 100%; flex: 1; padding: 10px 11px; border: 1px solid #bccfc8; border-radius: 9px; background: white; color: #18383e; font-size: 14px; }
 .role-add-row button { flex: none; min-height: 42px; padding: 9px 15px; border: 1px solid #07524f; border-radius: 9px; background: #0e716c; color: white; font-size: 14px; font-weight: 800; cursor: pointer; }
 .role-add-row button:hover { background: #075b57; }
 .role-add-row button:disabled { opacity: .5; cursor: not-allowed; }
@@ -249,6 +249,20 @@ h1 { margin: 0 0 17px; font-size: clamp(34px,4vw,56px); line-height: 1.02; lette
 .custom-role-list button { padding: 4px 7px; border-radius: 999px; color: #8e3f30; font-size: 12px; font-weight: 800; cursor: pointer; }
 .custom-role-list button:hover { background: #ffebe5; }
 .role-limit { margin: 8px 0 0 !important; font-size: 12px !important; }
+.role-suggestions { margin-top: 16px; padding: 16px; border: 1px solid #bbd9e8; border-radius: 14px; background: #f5fbff; }
+.role-suggestions h4 { margin: 0 0 7px; color: #153d53; font-size: 16px; font-weight: 800; }
+.role-suggest-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+.role-suggest-actions button { padding: 10px 14px; border-radius: 999px; border: 1px solid #1a6585; background: #e3f2fb; color: #125674; font-weight: 800; cursor: pointer; transition: background .15s ease; }
+.role-suggest-actions button:hover:not(:disabled) { background: #d0eafa; }
+.role-suggest-actions button:disabled { opacity: .55; cursor: not-allowed; }
+.role-suggest-actions small,.role-help { color: #506e80; font-size: 12px !important; line-height: 1.5; }
+.role-suggest-actions small { flex: 1; min-width: 190px; }
+.role-suggestions button:focus-visible,.role-add-row select:focus-visible { outline: 3px solid #347ed0; outline-offset: 3px; }
+.role-evidence { margin-top: 12px; padding: 13px; border-left: 3px solid #318bb0; background: white; border-radius: 0 9px 9px 0; overflow-wrap: anywhere; }
+.role-evidence strong { font-size: 14px; color: #153d53; }
+.role-evidence span,.role-evidence small { font-size: 12px; color: #506e80; }
+.role-evidence ul { margin: 7px 0 10px; padding-left: 20px; list-style: disc; }
+.role-evidence li { font-size: 13px; line-height: 1.5; margin: 4px 0; }
 .setup-choice-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px 14px; padding: 13px; border: 1px solid #d3e2da; border-radius: 10px; background: white; }
 .setup-choice-grid label,.setup-arrangements label,.setup-confirm { color: #3f5a60; font-size: 13px; line-height: 1.4; }
 .setup-choice-grid label { display: flex; align-items: flex-start; gap: 7px; }

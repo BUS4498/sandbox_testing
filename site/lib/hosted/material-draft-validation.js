@@ -14,6 +14,18 @@ function numbersIn(value) {
   return new Set(String(value ?? "").match(NUMBER_PATTERN) ?? []);
 }
 
+// The document renderer supplies the notice, salutation, signature and review
+// section. Remove only duplicate template wrappers, never experience claims.
+export function cleanLetterBody(value) {
+  return String(value ?? "")
+    .replace(/^\s*DRAFT TEMPLATE\s*[—–-]\s*STUDENT REVIEW REQUIRED\s*/i, "")
+    .replace(/^\s*(?:\[(?:(?:Your|Student|Applicant)\s+)?(?:name|email|phone|location|date|professional link)\]\s*[|•]?\s*)+/i, "")
+    .replace(/^\s*Dear\s+[^,:\n]{1,120}[,:]\s*/i, "")
+    .replace(/\s+STUDENT (?:VERIFICATION|REVIEW) NOTES\s*[—–-]\s*NOT PART OF (?:THE )?(?:(?:COVER|APPLICATION) )?LETTER[\s\S]*$/i, "")
+    .replace(/\s+(?:Sincerely|Best regards|Kind regards),?\s*\[(?:Your|Student|Applicant)[^\]]*\][\s\S]*$/i, "")
+    .trim();
+}
+
 function normalizeLetterParagraphs(raw, evidence) {
   if (!Array.isArray(raw) || raw.length < 3 || raw.length > 5) {
     throw new Error("The cover letter needs three or four complete paragraphs.");
@@ -25,7 +37,7 @@ function normalizeLetterParagraphs(raw, evidence) {
     }
     // Evidence IDs are validated from the structured field, not printed as
     // academic-style citations in a student-facing cover letter.
-    const text = item.text.replace(/\s*\(\s*E\d+(?:\s*[,;]\s*E\d+)*\s*\)/gi, "").replace(/\s+/g, " ").trim();
+    const text = cleanLetterBody(item.text).replace(/\s*\(\s*E\d+(?:\s*[,;]\s*E\d+)*\s*\)/gi, "").replace(/\s+/g, " ").trim();
     const evidenceIds = [...new Set(item.evidenceIds.map((id) => String(id).trim().toUpperCase()))];
     if (evidenceIds.some((id) => !knownIds.has(id))) {
       throw new Error(`Cover letter paragraph ${index + 1} cites evidence outside the confirmed resume.`);
@@ -99,7 +111,9 @@ export function prepareLetterForReview(raw, evidence, verifiedPostingTitle = "")
     if (unsupportedPositions.size) {
       item.text = item.text.replace(NUMBER_PATTERN, (number, offset) => unsupportedPositions.has(offset) ? "[figure to verify]" : number);
     }
-    if (!needsEvidence(item, index, paragraphs.length) && !unsupportedPositions.size && !needsLengthReview) continue;
+    const studentClaimCheck = { ...item, text: original.replace(/\b(?:Fall|Winter|Spring|Summer)\s+((?:19|20)\d{2})\b/gi,
+      (phrase, year) => postingYears.has(year) ? phrase.replace(year, "[posting year]") : phrase) };
+    if (!needsEvidence(studentClaimCheck, index, paragraphs.length) && !unsupportedPositions.size && !needsLengthReview) continue;
     verificationNotes.push(unsupportedPositions.size
       ? `Paragraph ${index + 1}: An unsupported number was replaced by [figure to verify]. Check this proposed wording against your original resume and the posting before use: “${original}”`
       : needsLengthReview

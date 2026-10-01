@@ -7,6 +7,7 @@ export const RUN_USAGE_LIMITS = Object.freeze({
   MATERIAL_PREP: { perStudent: 5, group: "SECONDARY", siteWide: 100 },
   INTERVIEW_PRACTICE: { perStudent: 2, group: "SECONDARY", siteWide: 100 },
   FIT_BACKFILL: { perStudent: 2, group: "SECONDARY", siteWide: 100 },
+  ROLE_SUGGESTIONS: { perStudent: 5, group: "SECONDARY", siteWide: 100 },
 });
 
 // A one-time, server-verified owner claim controls the exemption. Owner starts

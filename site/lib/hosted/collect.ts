@@ -1,11 +1,31 @@
 import { discoveryPrompt, realAssessmentPrompt } from "./prompt";
-import { HostedOpenAIError, runDiscovery, runPrivateAssessment } from "./openai";
+import { HostedOpenAIError, runDiscovery, runPrivateAssessment, type ValidatedResult } from "./openai";
 import { appendEvent, canonicalUrl, findDuplicate, getStudentSetup, listOpportunities, finishRun, saveOpportunity, startRun, updateRun, type OpportunityRecord, type RunRecord, type StudentSetup } from "./store";
 import { isEvidenceBackedApplicationUrl, postingAdmissionIssue } from "./source-links.js";
 import { scoreSavedOpportunity } from "./jev";
 
 export type Selection = Awaited<ReturnType<typeof runDiscovery>>["result"]["selectedOpportunities"][number];
 export type RunSummary = { searchesPerformed: number; candidatesDiscovered: number; duplicatesOrInvalid: number; candidatesRanked: number; updatesSelected: number; added: number; updated: number; duplicatesIgnored: number; needsAttention: number; notificationsSent: number; scoresAdded: number; scoresUnavailable: number; unresolvedIssues: string[]; selectionShortfallReason: string; selected: Array<{ opportunityId: string | null; company: string; roleTitle: string; outcome: string }> };
+
+// A provider may return one posting through several sources. Eliminate only
+// exact identities before private fit reasoning and scoring; similar titles
+// without a shared posting ID still require the existing duplicate review.
+export function deduplicateSelectedDiscovery(result: ValidatedResult): { result: ValidatedResult; removed: number } {
+  const seen = new Set<string>();
+  const selectedOpportunities = result.selectedOpportunities.filter((selection: Selection) => {
+    const posting = selection.opportunity;
+    const company = posting.company.toLowerCase().normalize("NFKC").replace(/[^a-z0-9]+/g, " ").trim();
+    const keys = ["url:" + canonicalUrl(posting.postingUrl)];
+    if (selection.existingOpportunityId) keys.push("existing:" + selection.existingOpportunityId);
+    if (posting.employerPostingId) keys.push("employer:" + company + ":" + posting.employerPostingId);
+    const duplicate = keys.some(key => seen.has(key));
+    keys.forEach(key => seen.add(key));
+    return !duplicate;
+  });
+  const removed = result.selectedOpportunities.length - selectedOpportunities.length;
+  return { removed, result: { ...result, selectedOpportunities, runSummary: { ...result.runSummary,
+    duplicatesOrInvalid: Math.min(result.runSummary.candidatesDiscovered, result.runSummary.duplicatesOrInvalid + removed) } } };
+}
 
 export function materialFields(record: OpportunityRecord): Record<string, unknown> {
   return {
@@ -64,7 +84,9 @@ export async function collectOpportunities(ownerId: string): Promise<RunRecord> 
     await appendEvent(ownerId, run.id, null, "RETRIEVE", { knownOpportunityCount: known.length, profileMode: setup.mode, profileConfirmedAt: setup.confirmedAt });
     await stage(ownerId, run, "SENSE", "Searching approved public sources for internships matching the selected roles, location, and timing, with at most ten web searches.", 25);
     const discovery = await runDiscovery(discoveryPrompt(known, new Date().toISOString().slice(0, 10), setup));
-    let { result } = discovery;
+    const distinct = deduplicateSelectedDiscovery(discovery.result);
+    let { result } = distinct;
+    summary.duplicatesIgnored += distinct.removed;
     const { evidenceUrls } = discovery;
     summary.searchesPerformed = discovery.observedSearches;
     summary.candidatesDiscovered = result.runSummary.candidatesDiscovered;

@@ -58,6 +58,23 @@ function loadHandler(file) {
 const syncHandler = await import(loadHandler("collect.ts"));
 const resumableHandler = await import(loadHandler("collect-resumable.ts"));
 
+test("exact selected identities are removed before private assessment, not similar role names", () => {
+  const first = selection("https://simplify.jobs/p/first/Analyst-Intern");
+  first.opportunity.employerPostingId = "verified-job-123";
+  const crossSource = structuredClone(first);
+  crossSource.opportunity.postingUrl = "https://jobs.lever.co/example/verified-job-123";
+  const distinctJob = structuredClone(first);
+  distinctJob.opportunity.postingUrl = "https://simplify.jobs/p/other/Analyst-Intern";
+  distinctJob.opportunity.employerPostingId = "verified-job-456";
+  const input = { selectedOpportunities: [first, crossSource, distinctJob],
+    runSummary: { candidatesDiscovered: 3, duplicatesOrInvalid: 0, candidatesRanked: 3 }, unresolvedIssues: [] };
+  const output = syncHandler.deduplicateSelectedDiscovery(input);
+  assert.equal(output.removed, 1);
+  assert.deepEqual(output.result.selectedOpportunities, [first, distinctJob]);
+  assert.equal(output.result.runSummary.duplicatesOrInvalid, 1);
+  assert.equal(input.selectedOpportunities.length, 3);
+});
+
 function selection(url = "https://simplify.jobs/p/123/Analyst-Intern", status = "UNCERTAIN") {
   return {
     updateDisposition: "NEW", existingOpportunityId: null,

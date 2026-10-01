@@ -107,6 +107,16 @@ test("verified internship-period years remain readable while unsupported student
   assert.doesNotMatch(result.paragraphs[0].text, /managed 15 products/);
 });
 
+test("a source-backed internship period is not mistaken for a student achievement number", () => {
+  const result = prepareLetterForReview([
+    { text: "I am interested in this opportunity for Summer 2027 and the team's work.", evidenceIds: [] },
+    ...paragraphs.slice(1),
+  ], evidence, "Product Manager Intern 12-week full-time Summer 2027 internship; exact dates unknown.");
+  assert.ok(result.paragraphs[0].text.startsWith("I am interested"));
+  assert.match(result.paragraphs[0].text, /Summer 2027/);
+  assert.doesNotMatch(result.paragraphs[0].text, /figure to verify/);
+});
+
 test("a short model paragraph is saved as a visibly marked review draft", () => {
   const result = prepareLetterForReview([
     paragraphs[0], paragraphs[1],
@@ -129,4 +139,33 @@ test("a letter without evidence-backed body remains blocked", () => {
     { text: "My systems background will support the team's reporting and analytics.", evidenceIds: [] },
     paragraphs[3],
   ], evidence), /at least one evidence-backed body paragraph/);
+});
+
+test("template wrappers are removed without hiding an unverified experience claim", () => {
+  const result = prepareLetterForReview([
+    { text: "DRAFT TEMPLATE — STUDENT REVIEW REQUIRED Dear Example Hiring Team, I have managed enterprise AI platforms and want this internship.", evidenceIds: [] },
+    ...paragraphs.slice(1, 3),
+    { text: "Thank you for considering my application. I would welcome a conversation about the role. Sincerely, [Student name] [Email] STUDENT REVIEW NOTES — NOT PART OF THE LETTER Nothing was submitted.", evidenceIds: [] },
+  ], evidence);
+  assert.match(result.paragraphs[0].text, /^UNVERIFIED/);
+  assert.match(result.paragraphs[0].text, /I have managed enterprise AI platforms/);
+  assert.doesNotMatch(result.paragraphs.map(p=>p.text).join(" "), /Dear Example|DRAFT TEMPLATE|Sincerely|STUDENT REVIEW NOTES/);
+  assert.match(result.paragraphs[3].text, /Thank you for considering/);
+});
+
+test("duplicated contact placeholders and a colon greeting do not remain in body paragraphs", () => {
+  const result=prepareLetterForReview([{text:"[Student name] [Email] | [Phone] [Date] Dear Hiring Team: I am interested in this internship and the team's work.",evidenceIds:[]},...paragraphs.slice(1)],evidence);
+  assert.ok(result.paragraphs[0].text.startsWith("I am interested"));
+  assert.doesNotMatch(result.paragraphs[0].text,/\[Student name\]|Dear Hiring/);
+});
+
+test("applicant placeholders and explicitly separate application-letter review notes are wrappers", () => {
+  const result = prepareLetterForReview([
+    { text: "[Applicant name] [Email] | [Phone] [Date] Dear Example Hiring Team: I am interested in this internship and the team's work.", evidenceIds: [] },
+    ...paragraphs.slice(1, 3),
+    { text: "Thank you for considering my application. I would welcome a conversation about the role. Sincerely, [Applicant name] STUDENT REVIEW NOTES — NOT PART OF THE APPLICATION LETTER Confirm all qualifications before use.", evidenceIds: [] },
+  ], evidence);
+  assert.ok(result.paragraphs[0].text.startsWith("I am interested"));
+  assert.doesNotMatch(result.paragraphs.map(p => p.text).join(" "), /Applicant name|Dear Example|Sincerely|STUDENT REVIEW NOTES|Confirm all qualifications/);
+  assert.match(result.paragraphs[3].text, /Thank you for considering/);
 });

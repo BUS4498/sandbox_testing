@@ -2,6 +2,7 @@ import { env } from "cloudflare:workers";
 import { normalizeRealSetup } from "./profile-rules.js";
 import { normalizeStudentResponse } from "./student-response-rules.js";
 import { deleteOriginalResume } from "./resume-storage";
+import { deleteRoleSuggestionCache } from "./role-suggestion-cache";
 import { collectAllowanceSnapshot, INSERT_OWNER_COLLECTION_ADMISSION_SQL, INSERT_USAGE_ADMISSION_SQL, OWNER_COLLECTION_USAGE_GROUP, ownerCollectAllowance, RUN_USAGE_LIMITS, retryAfter, usageWindowStart } from "./usage-policy.js";
 import { CLAIM_OWNER_SLOT_SQL, isPairedOwner, OWNER_PAIRING_MAX_ATTEMPTS, ownerPairingWindowStart, pairingCodesMatch, RESERVE_OWNER_PAIRING_ATTEMPT_SQL, validOwnerPairingCode } from "./owner-verification-policy.js";
 
@@ -74,7 +75,7 @@ export type StudentSetup = {
 
 export type RunRecord = {
   id: string;
-  kind: "COLLECTION" | "TARGETED_UPDATE" | "FIT_BACKFILL" | "MATERIAL_PREP" | "INTERVIEW_PRACTICE";
+  kind: "COLLECTION" | "TARGETED_UPDATE" | "FIT_BACKFILL" | "MATERIAL_PREP" | "INTERVIEW_PRACTICE" | "ROLE_SUGGESTIONS";
   status: string;
   stage: string;
   detail: string;
@@ -269,7 +270,7 @@ export async function getStudentSetup(ownerId: string): Promise<StudentSetup> {
   if (!row) {
     // This owner explicitly used the synthetic pilot before setup controls
     // existed. Other users must choose a setup mode for themselves.
-    const legacy = await database().prepare("SELECT id FROM runs WHERE owner_id=? LIMIT 1").bind(ownerId).first<{ id: string }>();
+    const legacy = await database().prepare("SELECT id FROM runs WHERE owner_id=? AND kind='COLLECTION' LIMIT 1").bind(ownerId).first<{ id: string }>();
     return { mode: legacy ? "SYNTHETIC_DEMONSTRATION" : "UNSELECTED", ready: Boolean(legacy), profileText: "", preferences: null, confirmedAt: null, updatedAt: null };
   }
   const mode = row.mode === "REAL" ? "REAL" : row.mode === "SYNTHETIC_DEMONSTRATION" ? "SYNTHETIC_DEMONSTRATION" : "UNSELECTED";
@@ -308,6 +309,7 @@ export async function chooseStudentSetupMode(ownerId: string, mode: "REAL" | "SY
 }
 
 export async function deletePrivateStudentProfile(ownerId: string): Promise<StudentSetup> {
+  await deleteRoleSuggestionCache(ownerId);
   await deleteOriginalResume(ownerId);
   const now = new Date().toISOString();
   await database().prepare("INSERT INTO student_setups (owner_id,mode,profile_text,preferences_json,confirmed_at,updated_at) VALUES (?,?,?,?,?,?) ON CONFLICT(owner_id) DO UPDATE SET mode=excluded.mode,profile_text='',preferences_json='{}',confirmed_at=NULL,updated_at=excluded.updated_at")
@@ -369,7 +371,7 @@ export async function startRun(ownerId: string, kind: RunRecord["kind"] = "COLLE
   await database().prepare("INSERT OR IGNORE INTO run_locks (owner_id,run_id,expires_at) VALUES (?,?,?)").bind(ownerId, id, expiresAt).run();
   const lock = await database().prepare("SELECT run_id FROM run_locks WHERE owner_id=?").bind(ownerId).first<{ run_id: string }>();
   if (lock?.run_id !== id) throw new Error("A workflow is already in progress.");
-  const run: RunRecord = { id, kind, status: "IN_PROGRESS", stage: "RETRIEVE", detail: kind === "TARGETED_UPDATE" ? "Reading this opportunity, the saved student response, and the confirmed profile." : kind === "FIT_BACKFILL" ? "Checking existing opportunities for score-ready evidence; no web search." : kind === "MATERIAL_PREP" ? "Reading the selected opportunity and its verified fit evidence before preparing Word drafts." : kind === "INTERVIEW_PRACTICE" ? "Reading the selected opportunity before an on-demand public interview-question search." : "Reading the selected student setup and current collection.", progress: 5, startedAt, finishedAt: null, summary: null, errorCode: null };
+  const run: RunRecord = { id, kind, status: "IN_PROGRESS", stage: "RETRIEVE", detail: kind === "ROLE_SUGGESTIONS" ? "Reading reviewed resume excerpts to suggest internship role types; no web search or collection update." : kind === "TARGETED_UPDATE" ? "Reading this opportunity, the saved student response, and the confirmed profile." : kind === "FIT_BACKFILL" ? "Checking existing opportunities for score-ready evidence; no web search." : kind === "MATERIAL_PREP" ? "Reading the selected opportunity and its verified fit evidence before preparing Word drafts." : kind === "INTERVIEW_PRACTICE" ? "Reading the selected opportunity before an on-demand public interview-question search." : "Reading the selected student setup and current collection.", progress: 5, startedAt, finishedAt: null, summary: null, errorCode: null };
   let admitted = false;
   try {
     if (kind === "COLLECTION" && await isOwnerCollectionAccount(ownerId)) {
@@ -408,7 +410,7 @@ export async function finishRun(ownerId: string, run: RunRecord): Promise<void> 
 }
 
 function mapRun(row: Record<string, unknown>): RunRecord {
-  return { id: String(row.id), kind: row.kind === "TARGETED_UPDATE" ? "TARGETED_UPDATE" : row.kind === "FIT_BACKFILL" ? "FIT_BACKFILL" : row.kind === "MATERIAL_PREP" ? "MATERIAL_PREP" : row.kind === "INTERVIEW_PRACTICE" ? "INTERVIEW_PRACTICE" : "COLLECTION", status: String(row.status), stage: String(row.stage), detail: String(row.detail), progress: Number(row.progress), startedAt: String(row.started_at), finishedAt: row.finished_at ? String(row.finished_at) : null, summary: row.summary_json ? JSON.parse(String(row.summary_json)) as Record<string, unknown> : null, errorCode: row.error_code ? String(row.error_code) : null };
+  return { id: String(row.id), kind: row.kind === "ROLE_SUGGESTIONS" ? "ROLE_SUGGESTIONS" : row.kind === "TARGETED_UPDATE" ? "TARGETED_UPDATE" : row.kind === "FIT_BACKFILL" ? "FIT_BACKFILL" : row.kind === "MATERIAL_PREP" ? "MATERIAL_PREP" : row.kind === "INTERVIEW_PRACTICE" ? "INTERVIEW_PRACTICE" : "COLLECTION", status: String(row.status), stage: String(row.stage), detail: String(row.detail), progress: Number(row.progress), startedAt: String(row.started_at), finishedAt: row.finished_at ? String(row.finished_at) : null, summary: row.summary_json ? JSON.parse(String(row.summary_json)) as Record<string, unknown> : null, errorCode: row.error_code ? String(row.error_code) : null };
 }
 
 export async function latestRun(ownerId: string): Promise<RunRecord | null> {
@@ -420,7 +422,7 @@ export async function latestRun(ownerId: string): Promise<RunRecord | null> {
     if (!lock || lock.expires_at < new Date().toISOString()) {
       run.status = "FAILURE";
       run.stage = "ACTION_REQUIRED";
-      run.detail = run.kind === "TARGETED_UPDATE" ? "The prior opportunity update stopped before it finished. Your response is saved and can be retried." : run.kind === "FIT_BACKFILL" ? "The prior fit-scoring pass stopped. Pending score attempts will not be repeated automatically." : run.kind === "MATERIAL_PREP" ? "The prior Word draft preparation stopped. Check saved drafts before trying again." : run.kind === "INTERVIEW_PRACTICE" ? "The prior interview-practice search stopped. No unfinished research is presented as verified." : "The prior collection run stopped before it finished. No incomplete action is presented as successful.";
+      run.detail = run.kind === "ROLE_SUGGESTIONS" ? "The prior resume-based role suggestions stopped. Your saved role preferences were not changed." : run.kind === "TARGETED_UPDATE" ? "The prior opportunity update stopped before it finished. Your response is saved and can be retried." : run.kind === "FIT_BACKFILL" ? "The prior fit-scoring pass stopped. Pending score attempts will not be repeated automatically." : run.kind === "MATERIAL_PREP" ? "The prior Word draft preparation stopped. Check saved drafts before trying again." : run.kind === "INTERVIEW_PRACTICE" ? "The prior interview-practice search stopped. No unfinished research is presented as verified." : "The prior collection run stopped before it finished. No incomplete action is presented as successful.";
       run.finishedAt = new Date().toISOString();
       run.errorCode = "RUN_INTERRUPTED";
       await finishRun(ownerId, run);

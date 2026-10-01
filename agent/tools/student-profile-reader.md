@@ -55,7 +55,7 @@ For a real student setup, the confirmed local preference-and-constraint record m
 - work-authorization or sponsorship status, including an allowed **Unsure or prefer not to state** value; and
 - any optional additional constraints the student chooses to provide.
 
-The dashboard should offer these role choices by default without assuming that every role applies: **AI Business Analyst Intern**, **AI Systems Analyst Intern**, **Business Process Automation Analyst Intern**, **AI Product Analyst Intern**, **Business Systems Analyst Intern**, **Data or Business Intelligence Analyst Intern**, and **AI Transformation or Technology Consulting Intern**. The student must intentionally select at least one role and may add a custom role.
+The dashboard should offer these role choices by default without assuming that every role applies: **AI Business Analyst Intern**, **AI Systems Analyst Intern**, **Business Process Automation Analyst Intern**, **AI Product Analyst Intern**, **Business Systems Analyst Intern**, **Data or Business Intelligence Analyst Intern**, and **AI Transformation or Technology Consulting Intern**. The student must intentionally select at least one role. The local form may accept a custom role. In the hosted setup, the [Resume Role Suggestions tool](resume-role-suggestions.md) offers a resume-driven dropdown and explicit **Add role** action instead of free-text additional-role entry. Suggestions remain advisory until the student adds and saves them; preserve previously saved additional roles.
 
 ## Permissions
 

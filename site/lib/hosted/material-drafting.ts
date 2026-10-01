@@ -78,12 +78,13 @@ Relevant approved preparation skill:
 ${materialSkillSpec}
 
 For resumeItems, choose 4–12 distinct evidence IDs relevant to this role and identify their sections. The renderer keeps ALL confirmed content in the original order, including unselected lines. For resumeEdits, propose two to four useful in-place sentence revisions when evidence supports them, never edits merely to reach a count. Each edit must refer to a selected evidence ID, quote one exact recorded responsibility or qualification in requirement, and explain in rationale why the revised emphasis supports that requirement. Put the role-relevant action first, make the sentence clearer, and retain every source fact. You may change grammar/connectives and use neutral action equivalents (built/created/developed; analyze/analysis; document/documentation; support/supported; manage/managed; improve/improvement). Keep all other substantive vocabulary, named tools, titles, dates, numbers (including + and %), limitations, and outcomes from the SAME source line. Do not copy a missing skill or responsibility from the posting into the student's resume. Do not revise headings, contact information, or combine separate positions. Empty edits are valid ONLY when no useful safe rephrasing exists; a preserved copy will be labeled not tailored. For letterParagraphs, write three or four complete, natural paragraphs: interest in this role, concrete evidence of relevant work/projects, connection to the posting's actual responsibilities and qualifications, and a modest closing. Every factual student claim must be traceable to evidenceIds supplied for that paragraph. Both middle paragraphs must cite at least one verified evidence ID; an opening or closing with no factual student claim may use an empty evidenceIds array. Keep a short polite closing within its own paragraph, not a separate fifth paragraph. Do not assert Cal Poly attendance unless an excerpt says it; do not imply official university endorsement. Avoid unsupported enthusiasm about the employer. Use editable identity/contact placeholders in the document, not invented details. Return only the required JSON.`;
+  const conciseLetterInstruction = "\nFor cover-letter paragraphs, aim for 280–350 words TOTAL across all paragraphs. Return body prose only: no greeting, subject, date, signature, contact placeholders, DRAFT TEMPLATE notice, or student-review notes inside paragraph text. The Word template supplies those separately. Keep factual evidence citations in evidenceIds, never as printed parenthetical IDs. Preserve substantive claims and uncertainty; do not pad the closing.";
   let response: Response;
   try {
     response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: OPENAI_MODEL, input, reasoning: { effort: OPENAI_REASONING_EFFORT },
+      body: JSON.stringify({ model: OPENAI_MODEL, input: input + conciseLetterInstruction, reasoning: { effort: OPENAI_REASONING_EFFORT },
         text: { format: { type: "json_schema", name: "application_material_drafts", strict: true, schema: SCHEMA } } }),
       signal: AbortSignal.timeout(120_000),
     });
@@ -126,7 +127,7 @@ For resumeItems, choose 4–12 distinct evidence IDs relevant to this role and i
   } else { resumeItems = []; resumeEdits = []; }
   if (requested.includes("COVER_LETTER_DRAFT")) {
     try {
-      const reviewed = prepareLetterForReview(drafted.letterParagraphs ?? [], evidence, record.roleTitle);
+      const reviewed = prepareLetterForReview(drafted.letterParagraphs ?? [], evidence, `${record.roleTitle} ${record.internshipPeriod ?? ""}`);
       letterParagraphs = reviewed.paragraphs;
       for (const item of letterParagraphs) {
         assertNoDirectIdentifier([item.text], "generated cover letter");
